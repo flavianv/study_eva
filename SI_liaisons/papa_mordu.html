@@ -293,24 +293,24 @@ svg#dwg{max-width:760px}
 </div>
 
 <script>
-const J={x:430,y:212}, A_ARM=0.03, B_ARM=0.075;
+const J={x:490,y:258}, A_ARM=0.03, B_ARM=0.075;
 const NAMES={1:"Tronc de papa",2:"Bras (humérus)",3:"Avant-bras",4:"Main",5:"Montre",6:"Crâne de la fille",7:"Dents du haut",
   8:"Mâchoire (mandibule)",9:"Dents du bas",10:"Muscle masséter",11:"Barrette à cheveux"};
 const SOLUTION=[[1],[2],[3,4,5],[6,7,11],[8,9]], MUSCLE=10;
-const teeth=(y0,dir)=>[332,344,356].map(x=>`M${x} ${y0} L${x+5} ${y0+7*dir} L${x+10} ${y0} Z`).join(" ");
+const teeth=(y0,dir)=>[318,340,362,384,406,428,450].map(x=>`M${x} ${y0} L${x+7} ${y0+7*dir} L${x+14} ${y0} Z`).join(" ");
 const JAW=["8","9","10"];
 // kind: "E" parts rotate with the jaw, "D" parts drop by the tooth indent
 const PARTS=[
   {id:1,hatch:"h45w",d:"M20 70 Q20 50 40 50 H90 Q110 50 110 70 V410 H20 Z",lbl:[-5,300,[36,300]]},
   {id:2,hatch:"h45",d:"M101 128 L221 263 L239 247 L119 112 Z",lbl:[130,300,[170,188]]},
-  {id:8,hatch:"h135",k:"E",d:"M420 204 Q442 210 438 232 L432 292 Q428 306 410 306 H332 Q316 306 316 292 L318 282 H378 L402 276 Q410 270 412 260 L414 222 Z",lbl:[392,360,[390,300]]},
-  {id:9,hatch:null,k:"E",d:teeth(282,-1),lbl:[300,370,[343,279]]},
-  {id:3,hatch:null,skin:true,d:"M226 244 H480 V272 H226 Z",lbl:[260,330,[260,270]]},
-  {id:5,hatch:"hx",d:"M480 239 H496 V277 H480 Z",lbl:[530,200,[490,241]]},
-  {id:4,hatch:null,skin:true,d:"M496 246 H540 Q558 246 568 251 L600 253 Q607 258 600 263 L568 265 Q558 272 540 272 H496 Z",lbl:[610,310,[580,262]]},
-  {id:6,hatch:null,skin:true,k:"D",d:"M330 238 Q322 226 322 214 Q312 212 314 204 Q318 198 316 192 Q300 186 302 176 Q306 168 314 164 Q304 146 310 124 Q326 60 390 56 Q458 56 468 122 Q472 168 444 200 L425 206 Q400 214 380 222 L372 238 Z",lbl:[262,150,[346,204]]},
-  {id:7,hatch:null,k:"D",d:teeth(238,1),lbl:[268,214,[339,240]]},
-  {id:11,hatch:"hx",k:"D",d:"M458 74 Q452 62 462 60 L476 72 L462 84 Q452 82 458 74 Z M494 70 Q502 60 492 56 L476 72 L490 86 Q500 82 494 70 Z M472 68 H480 V76 H472 Z",lbl:[540,40,[490,64]]},
+  {id:8,hatch:null,skin:true,k:"E",d:"M292 278 H488 Q486 330 390 334 Q294 330 292 278 Z",lbl:[392,370,[390,318]]},
+  {id:9,hatch:null,k:"E",d:teeth(278,-1),lbl:[300,380,[325,275]]},
+  {id:3,hatch:null,skin:true,d:"M226 244 H500 V272 H226 Z",lbl:[260,330,[260,270]]},
+  {id:5,hatch:"hx",d:"M500 239 H516 V277 H500 Z",lbl:[560,210,[510,241]]},
+  {id:4,hatch:null,skin:true,d:"M516 246 H556 Q574 246 584 251 L614 253 Q621 258 614 263 L584 265 Q574 272 556 272 H516 Z",lbl:[622,310,[596,262]]},
+  {id:6,hatch:null,skin:true,k:"D",d:"M288 240 Q286 132 390 130 Q494 132 492 240 Z",lbl:[262,150,[312,214]]},
+  {id:7,hatch:null,k:"D",d:teeth(240,1),lbl:[262,226,[326,243]]},
+  {id:11,hatch:"hx",k:"D",d:"M438 126 Q430 112 442 110 L456 122 L442 136 Q430 134 438 126 Z M474 120 Q484 108 472 104 L456 122 L470 138 Q482 134 474 120 Z M452 118 H460 V126 H452 Z",lbl:[540,60,[468,114]]},
 ];
 const assign={}; let brush="A", fm=120, anim=null;
 const NS="http://www.w3.org/2000/svg";
@@ -327,22 +327,26 @@ for(const p of PARTS){
   const fill=el("path",{d:p.d,"fill-rule":"evenodd",fill:p.skin?"var(--skin)":"var(--sheet)"},g);
   if(p.hatch) el("path",{d:p.d,"fill-rule":"evenodd",fill:`url(#${p.hatch})`},g);
   const edge=el("path",{d:p.d,"fill-rule":"evenodd",class:"edge"},g);
-  if(p.id===6){ // face details: ponytail, hair, ear, eye, cheek
+  if(p.id===6){ // South Park-style face: hair cap, pigtails, big touching eyes, blush
     const deco=(tag,a)=>el(tag,Object.assign({"pointer-events":"none"},a),g);
-    deco("path",{d:"M458 84 Q498 66 516 96 Q530 124 510 156 Q500 170 488 168 Q502 146 500 124 Q496 100 470 96 Z",fill:"var(--hair)",stroke:"var(--ink)","stroke-width":1.8});
-    deco("path",{d:"M312 128 Q322 58 390 54 Q462 54 470 124 Q474 164 452 196 Q446 168 436 150 Q424 126 402 118 Q392 132 378 126 Q366 138 352 128 Q340 140 326 132 Q318 138 312 128 Z",fill:"var(--hair)",stroke:"var(--ink)","stroke-width":1.8,"stroke-linejoin":"round"});
-    deco("path",{d:"M340 84 Q370 66 404 70 M420 76 Q446 88 454 116",fill:"none",stroke:"var(--hair-hi)","stroke-width":4,"stroke-linecap":"round"});
-    deco("path",{d:"M414 150 Q430 146 432 164 Q432 182 416 180 Q424 170 414 166",fill:"var(--skin)",stroke:"var(--ink)","stroke-width":1.6});
-    deco("ellipse",{cx:346,cy:156,rx:7,ry:9,fill:"var(--eye)"});
-    deco("circle",{cx:343,cy:152,r:2.6,fill:"#fff"}); deco("circle",{cx:348,cy:159,r:1.2,fill:"#fff"});
-    deco("path",{d:"M339 148 l-6 -5 M342 146 l-4 -7 M346 145 l-1 -7",fill:"none",stroke:"var(--eye)","stroke-width":1.6,"stroke-linecap":"round"});
-    deco("path",{d:"M336 140 Q346 132 358 138",fill:"none",stroke:"var(--hair)","stroke-width":2.6,"stroke-linecap":"round"});
-    deco("ellipse",{cx:364,cy:184,rx:13,ry:8,fill:"var(--blush)"});
-    deco("path",{d:"M358 181 h.1 M366 179 h.1 M364 187 h.1",stroke:"var(--hair-hi)","stroke-width":2.4,"stroke-linecap":"round"});
-    deco("text",{x:246,y:188,class:"cap",style:"font-size:14px;fill:var(--cA)"}).textContent="grrr !";
+    const hair={fill:"var(--hair)",stroke:"var(--ink)","stroke-width":1.8,"stroke-linejoin":"round"};
+    deco("path",{d:"M294 196 Q262 186 252 212 Q246 238 264 248 Q262 224 294 216 Z",...hair});
+    deco("path",{d:"M486 196 Q518 186 528 212 Q534 238 516 248 Q518 224 486 216 Z",...hair});
+    deco("path",{d:"M289 204 Q290 126 390 124 Q490 126 491 204 Q476 166 452 176 Q432 158 410 172 Q390 156 370 172 Q348 158 328 176 Q304 166 289 204 Z",...hair});
+    deco("path",{d:"M330 146 Q360 134 392 134",fill:"none",stroke:"var(--hair-hi)","stroke-width":4,"stroke-linecap":"round"});
+    deco("ellipse",{cx:366,cy:200,rx:27,ry:30,fill:"#fff",stroke:"var(--ink)","stroke-width":1.8,transform:"rotate(-8 366 200)"});
+    deco("ellipse",{cx:414,cy:200,rx:27,ry:30,fill:"#fff",stroke:"var(--ink)","stroke-width":1.8,transform:"rotate(8 414 200)"});
+    deco("circle",{cx:376,cy:212,r:4.5,fill:"var(--eye)"}); deco("circle",{cx:404,cy:212,r:4.5,fill:"var(--eye)"});
+    deco("path",{d:"M348 174 l-6 -6 M356 171 l-3 -8 M424 171 l3 -8 M432 174 l6 -6",fill:"none",stroke:"var(--eye)","stroke-width":2,"stroke-linecap":"round"});
+    deco("ellipse",{cx:318,cy:224,rx:12,ry:7,fill:"var(--blush)"}); deco("ellipse",{cx:462,cy:224,rx:12,ry:7,fill:"var(--blush)"});
+    deco("text",{x:236,y:122,class:"cap",style:"font-size:14px;fill:var(--cA)"}).textContent="grrr !";
+  }
+  if(p.id===8){ // dark inside of the mouth, visible when the jaw drops
+    const m=el("path",{d:"M296 236 H484 V280 H296 Z",fill:"#5b1f28","pointer-events":"none"},null); g.insertBefore(m,g.firstChild);
   }
 
-  if(p.id===5) el("circle",{cx:488,cy:258,r:6,fill:"var(--sheet)",stroke:"var(--ink)","stroke-width":1.4},g);
+
+  if(p.id===5) el("circle",{cx:508,cy:258,r:6,fill:"var(--sheet)",stroke:"var(--ink)","stroke-width":1.4},g);
   nodes[p.id]={g,fill,edges:[edge],p,...mkLabel(p.id,p.lbl)}; hook(g,p.id);
 }
 { // muscle on top: it is the part that bites
@@ -355,7 +359,7 @@ const jg=document.getElementById("joints");
 el("circle",{cx:110,cy:120,r:11,class:"joint"},jg); el("circle",{cx:110,cy:120,r:4,fill:"var(--ink)"},jg);
 el("circle",{cx:230,cy:255,r:8,class:"joint"},jg);
 el("circle",{cx:J.x,cy:J.y,r:7,class:"joint"},jg);
-[[128,112,"S"],[210,238,"K"],[446,206,"J"]].forEach(([x,y,t])=>el("text",{x,y,class:"lbl",style:"font-size:13px;fill:var(--accent)"},jg).textContent=t);
+[[128,112,"S"],[210,238,"K"],[496,296,"J"]].forEach(([x,y,t])=>el("text",{x,y,class:"lbl",style:"font-size:13px;fill:var(--accent)"},jg).textContent=t);
 
 function paint(id){if(brush)assign[id]=brush;else delete assign[id];status("");render()}
 const tbody=document.getElementById("nomen");
@@ -383,7 +387,7 @@ function render(){
   for(const id in nodes){
     const n=nodes[id],p=n.p;
     if(n.muscle){
-      const [mx,my]=rot(432,290,jawA), x0=448,y0=168+indent, k=8, pts=[];
+      const [mx,my]=rot(474,302,jawA), x0=470,y0=208+indent, k=8, pts=[];
       for(let i=0;i<=k;i++){const t=i/k,x=x0+(mx-x0)*t,y=y0+(my-y0)*t,w=(i===0||i===k)?0:(i%2?7:-7)*(1+fm/400);pts.push(`${x+w} ${y}`)}
       const d="M"+pts.join(" L"); n.muscle.forEach(e=>e.setAttribute("d",d));
       n.muscle[0].style.stroke=assign[id]?`var(--c${assign[id]})`:"var(--cA)";
