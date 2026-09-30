@@ -1,0 +1,13 @@
+# Render Blueprint: static site for Eva's notes on Engineering.
+# Render runs the build on each push to the default branch and serves website/dist.
+services:
+  - type: web
+    name: evas-notes-engineering
+    runtime: static
+    buildCommand: node website/build.mjs
+    staticPublishPath: website/dist
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=300
