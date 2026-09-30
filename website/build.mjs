@@ -40,6 +40,7 @@ const EX = [
   ["compresseur.html","Compresseur à piston","4 classes. Crank and connecting rod; a sliding pivot for the piston.","play","Interactif"],
   ["etau.html","Étau d'établi","4 classes. A loop plus an open branch: the lever.","play","Interactif"],
   ["pompe_engrenages.html","Pompe à engrenages","3 classes. Two pivots and a gear contact.","play","Interactif"],
+  ["came_poussoir.html","Came et poussoir à galet","4 classes, and a spring that belongs to none. A cam-roller line contact.","play","Interactif"],
 ];
 const rows = (list,start) => list.map(([f,t,d,k,lab],i)=>`<a class="row" href="${f}"><span class="n">${String(start+i).padStart(2,"0")}</span><span class="t">${t}</span><span class="tag ${k}">${lab}</span><span class="d">${d}</span></a>`).join("");
 page("index.html",{home:true,
