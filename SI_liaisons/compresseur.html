@@ -1,0 +1,363 @@
+<title>Compresseur à piston</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing + controls on top, nomenclature, then collapsed answer sections (details) to check understanding */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06;
+  --tA:rgba(214,69,61,.30); --tB:rgba(47,111,208,.28); --tC:rgba(47,154,85,.30); --tD:rgba(224,162,27,.38);
+  --ok:#2f9a55; --bad:#d6453d; --gas:rgba(44,93,138,.08);
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --tA:rgba(230,95,85,.38); --tB:rgba(90,150,240,.36); --tC:rgba(70,190,110,.36); --tD:rgba(240,185,60,.40);
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --gas:rgba(127,176,224,.10); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --tA:rgba(230,95,85,.38); --tB:rgba(90,150,240,.36); --tC:rgba(70,190,110,.36); --tD:rgba(240,185,60,.40);
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --gas:rgba(127,176,224,.10); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.top{grid-template-columns:1fr}}
+.top>*{min-width:0}
+svg#dwg{display:block;width:100%;max-width:460px;margin:0 auto;height:auto}
+.part{cursor:pointer}
+.part .edge{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+.part:hover .edge,.part:focus .edge{stroke:var(--accent);stroke-width:2.6}
+.part:focus{outline:none}
+.axis{stroke:var(--muted);stroke-width:.8;stroke-dasharray:14 3 2 3}
+.lbl{font:600 14px var(--f-mono);fill:var(--ink)}
+.leader{stroke:var(--ink);stroke-width:.8;fill:none}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip{width:42px;height:38px;padding:0;font-size:1.1rem;border-width:2px}
+.chip[data-c="A"]{background:var(--tA);border-color:var(--cA)}
+.chip[data-c="B"]{background:var(--tB);border-color:var(--cB)}
+.chip[data-c="C"]{background:var(--tC);border-color:var(--cC)}
+.chip[data-c="D"]{background:var(--tD);border-color:var(--cD)}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 3px var(--sheet),0 0 0 5px var(--ink)}
+.primary{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent)}
+.readout{font:600 .9rem var(--f-mono);min-width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.status{min-height:1.5em;font-weight:600}
+.status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.rep{font:600 1rem var(--f-mono);width:3ch}
+td.cls{width:4.5ch;text-align:center;font:700 1rem var(--f-mono)}
+tr.hl td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.note{font-size:.88rem;color:var(--muted);margin:8px 0 0;max-width:75ch}
+.tablewrap{overflow-x:auto}
+/* answer sections */
+.answers{display:grid;gap:10px}
+.answers>h2{margin:8px 0 0}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;list-style:none;padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:baseline}
+summary::-webkit-details-marker{display:none}
+summary .n{font:700 1.3rem var(--f-disp);color:var(--muted)}
+summary .t{font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+summary .q{grid-column:2;color:var(--muted);font-size:.95rem}
+summary .tog{font:600 .8rem var(--f-disp);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);grid-row:1;grid-column:3}
+summary .tog::after{content:"Voir la réponse"}
+details[open] summary .tog::after{content:"Masquer"}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px;min-width:0}
+.body p{margin:0;max-width:75ch}
+.sets{font:600 1.05rem var(--f-mono);display:grid;gap:4px}
+.sets .A{color:var(--cA)} .sets .B{color:var(--cB)} .sets .C{color:var(--cC)} .sets .D{color:var(--cD)}
+.fig svg{width:100%;height:auto;max-width:440px;display:block}
+.fig text{font:600 13px var(--f-body);fill:var(--ink)}
+.fig .node{font:700 18px var(--f-disp)}
+.expandall{justify-self:start}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD · Modélisation des liaisons mécaniques</div>
+    <h1>Compresseur à piston</h1>
+    <p>Un moteur électrique fait tourner le vilebrequin. Par la bielle, le piston monte et descend dans le cylindre et comprime l'air. Colorie les pièces par classe d'équivalence, fais tourner le vilebrequin, puis vérifie. Les réponses détaillées sont en bas, masquées : réponds d'abord dans ta tête.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet">
+      <svg id="dwg" viewBox="60 60 400 480" role="img" aria-label="Coupe du compresseur, pièces 1 à 10 cliquables">
+        <defs>
+          <pattern id="h45" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1"/></pattern>
+          <pattern id="h135" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1"/></pattern>
+          <pattern id="h45w" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="13" stroke="currentColor" stroke-width="1"/></pattern>
+          <pattern id="h135w" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="1"/></pattern>
+          <pattern id="hx" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width=".8"/><line x1="0" y1="0" x2="6" y2="0" stroke="currentColor" stroke-width=".8"/></pattern>
+          <pattern id="hv" width="6" height="6" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width=".9"/></pattern>
+        </defs>
+        <rect id="gas" x="215" y="122" width="90" height="10" fill="var(--gas)"/>
+        <g id="parts" style="color:var(--ink)"></g>
+        <line class="axis" x1="260" y1="80" x2="260" y2="530"/>
+        <line class="axis" x1="170" y1="400" x2="350" y2="400"/>
+        <g id="labels"></g>
+        <text x="410" y="530" class="lbl" style="font-size:12px;fill:var(--muted)">y ↑ · z ⊙</text>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Couleur de classe">
+          <span>Classe</span>
+          <button class="chip" data-c="A" aria-pressed="true">A</button>
+          <button class="chip" data-c="B" aria-pressed="false">B</button>
+          <button class="chip" data-c="C" aria-pressed="false">C</button>
+          <button class="chip" data-c="D" aria-pressed="false">D</button>
+          <button class="chip" data-c="" aria-pressed="false" title="Gomme">⌫</button>
+        </div>
+        <label class="crank" for="theta">
+          <span class="group"><span>Vilebrequin</span></span>
+          <input id="theta" type="range" min="0" max="360" step="1" value="40">
+          <span class="readout" id="thetaOut">40°</span>
+        </label>
+        <div class="group">
+          <button id="play">▶ Tourner</button>
+          <button id="reset">Effacer</button>
+          <button id="check" class="primary">Vérifier</button>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+      </div>
+
+      <div class="sheet">
+        <h2>Nomenclature</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Rep.</th><th>Désignation</th><th>Classe</th></tr></thead>
+          <tbody id="nomen"></tbody>
+        </table></div>
+        <p class="note">Vis, axes et arbres pleins ne sont pas hachurés en coupe. Le vilebrequin et l'axe de piston sont vus en bout (axe z perpendiculaire à la feuille).</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <h2>Vérifie ta compréhension</h2>
+    <button class="expandall" id="expandall">Tout ouvrir</button>
+
+    <details>
+      <summary><span class="n">1</span><span class="t">Classes d'équivalence</span><span class="tog"></span>
+        <span class="q">Combien de groupes de pièces sans mouvement relatif ? Lesquels ?</span></summary>
+      <div class="body">
+        <div class="sets">
+          <div class="A">A = { 1, 2, 3, 4, 5 }  bâti</div>
+          <div class="B">B = { 6 }  vilebrequin</div>
+          <div class="C">C = { 7 }  bielle</div>
+          <div class="D">D = { 8, 9, 10 }  piston</div>
+        </div>
+        <p>Le carter, le cylindre, la culasse et leurs vis sont assemblés : ils forment le bâti. Le coussinet 5 est emmanché dans le carter, il fait donc partie du bâti ; le vilebrequin tourne dedans. L'axe 8 est monté serré dans le piston et le segment 10 est logé dans sa gorge : ils bougent avec le piston. La bielle est seule : elle tourne par rapport au vilebrequin et par rapport au piston.</p>
+        <p class="note">Piège classique : le coussinet et le segment sont en contact avec une pièce mobile, mais ce qui compte, c'est à quelle pièce ils sont fixés.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">2</span><span class="t">Types de liaisons</span><span class="tog"></span>
+        <span class="q">Pour chaque paire de classes en contact : quelle liaison, quel axe, combien de degrés de liberté ?</span></summary>
+      <div class="body">
+        <div class="tablewrap"><table>
+          <thead><tr><th>Paire</th><th>Liaison</th><th>Axe</th><th>Mouvements permis</th><th>Pourquoi</th></tr></thead>
+          <tbody>
+            <tr><td>A – B</td><td><b>Pivot</b></td><td>(O, z)</td><td>1 : Rz</td><td>Le tourillon du vilebrequin tourne dans le coussinet ; épaulements : pas de translation.</td></tr>
+            <tr><td>B – C</td><td><b>Pivot</b></td><td>(P, z)</td><td>1 : Rz</td><td>La tête de bielle tourne autour du maneton, calée axialement.</td></tr>
+            <tr><td>C – D</td><td><b>Pivot</b></td><td>(Q, z)</td><td>1 : Rz</td><td>Le pied de bielle tourne autour de l'axe de piston.</td></tr>
+            <tr><td>A – D</td><td><b>Pivot glissant</b></td><td>(Q, y)</td><td>2 : Ty, Ry</td><td>Piston cylindrique dans un alésage cylindrique : il coulisse et pourrait tourner sur lui-même.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Pourquoi pas une glissière entre A et D ? Rien dans le contact piston/cylindre n'empêche la rotation autour de y : c'est la bielle qui l'empêche, pas le cylindre. On modélise le contact tel qu'il est.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">3</span><span class="t">Graphe des liaisons</span><span class="tog"></span>
+        <span class="q">Dessine les 4 classes et relie celles qui se touchent. Le graphe est-il ouvert ou fermé ?</span></summary>
+      <div class="body fig">
+        <svg viewBox="0 0 440 290" role="img" aria-label="Graphe des liaisons en boucle fermée A-B-C-D">
+          <g stroke="var(--ink)" stroke-width="1.5"><line x1="90" y1="60" x2="350" y2="60"/><line x1="350" y1="60" x2="350" y2="220"/><line x1="350" y1="220" x2="90" y2="220"/><line x1="90" y1="220" x2="90" y2="60"/></g>
+          <g id="gnodes"></g>
+          <text x="220" y="50" text-anchor="middle">Pivot (O, z)</text>
+          <text x="360" y="136" >Pivot</text><text x="360" y="152">(P, z)</text>
+          <text x="220" y="240" text-anchor="middle">Pivot (Q, z)</text>
+          <text x="80" y="136" text-anchor="end">Pivot glissant</text><text x="80" y="152" text-anchor="end">(Q, y)</text>
+        </svg>
+        <p>Une seule boucle fermée : A → B → C → D → A. Chaque classe est reliée à deux autres. C'est ce qui permet de transformer la rotation du vilebrequin en translation du piston.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">4</span><span class="t">Schéma cinématique minimal</span><span class="tog"></span>
+        <span class="q">Place les symboles normalisés dans le plan (x, y). Il bouge avec le curseur du vilebrequin.</span></summary>
+      <div class="body fig">
+        <svg id="kin" viewBox="0 0 440 400" role="img" aria-label="Schéma cinématique plan du système bielle-manivelle">
+          <defs><pattern id="gnd" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--cA)" stroke-width="1.2"/></pattern></defs>
+          <line class="axis" x1="200" y1="30" x2="200" y2="380"/>
+          <!-- A : bâti -->
+          <g stroke="var(--cA)" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M200 312 L186 340 H214 Z" fill="var(--sheet)"/>
+            <path d="M176 340 H224"/>
+            <path d="M166 50 V170 M234 50 V170"/>
+          </g>
+          <rect x="176" y="342" width="48" height="9" fill="url(#gnd)"/>
+          <rect x="156" y="50" width="9" height="120" fill="url(#gnd)"/><rect x="235" y="50" width="9" height="120" fill="url(#gnd)"/>
+          <!-- mobiles, positionnés en JS -->
+          <line id="kB" stroke="var(--cB)" stroke-width="4" stroke-linecap="round"/>
+          <line id="kC" stroke="var(--cC)" stroke-width="4" stroke-linecap="round"/>
+          <rect id="kD" width="60" height="44" fill="var(--tD)" stroke="var(--cD)" stroke-width="3"/>
+          <circle cx="200" cy="300" r="8" fill="var(--sheet)" stroke="var(--cB)" stroke-width="3"/>
+          <circle id="kP" r="8" fill="var(--sheet)" stroke="var(--cC)" stroke-width="3"/>
+          <circle id="kQ" r="8" fill="var(--sheet)" stroke="var(--cC)" stroke-width="3"/>
+          <text x="214" y="298" >O</text><text id="tP" >P</text><text id="tQ" >Q</text>
+          <text x="232" y="330" style="fill:var(--cA)">pivot A–B</text>
+          <text id="tBC" style="fill:var(--ink)">pivot B–C</text>
+          <text id="tCD" style="fill:var(--ink)">pivot C–D</text>
+          <text x="252" y="70" style="fill:var(--cA)">A–D : pivot glissant</text>
+          <text x="252" y="86" style="fill:var(--muted);font-size:12px">(en plan : glissière)</text>
+          <text x="20" y="390" style="fill:var(--muted);font-size:12px">A rouge · B bleu · C vert · D jaune</text>
+        </svg>
+        <p>C'est le système <b>bielle-manivelle</b>. Le pivot en O est accroché au bâti (triangle hachuré). Les pivots en P et Q sont de simples cercles entre deux barres. Le piston est un bloc qui coulisse entre deux traits du bâti. Le schéma est minimal : une liaison par paire de classes en contact, donc 4 liaisons pour 4 classes.</p>
+        <p class="note">En vue plane, on dessine souvent le pivot glissant A–D comme une glissière, car la rotation autour de y ne se voit pas dans le plan (x, y).</p>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+const O = {x:260,y:400}, R = 55, L = 170;
+const SOLUTION = [[1,2,3,4,5],[6],[7],[8,9,10]];
+const NAMES = {1:"Carter",2:"Cylindre",3:"Culasse",4:"Vis de culasse (×2)",5:"Coussinet (emmanché dans le carter)",
+  6:"Vilebrequin (tourillon + maneton)",7:"Bielle",8:"Axe de piston (monté serré dans le piston)",9:"Piston",10:"Segment"};
+const circ = (x,y,r)=>`M${x+r} ${y} A${r} ${r} 0 1 0 ${x-r} ${y} A${r} ${r} 0 1 0 ${x+r} ${y} Z`;
+const rodLocal = (()=>{const a=Math.sqrt(24*24-64),b=Math.sqrt(18*18-64);
+  return `M8 ${-a} A24 24 0 1 1 -8 ${-a} L-8 ${-(L-b)} A18 18 0 1 1 8 ${-(L-b)} Z ${circ(0,0,14)} ${circ(0,-L,9)}`})();
+
+// parts; order = drawing order. Moving parts get a d(state) function.
+const PARTS = [
+  {id:1, hatch:"h45w", d:()=>"M130 320 H215 V340 H146 V504 H374 V340 H305 V320 H390 V520 H130 Z", lbl:[100,470,132,470]},
+  {id:6, hatch:null,   d:s=>`${circ(O.x,O.y,66)} ${circ(O.x,O.y,26)} ${circ(O.x,O.y,18)} ${circ(s.P.x,s.P.y,13)}`, lbl:[420,470,s=>[O.x+46,O.y+46]]},
+  {id:5, hatch:"hx",   d:()=>`${circ(O.x,O.y,26)} ${circ(O.x,O.y,18)}`, lbl:[420,400,[O.x+24,O.y+8]]},
+  {id:7, hatch:"h135", d:s=>rodLocal, tf:s=>`translate(${s.P.x} ${s.P.y}) rotate(${s.alpha})`, lbl:[420,300,s=>[(s.P.x+s.Q.x)/2+6,(s.P.y+s.Q.y)/2+10]]},
+  {id:2, hatch:"h45",  d:()=>"M195 122 H215 V320 H175 V305 H195 Z M305 122 H325 V305 H345 V320 H305 Z", lbl:[420,230,[335,230]]},
+  {id:9, hatch:"h135w",d:s=>{const T=s.Q.y-50,B=s.Q.y+35;return `M217 ${T} H303 V${B} H291 V${T+20} H229 V${B} H217 Z`}, lbl:[100,230,s=>[222,s.Q.y+20]]},
+  {id:10,hatch:"hv",   d:s=>{const T=s.Q.y-50;return `M215 ${T+8} H224 V${T+14} H215 Z M296 ${T+8} H305 V${T+14} H296 Z`}, lbl:[100,170,s=>[218,s.Q.y-39]]},
+  {id:8, hatch:null,   d:s=>circ(s.Q.x,s.Q.y,9), lbl:[100,290,s=>[s.Q.x-7,s.Q.y+4]]},
+  {id:3, hatch:"h45",  d:()=>"M185 100 H335 V122 H185 Z", lbl:[100,110,[185,110]]},
+  {id:4, hatch:null,   d:()=>"M197 90 H213 V98 H209 V150 H201 V98 H197 Z M307 90 H323 V98 H319 V150 H311 V98 H307 Z", lbl:[420,110,[323,94]]},
+];
+
+function state(th){
+  const t = th*Math.PI/180, P = {x:O.x+R*Math.sin(t), y:O.y-R*Math.cos(t)};
+  const Q = {x:O.x, y:O.y-(R*Math.cos(t)+Math.sqrt(L*L-R*R*Math.sin(t)**2))};
+  return {P,Q,alpha:Math.asin(-R*Math.sin(t)/L)*180/Math.PI};
+}
+
+const assign = {}; let brush="A", theta=40;
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+const partsG=document.getElementById("parts"), labelsG=document.getElementById("labels"), nodes={};
+
+for (const p of PARTS){
+  const g=el("g",{class:"part",tabindex:0,role:"button","aria-label":`Pièce ${p.id} : ${NAMES[p.id]}`},partsG);
+  const fill=el("path",{"fill-rule":"evenodd",fill:"var(--sheet)"},g);
+  const hatch=p.hatch?el("path",{"fill-rule":"evenodd",fill:`url(#${p.hatch})`},g):null;
+  const edge=el("path",{"fill-rule":"evenodd",class:"edge"},g);
+  const Lg=el("g",{},labelsG);
+  const leader=el("path",{class:"leader"},Lg), dot=el("circle",{r:2,fill:"var(--ink)"},Lg);
+  el("text",{x:p.lbl[0],y:p.lbl[1]+5,"text-anchor":"middle",class:"lbl"},Lg).textContent=p.id;
+  nodes[p.id]={g,fill,hatch,edge,leader,dot,p};
+  const paint=()=>{ if(brush) assign[p.id]=brush; else delete assign[p.id]; status(""); render(); };
+  g.addEventListener("click",paint);
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();paint()}});
+  g.addEventListener("mouseenter",()=>hl(p.id,true)); g.addEventListener("mouseleave",()=>hl(p.id,false));
+}
+
+const tbody=document.getElementById("nomen");
+for (let id=1; id<=10; id++){
+  const tr=document.createElement("tr"); tr.id="row"+id;
+  tr.innerHTML=`<td class="rep">${id}</td><td>${NAMES[id]}</td><td class="cls" id="c${id}">–</td>`;
+  tr.addEventListener("mouseenter",()=>hl(id,true)); tr.addEventListener("mouseleave",()=>hl(id,false));
+  tbody.appendChild(tr);
+}
+function hl(id,on){document.getElementById("row"+id).classList.toggle("hl",on); nodes[id].edge.style.stroke=on?"var(--accent)":"";}
+
+// graph nodes
+const gn=document.getElementById("gnodes");
+[[90,60,"A","bâti"],[350,60,"B","vilebrequin"],[350,220,"C","bielle"],[90,220,"D","piston"]].forEach(([x,y,c,t])=>{
+  el("circle",{cx:x,cy:y,r:24,fill:`var(--t${c})`,stroke:`var(--c${c})`,"stroke-width":2},gn);
+  el("text",{x,y:y+6,"text-anchor":"middle",class:"node"},gn).textContent=c;
+  el("text",{x,y:y<100?y-32:y+44,"text-anchor":"middle",style:"fill:var(--muted);font-size:12px"},gn).textContent=t;
+});
+
+function render(){
+  const s=state(theta);
+  for (const id in nodes){
+    const {fill,hatch,edge,leader,dot,g,p}=nodes[id], d=p.d(s);
+    [fill,hatch,edge].forEach(e=>e&&e.setAttribute("d",d));
+    g.setAttribute("transform",p.tf?p.tf(s):"");
+    fill.setAttribute("fill",assign[id]?`var(--t${assign[id]})`:"var(--sheet)");
+    const [tx,ty]=typeof p.lbl[2]==="function"?p.lbl[2](s):Array.isArray(p.lbl[2])?p.lbl[2]:[p.lbl[2],p.lbl[3]];
+    const [lx,ly]=p.lbl; leader.setAttribute("d",`M${lx+(lx<260?10:-10)} ${ly} L${tx} ${ty}`);
+    dot.setAttribute("cx",tx); dot.setAttribute("cy",ty);
+    const c=document.getElementById("c"+id); c.textContent=assign[id]||"–"; c.style.color=assign[id]?`var(--c${assign[id]})`:"var(--muted)";
+  }
+  const gas=document.getElementById("gas"); gas.setAttribute("height",Math.max(0,s.Q.y-50-122));
+  document.getElementById("thetaOut").textContent=Math.round(theta)+"°";
+  // kinematic diagram (O=(200,300), scale 0.8)
+  const k=0.8, kx=v=>200+(v.x-O.x)*k, ky=v=>300+(v.y-O.y)*k;
+  const P={x:kx(s.P),y:ky(s.P)}, Q={x:kx(s.Q),y:ky(s.Q)};
+  const set=(id,a)=>{const e=document.getElementById(id);for(const n in a)e.setAttribute(n,a[n])};
+  set("kB",{x1:200,y1:300,x2:P.x,y2:P.y}); set("kC",{x1:P.x,y1:P.y,x2:Q.x,y2:Q.y});
+  set("kD",{x:170,y:Q.y-22}); set("kP",{cx:P.x,cy:P.y}); set("kQ",{cx:Q.x,cy:Q.y});
+  set("tP",{x:P.x+(P.x>=200?12:-24),y:P.y+5}); set("tQ",{x:Q.x+36,y:Q.y+5});
+  set("tBC",{x:P.x+(P.x>=200?12:-12),y:P.y+22,"text-anchor":P.x>=200?"start":"end"});
+  set("tCD",{x:Q.x-36,y:Q.y+5,"text-anchor":"end"});
+}
+
+function status(m,k){const s=document.getElementById("status");s.textContent=m;s.className="status "+(k||"");}
+function check(){
+  const ids=[...Array(10)].map((_,i)=>i+1), missing=ids.filter(i=>!assign[i]);
+  if(missing.length) return status(`Il reste à colorier : ${missing.join(", ")}.`,"bad");
+  const cls=id=>SOLUTION.findIndex(g=>g.includes(id));
+  for(const a of ids) for(const b of ids) if(a<b){
+    const same=assign[a]===assign[b], should=cls(a)===cls(b);
+    if(same&&!should) return status(`Pas encore. ${a} et ${b} bougent l'un par rapport à l'autre : fais tourner le vilebrequin et regarde.`,"bad");
+    if(!same&&should) return status(`Pas encore. ${a} et ${b} sont fixés l'un à l'autre : même classe.`,"bad");
+  }
+  status("Juste ! Quatre classes : bâti, vilebrequin, bielle, piston.","ok");
+}
+
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{
+  brush=b.dataset.c; document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));
+}));
+const slider=document.getElementById("theta");
+slider.addEventListener("input",()=>{theta=+slider.value;render()});
+let raf=null;
+document.getElementById("play").addEventListener("click",e=>{
+  if(raf){cancelAnimationFrame(raf);raf=null;e.target.textContent="▶ Tourner";return}
+  const sp=matchMedia("(prefers-reduced-motion: reduce)").matches?0.6:2.4; e.target.textContent="❚❚ Pause";
+  const step=()=>{theta=(theta+sp)%360;slider.value=theta;render();raf=requestAnimationFrame(step)};
+  raf=requestAnimationFrame(step);
+});
+document.getElementById("reset").addEventListener("click",()=>{for(const k in assign)delete assign[k];status("");render()});
+document.getElementById("check").addEventListener("click",check);
+const ex=document.getElementById("expandall");
+ex.addEventListener("click",()=>{const all=[...document.querySelectorAll("details")],open=!all.every(d=>d.open);
+  all.forEach(d=>d.open=open); ex.textContent=open?"Tout fermer":"Tout ouvrir";});
+render();
+</script>

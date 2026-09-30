@@ -1,0 +1,376 @@
+<title>Pompe à engrenages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing + controls on top, nomenclature, then collapsed answer sections (details) to check understanding */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06;
+  --tA:rgba(214,69,61,.30); --tB:rgba(47,111,208,.28); --tC:rgba(47,154,85,.30); --tD:rgba(224,162,27,.38);
+  --ok:#2f9a55; --bad:#d6453d; --gas:rgba(44,93,138,.08);
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --tA:rgba(230,95,85,.38); --tB:rgba(90,150,240,.36); --tC:rgba(70,190,110,.36); --tD:rgba(240,185,60,.40);
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --gas:rgba(127,176,224,.10); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --tA:rgba(230,95,85,.38); --tB:rgba(90,150,240,.36); --tC:rgba(70,190,110,.36); --tD:rgba(240,185,60,.40);
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --gas:rgba(127,176,224,.10); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.top{grid-template-columns:1fr}}
+.top>*{min-width:0}
+svg#dwg{display:block;width:100%;max-width:460px;margin:0 auto;height:auto}
+.part{cursor:pointer}
+.part .edge{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+.part:hover .edge,.part:focus .edge{stroke:var(--accent);stroke-width:2.6}
+.part:focus{outline:none}
+.axis{stroke:var(--muted);stroke-width:.8;stroke-dasharray:14 3 2 3}
+.lbl{font:600 14px var(--f-mono);fill:var(--ink)}
+.leader{stroke:var(--ink);stroke-width:.8;fill:none}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip{width:42px;height:38px;padding:0;font-size:1.1rem;border-width:2px}
+.chip[data-c="A"]{background:var(--tA);border-color:var(--cA)}
+.chip[data-c="B"]{background:var(--tB);border-color:var(--cB)}
+.chip[data-c="C"]{background:var(--tC);border-color:var(--cC)}
+.chip[data-c="D"]{background:var(--tD);border-color:var(--cD)}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 3px var(--sheet),0 0 0 5px var(--ink)}
+.primary{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent)}
+.readout{font:600 .9rem var(--f-mono);min-width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.status{min-height:1.5em;font-weight:600}
+.status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.rep{font:600 1rem var(--f-mono);width:3ch}
+td.cls{width:4.5ch;text-align:center;font:700 1rem var(--f-mono)}
+tr.hl td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.note{font-size:.88rem;color:var(--muted);margin:8px 0 0;max-width:75ch}
+.tablewrap{overflow-x:auto}
+/* answer sections */
+.answers{display:grid;gap:10px}
+.answers>h2{margin:8px 0 0}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;list-style:none;padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:baseline}
+summary::-webkit-details-marker{display:none}
+summary .n{font:700 1.3rem var(--f-disp);color:var(--muted)}
+summary .t{font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+summary .q{grid-column:2;color:var(--muted);font-size:.95rem}
+summary .tog{font:600 .8rem var(--f-disp);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);grid-row:1;grid-column:3}
+summary .tog::after{content:"Voir la réponse"}
+details[open] summary .tog::after{content:"Masquer"}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px;min-width:0}
+.body p{margin:0;max-width:75ch}
+.sets{font:600 1.05rem var(--f-mono);display:grid;gap:4px}
+.sets .A{color:var(--cA)} .sets .B{color:var(--cB)} .sets .C{color:var(--cC)} .sets .D{color:var(--cD)}
+.fig svg{width:100%;height:auto;max-width:440px;display:block}
+.fig text{font:600 13px var(--f-body);fill:var(--ink)}
+.fig .node{font:700 18px var(--f-disp)}
+.expandall{justify-self:start}
+</style>
+<style>
+svg#dwg{max-width:860px}
+.part .edge{stroke-width:2}
+.lbl{font-size:16px}
+.below{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+@media (max-width:820px){.below{grid-template-columns:1fr}}
+.below>*{min-width:0}
+.pitch{stroke:var(--muted);stroke-width:1;stroke-dasharray:6 3;fill:none}
+.cap{font:600 12px var(--f-mono);fill:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD · Modélisation des liaisons mécaniques</div>
+    <h1>Pompe à engrenages</h1>
+    <p>Un moteur entraîne l'arbre menant 5. Son pignon 6 fait tourner le pignon mené 9 en sens inverse ; l'huile est emprisonnée entre les dents et le corps, puis refoulée vers la sortie. Colorie les pièces par classe d'équivalence, fais tourner l'arbre, puis vérifie. Les réponses sont masquées en bas.</p>
+  </header>
+
+  <div class="sheet">
+    <svg id="dwg" viewBox="40 20 580 360" role="img" aria-label="Coupe de la pompe par les deux axes et vue de bout des pignons, pièces 1 à 10 cliquables">
+      <defs>
+        <pattern id="h45" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1"/></pattern>
+        <pattern id="h135" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1"/></pattern>
+        <pattern id="h45w" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="13" stroke="currentColor" stroke-width="1"/></pattern>
+        <pattern id="h135w" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="1"/></pattern>
+        <pattern id="hx" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width=".8"/><line x1="0" y1="0" x2="6" y2="0" stroke="currentColor" stroke-width=".8"/></pattern>
+        <pattern id="hd" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="currentColor" opacity=".55"/></pattern>
+      </defs>
+      <g id="parts" style="color:var(--ink)"></g>
+      <line class="axis" x1="50" y1="150" x2="420" y2="150"/>
+      <line class="axis" x1="180" y1="250" x2="420" y2="250"/>
+      <line class="pitch" x1="255" y1="200" x2="335" y2="200"/>
+      <line class="axis" x1="500" y1="80" x2="500" y2="320"/>
+      <circle class="pitch" cx="500" cy="150" r="50"/><circle class="pitch" cx="500" cy="250" r="50"/>
+      <text x="500" y="72" text-anchor="middle" class="cap">vue de bout des pignons</text>
+      <text x="62" y="126" class="cap">← moteur</text>
+      <g id="labels"></g>
+    </svg>
+  </div>
+
+  <div class="below">
+    <div class="sheet controls">
+      <div class="group" role="group" aria-label="Couleur de classe">
+        <span>Classe</span>
+        <button class="chip" data-c="A" aria-pressed="true">A</button>
+        <button class="chip" data-c="B" aria-pressed="false">B</button>
+        <button class="chip" data-c="C" aria-pressed="false">C</button>
+        <button class="chip" data-c="D" aria-pressed="false">D</button>
+        <button class="chip" data-c="" aria-pressed="false" title="Gomme">⌫</button>
+      </div>
+      <label class="crank" for="theta">
+        <span class="group"><span>Arbre 5</span></span>
+        <input id="theta" type="range" min="0" max="360" step="1" value="0">
+        <span class="readout" id="thetaOut">0°</span>
+      </label>
+      <div class="group">
+        <button id="play">▶ Tourner</button>
+        <button id="reset">Effacer</button>
+        <button id="check" class="primary">Vérifier</button>
+      </div>
+      <div class="status" id="status" aria-live="polite"></div>
+    </div>
+
+    <div class="sheet">
+      <h2>Nomenclature</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Rep.</th><th>Désignation</th><th>Classe</th></tr></thead>
+        <tbody id="nomen"></tbody>
+      </table></div>
+      <p class="note">Le pignon mené 9 est monté serré sur son arbre 8. Les coussinets 10 sont emmanchés dans le corps et dans le couvercle.</p>
+    </div>
+  </div>
+
+  <section class="answers">
+    <h2>Vérifie ta compréhension</h2>
+    <button class="expandall" id="expandall">Tout ouvrir</button>
+
+    <details>
+      <summary><span class="n">1</span><span class="t">Classes d'équivalence</span><span class="tog"></span>
+        <span class="q">Combien de classes ? Il n'y en a pas quatre cette fois.</span></summary>
+      <div class="body">
+        <div class="sets">
+          <div class="A">A = { 1, 2, 3, 4, 10 }  bâti</div>
+          <div class="B">B = { 5, 6, 7 }  arbre menant</div>
+          <div class="C">C = { 8, 9 }  arbre mené</div>
+        </div>
+        <p>Le corps, le couvercle, les vis, le joint et les coussinets ne bougent pas : ils forment le bâti. La clavette 7 lie le pignon 6 à l'arbre 5 en rotation. Le pignon 9 est monté serré sur l'arbre 8. Les deux pignons tournent en sens inverse, donc ils ne sont pas dans la même classe.</p>
+        <p class="note">Piège : la clavette. Elle sert justement à rendre le pignon et l'arbre solidaires, donc elle est dans leur classe.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">2</span><span class="t">Types de liaisons</span><span class="tog"></span>
+        <span class="q">Trois paires de classes en contact. Laquelle est une liaison d'un type nouveau ?</span></summary>
+      <div class="body">
+        <div class="tablewrap"><table>
+          <thead><tr><th>Paire</th><th>Liaison</th><th>Axe</th><th>Mouvements permis</th><th>Pourquoi</th></tr></thead>
+          <tbody>
+            <tr><td>A – B</td><td><b>Pivot</b></td><td>(O₁, x)</td><td>1 : Rx</td><td>Deux coussinets éloignés guident l'arbre ; les faces du pignon contre le corps et le couvercle bloquent la translation.</td></tr>
+            <tr><td>A – C</td><td><b>Pivot</b></td><td>(O₂, x)</td><td>1 : Rx</td><td>Même montage pour l'arbre mené.</td></tr>
+            <tr><td>B – C</td><td><b>Engrenage</b> (contact linéaire rectiligne entre dents)</td><td>ligne de contact // x</td><td>4 en théorie</td><td>Deux dents droites se touchent le long d'une ligne. La rotation de B entraîne celle de C avec le rapport des diamètres.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Ici les deux pignons ont le même nombre de dents : ils tournent à la même vitesse, en sens inverse (ω₉ = −ω₆).</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">3</span><span class="t">Graphe des liaisons</span><span class="tog"></span>
+        <span class="q">Trois classes, trois liaisons : quelle forme ?</span></summary>
+      <div class="body fig">
+        <svg viewBox="0 0 440 280" role="img" aria-label="Graphe triangle A-B-C">
+          <g stroke="var(--ink)" stroke-width="1.5"><line x1="220" y1="60" x2="90" y2="220"/><line x1="220" y1="60" x2="350" y2="220"/><line x1="90" y1="220" x2="350" y2="220"/></g>
+          <g id="gnodes"></g>
+          <text x="140" y="130" text-anchor="end">Pivot (O₁, x)</text>
+          <text x="300" y="130">Pivot (O₂, x)</text>
+          <text x="220" y="244" text-anchor="middle">Engrenage</text>
+        </svg>
+        <p>Une boucle fermée A → B → C → A. Le bâti porte les deux arbres, et les deux arbres se touchent par les dents.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary><span class="n">4</span><span class="t">Schéma cinématique minimal</span><span class="tog"></span>
+        <span class="q">Deux pivots sur le bâti et un engrenage. Dessine-le avant d'ouvrir.</span></summary>
+      <div class="body fig">
+        <svg id="kin" viewBox="0 0 620 300" role="img" aria-label="Schéma cinématique de la pompe à engrenages" style="max-width:620px">
+          <defs><pattern id="gnd" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--cA)" stroke-width="1.2"/></pattern></defs>
+          <line class="axis" x1="20" y1="100" x2="430" y2="100"/><line class="axis" x1="100" y1="180" x2="430" y2="180"/>
+          <!-- A -->
+          <g stroke="var(--cA)" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M60 270 H440"/>
+            <path d="M440 270 V36 H170 V86"/>
+            <rect x="140" y="86" width="60" height="28" fill="var(--sheet)"/>
+            <rect x="140" y="166" width="60" height="28" fill="var(--sheet)"/>
+            <path d="M170 194 V270"/>
+          </g>
+          <rect x="60" y="272" width="380" height="9" fill="url(#gnd)"/>
+          <!-- B -->
+          <g stroke="var(--cB)" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M30 100 H410 M132 88 V112 M208 88 V112"/>
+            <rect x="300" y="60" width="12" height="80" fill="var(--tB)"/>
+          </g>
+          <!-- C -->
+          <g stroke="var(--cC)" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M120 180 H410 M132 168 V192 M208 168 V192"/>
+            <rect x="300" y="140" width="12" height="80" fill="var(--tC)"/>
+          </g>
+          <circle cx="306" cy="140" r="4" fill="var(--ink)"/>
+          <g font-size="13">
+            <text x="214" y="82" style="fill:var(--cA)">pivot A–B</text>
+            <text x="214" y="214" style="fill:var(--cA)">pivot A–C</text>
+            <text x="320" y="144">engrenage B–C</text>
+            <text x="30" y="90" style="fill:var(--cB)">B (entrée)</text>
+            <text x="120" y="250" style="fill:var(--cA)">A (bâti)</text>
+          </g>
+          <!-- vue plane : cercles primitifs tangents -->
+          <g transform="translate(530 140)">
+            <text x="0" y="-104" text-anchor="middle" style="fill:var(--muted);font-size:12px">vue de bout</text>
+            <circle cx="0" cy="-40" r="40" fill="none" stroke="var(--cB)" stroke-width="3"/>
+            <circle cx="0" cy="40" r="40" fill="none" stroke="var(--cC)" stroke-width="3"/>
+            <line id="kRB" x1="0" y1="-40" x2="0" y2="-80" stroke="var(--cB)" stroke-width="2.5"/>
+            <line id="kRC" x1="0" y1="40" x2="0" y2="80" stroke="var(--cC)" stroke-width="2.5"/>
+            <circle cx="0" cy="-40" r="5" fill="var(--sheet)" stroke="var(--cA)" stroke-width="2.5"/>
+            <circle cx="0" cy="40" r="5" fill="var(--sheet)" stroke="var(--cA)" stroke-width="2.5"/>
+          </g>
+        </svg>
+        <p>Symboles : pivot (rectangle du bâti et deux traits sur l'arbre), engrenage (deux roues dessinées en rectangles fins qui se touchent sur le cercle primitif). En vue de bout, l'engrenage se dessine comme deux cercles tangents. Les deux rayons tournent en sens inverse avec le curseur.</p>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+const NAMES={1:"Corps",2:"Couvercle",3:"Vis d'assemblage (×2)",4:"Joint à lèvre",5:"Arbre menant",6:"Pignon menant",
+  7:"Clavette",8:"Arbre mené",9:"Pignon mené (monté serré sur 8)",10:"Coussinet (×4)"};
+const SOLUTION=[[1,2,3,4,10],[5,6,7],[8,9]];
+const circ=(x,y,r)=>`M${x+r} ${y} A${r} ${r} 0 1 0 ${x-r} ${y} A${r} ${r} 0 1 0 ${x+r} ${y} Z`;
+function gear(cx,cy,z,rp,phase){ // straight-sided teeth, good enough for a drawing
+  const s=2*Math.PI/z, ra=rp+5, rf=rp-6, pts=[];
+  for(let i=0;i<z;i++){const a=i*s+phase;
+    [[rf,a-.30*s],[ra,a-.13*s],[ra,a+.13*s],[rf,a+.30*s]].forEach(([r,t])=>pts.push(`${(cx+r*Math.cos(t)).toFixed(1)} ${(cy+r*Math.sin(t)).toFixed(1)}`));}
+  return "M"+pts.join(" L")+" Z "+circ(cx,cy,15);
+}
+const T=Math.PI/12; // demi-pas pour z = 12
+// extra: formes de la vue de bout, qui tournent autour de (cx,cy) dans le sens dir
+const PARTS=[
+  {id:1,hatch:"h45w",d:"M170 70 H330 V88 H260 V312 H330 V330 H170 Z M170 125 H260 V175 H170 Z M190 225 H260 V275 H190 Z",lbl:[130,360,180,312]},
+  {id:2,hatch:"h135w",d:"M330 70 H400 V330 H330 Z M330 125 H380 V175 H330 Z M330 225 H380 V275 H330 Z",lbl:[420,360,392,312]},
+  {id:10,hatch:"hx",d:"M200 125 H258 V135 H200 Z M200 165 H258 V175 H200 Z M200 225 H258 V235 H200 Z M200 265 H258 V275 H200 Z M332 125 H376 V135 H332 Z M332 165 H376 V175 H332 Z M332 225 H376 V235 H332 Z M332 265 H376 V275 H332 Z",lbl:[360,360,350,272]},
+  {id:4,hatch:"hd",d:"M170 125 H192 V135 H170 Z M170 165 H192 V175 H170 Z",lbl:[150,40,181,128]},
+  {id:5,hatch:null,d:"M60 135 H376 V165 H60 Z",lbl:[90,40,100,138],extra:{d:circ(500,150,15)+" M500 150 L500 136",cx:500,cy:150,dir:1}},
+  {id:8,hatch:null,d:"M200 235 H376 V265 H200 Z",lbl:[220,360,228,262],extra:{d:circ(500,250,15)+" M500 250 L500 264",cx:500,cy:250,dir:-1}},
+  {id:9,hatch:"h135",d:"M262 196 H328 V304 H262 Z M262 235 H328 V265 H262 Z",lbl:[290,360,292,296],extra:{d:gear(500,250,12,50,T),cx:500,cy:250,dir:-1}},
+  {id:6,hatch:"h45",d:"M262 96 H328 V204 H262 Z M262 135 H328 V165 H262 Z",lbl:[260,40,275,104],extra:{d:gear(500,150,12,50,0),cx:500,cy:150,dir:1}},
+  {id:7,hatch:null,d:"M272 128 H318 V135 H272 Z",lbl:[320,40,300,130],extra:{d:"M495 131 H505 V137 H495 Z",cx:500,cy:150,dir:1}},
+  {id:3,hatch:null,d:"M300 74 H400 V84 H300 Z M400 70 H414 V88 H400 Z M300 316 H400 V326 H300 Z M400 312 H414 V330 H400 Z",lbl:[420,40,412,72]},
+];
+const assign={}; let brush="A", theta=0;
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e};
+const partsG=document.getElementById("parts"),labelsG=document.getElementById("labels"),nodes={};
+function shape(g,d,hatch){
+  const f=el("path",{d,"fill-rule":"evenodd",fill:"var(--sheet)"},g);
+  if(hatch) el("path",{d,"fill-rule":"evenodd",fill:`url(#${hatch})`},g);
+  const e=el("path",{d,"fill-rule":"evenodd",class:"edge"},g); return [f,e];
+}
+// draw end-view gears first so the shafts and key sit on top
+const order=[...PARTS.filter(p=>p.id===9||p.id===6),...PARTS.filter(p=>p.id!==9&&p.id!==6)];
+const extrasG=el("g",{},partsG), mainG=el("g",{},partsG);
+for(const p of PARTS){
+  const g=el("g",{class:"part",tabindex:0,role:"button","aria-label":`Pièce ${p.id} : ${NAMES[p.id]}`},mainG);
+  const [f,e]=shape(g,p.d,p.hatch); const fills=[f], edges=[e];
+  let xg=null;
+  if(p.extra){
+    const gg=el("g",{class:"part",role:"presentation"},null);
+    xg=el("g",{},gg); const [f2,e2]=shape(xg,p.extra.d,p.hatch); fills.push(f2); edges.push(e2);
+    gg.addEventListener("click",()=>paint(p.id));
+    gg.addEventListener("mouseenter",()=>hl(p.id,true));gg.addEventListener("mouseleave",()=>hl(p.id,false));
+    p._gg=gg;
+  }
+  const Lg=el("g",{},labelsG), leader=el("path",{class:"leader",d:`M${p.lbl[0]} ${p.lbl[1]+(p.lbl[1]<200?8:-14)} L${p.lbl[2]} ${p.lbl[3]}`},Lg);
+  el("circle",{cx:p.lbl[2],cy:p.lbl[3],r:2.2,fill:"var(--ink)"},Lg);
+  el("text",{x:p.lbl[0],y:p.lbl[1]+5,"text-anchor":"middle",class:"lbl"},Lg).textContent=p.id;
+  nodes[p.id]={g,fills,edges,xg,p};
+  g.addEventListener("click",()=>paint(p.id));
+  g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();paint(p.id)}});
+  g.addEventListener("mouseenter",()=>hl(p.id,true));g.addEventListener("mouseleave",()=>hl(p.id,false));
+}
+for(const p of order) if(p._gg) extrasG.appendChild(p._gg);
+function paint(id){if(brush)assign[id]=brush;else delete assign[id];status("");render()}
+const tbody=document.getElementById("nomen");
+for(let id=1;id<=10;id++){
+  const tr=document.createElement("tr");tr.id="row"+id;
+  tr.innerHTML=`<td class="rep">${id}</td><td>${NAMES[id]}</td><td class="cls" id="c${id}">–</td>`;
+  tr.addEventListener("mouseenter",()=>hl(id,true));tr.addEventListener("mouseleave",()=>hl(id,false));
+  tbody.appendChild(tr);
+}
+function hl(id,on){document.getElementById("row"+id).classList.toggle("hl",on);nodes[id].edges.forEach(e=>e.style.stroke=on?"var(--accent)":"")}
+const gn=document.getElementById("gnodes");
+[[220,60,"A","bâti"],[90,220,"B","arbre menant"],[350,220,"C","arbre mené"]].forEach(([x,y,c,t])=>{
+  el("circle",{cx:x,cy:y,r:24,fill:`var(--t${c})`,stroke:`var(--c${c})`,"stroke-width":2},gn);
+  el("text",{x,y:y+6,"text-anchor":"middle",class:"node"},gn).textContent=c;
+  el("text",{x,y:y<100?y-32:y+44,"text-anchor":"middle",style:"fill:var(--muted);font-size:12px"},gn).textContent=t;
+});
+function render(){
+  for(const id in nodes){
+    const {fills,xg,p}=nodes[id];
+    fills.forEach(f=>f.setAttribute("fill",assign[id]?`var(--t${assign[id]})`:"var(--sheet)"));
+    if(xg) xg.setAttribute("transform",`rotate(${p.extra.dir*theta} ${p.extra.cx} ${p.extra.cy})`);
+    const c=document.getElementById("c"+id);c.textContent=assign[id]||"–";c.style.color=assign[id]?`var(--c${assign[id]})`:"var(--muted)";
+  }
+  document.getElementById("thetaOut").textContent=Math.round(theta)+"°";
+  document.getElementById("kRB").setAttribute("transform",`rotate(${theta} 0 -40)`);
+  document.getElementById("kRC").setAttribute("transform",`rotate(${-theta} 0 40)`);
+}
+function status(m,k){const s=document.getElementById("status");s.textContent=m;s.className="status "+(k||"")}
+function check(){
+  const ids=[...Array(10)].map((_,i)=>i+1),missing=ids.filter(i=>!assign[i]);
+  if(missing.length)return status(`Il reste à colorier : ${missing.join(", ")}.`,"bad");
+  const cls=id=>SOLUTION.findIndex(g=>g.includes(id));
+  for(const a of ids)for(const b of ids)if(a<b){
+    const same=assign[a]===assign[b],should=cls(a)===cls(b);
+    if(same&&!should)return status(`Pas encore. ${a} et ${b} tournent l'un par rapport à l'autre : fais tourner l'arbre et regarde la vue de bout.`,"bad");
+    if(!same&&should)return status(`Pas encore. ${a} et ${b} sont fixés l'un à l'autre : même classe.`,"bad");
+  }
+  status("Juste ! Trois classes : bâti, arbre menant, arbre mené.","ok");
+}
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>{
+  brush=b.dataset.c;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));
+}));
+const sl=document.getElementById("theta");
+sl.addEventListener("input",()=>{theta=+sl.value;render()});
+let raf=null;
+document.getElementById("play").addEventListener("click",e=>{
+  if(raf){cancelAnimationFrame(raf);raf=null;e.target.textContent="▶ Tourner";return}
+  const sp=matchMedia("(prefers-reduced-motion: reduce)").matches?0.5:1.5;e.target.textContent="❚❚ Pause";
+  const step=()=>{theta=(theta+sp)%360;sl.value=theta;render();raf=requestAnimationFrame(step)};
+  raf=requestAnimationFrame(step);
+});
+document.getElementById("reset").addEventListener("click",()=>{for(const k in assign)delete assign[k];status("");render()});
+document.getElementById("check").addEventListener("click",check);
+const ex=document.getElementById("expandall");
+ex.addEventListener("click",()=>{const all=[...document.querySelectorAll("details")],open=!all.every(d=>d.open);
+  all.forEach(d=>d.open=open);ex.textContent=open?"Tout fermer":"Tout ouvrir"});
+render();
+</script>
