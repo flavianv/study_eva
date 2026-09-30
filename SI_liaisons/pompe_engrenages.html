@@ -86,6 +86,27 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .fig text{font:600 13px var(--f-body);fill:var(--ink)}
 .fig .node{font:700 18px var(--f-disp)}
 .expandall{justify-self:start}
+
+/* phone: bigger touch targets, class palette pinned to the bottom, wide drawings scroll sideways */
+#nomen tr{cursor:pointer}
+#nomen tr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.taphint{font-size:.85rem;color:var(--muted);margin:6px 0 0}
+.panhint{display:none}
+@media (max-width:640px){
+  body{padding:16px 16px 92px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  .chip{width:50px;height:44px}
+  input[type=range]{height:36px}
+  [aria-label="Couleur de classe"]{position:fixed;left:0;right:0;bottom:0;z-index:10;justify-content:center;
+    background:var(--sheet);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.08);
+    padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px))}
+  [aria-label="Couleur de classe"]>span{display:none}
+  .wide-dwg{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .wide-dwg svg#dwg{min-width:620px}
+  .panhint{display:block;font-size:.8rem;color:var(--muted);margin:0 0 6px}
+  h1{font-size:1.6rem}
+}
 </style>
 <style>
 svg#dwg{max-width:860px}
@@ -105,7 +126,8 @@ svg#dwg{max-width:860px}
     <p>Un moteur entraîne l'arbre menant 5. Son pignon 6 fait tourner le pignon mené 9 en sens inverse ; l'huile est emprisonnée entre les dents et le corps, puis refoulée vers la sortie. Colorie les pièces par classe d'équivalence, fais tourner l'arbre, puis vérifie. Les réponses sont masquées en bas.</p>
   </header>
 
-  <div class="sheet">
+  <div class="sheet wide-dwg">
+    <p class="panhint">↔ Fais glisser le dessin pour le voir en entier.</p>
     <svg id="dwg" viewBox="40 20 580 360" role="img" aria-label="Coupe de la pompe par les deux axes et vue de bout des pignons, pièces 1 à 10 cliquables">
       <defs>
         <pattern id="h45" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1"/></pattern>
@@ -155,7 +177,7 @@ svg#dwg{max-width:860px}
       <div class="tablewrap"><table>
         <thead><tr><th>Rep.</th><th>Désignation</th><th>Classe</th></tr></thead>
         <tbody id="nomen"></tbody>
-      </table></div>
+      </table><p class="taphint">Astuce : touche une ligne du tableau pour colorier la pièce.</p></div>
       <p class="note">Le pignon mené 9 est monté serré sur son arbre 8. Les coussinets 10 sont emmanchés dans le corps et dans le couvercle.</p>
     </div>
   </div>
@@ -373,4 +395,12 @@ const ex=document.getElementById("expandall");
 ex.addEventListener("click",()=>{const all=[...document.querySelectorAll("details")],open=!all.every(d=>d.open);
   all.forEach(d=>d.open=open);ex.textContent=open?"Tout fermer":"Tout ouvrir"});
 render();
+
+// tap a row of the parts list to colour that part (easier than tiny parts on a phone)
+document.querySelectorAll("#nomen tr").forEach(tr=>{
+  const id=+tr.id.slice(3); tr.tabIndex=0;
+  const go=()=>nodes[id].g.dispatchEvent(new MouseEvent("click"));
+  tr.addEventListener("click",go);
+  tr.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+});
 </script>
