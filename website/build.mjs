@@ -41,6 +41,7 @@ const EX = [
   ["etau.html","Étau d'établi","4 classes. A loop plus an open branch: the lever.","play","Interactif"],
   ["pompe_engrenages.html","Pompe à engrenages","3 classes. Two pivots and a gear contact.","play","Interactif"],
   ["came_poussoir.html","Came et poussoir à galet","4 classes, and a spring that belongs to none. A cam-roller line contact.","play","Interactif"],
+  ["papa_mordu.html","Papa mordu","The not-so-serious one: 5 classes, a ball joint, point contacts, and a jaw lever with an Aïe-mètre.","play","Pour rire"],
 ];
 const rows = (list,start) => list.map(([f,t,d,k,lab],i)=>`<a class="row" href="${f}"><span class="n">${String(start+i).padStart(2,"0")}</span><span class="t">${t}</span><span class="tag ${k}">${lab}</span><span class="d">${d}</span></a>`).join("");
 page("index.html",{home:true,
