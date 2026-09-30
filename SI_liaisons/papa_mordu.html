@@ -88,9 +88,9 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .expandall{justify-self:start}
 </style>
 <style>
-:root{--cE:#8a4fc9;--tE:rgba(138,79,201,.28);--skin:#f3d9c6;--bubble:#fff6d6}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--cE:#b688ec;--tE:rgba(182,136,236,.34);--skin:#6b5040;--bubble:#3a3420}}
-:root[data-theme="dark"]{--cE:#b688ec;--tE:rgba(182,136,236,.34);--skin:#6b5040;--bubble:#3a3420}
+:root{--cE:#8a4fc9;--tE:rgba(138,79,201,.28);--skin:#f6dcc8;--bubble:#fff6d6;--hair:#8a5632;--hair-hi:#b0784c;--blush:rgba(236,110,130,.42);--eye:#2a2230}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--cE:#b688ec;--tE:rgba(182,136,236,.34);--skin:#8a6a55;--bubble:#3a3420;--hair:#5a3a22;--hair-hi:#7d5536;--blush:rgba(236,110,130,.45);--eye:#16121a}}
+:root[data-theme="dark"]{--cE:#b688ec;--tE:rgba(182,136,236,.34);--skin:#8a6a55;--bubble:#3a3420;--hair:#5a3a22;--hair-hi:#7d5536;--blush:rgba(236,110,130,.45);--eye:#16121a}
 svg#dwg{max-width:760px}
 .part .edge{stroke-width:2}
 .lbl{font-size:15px}
@@ -152,7 +152,7 @@ svg#dwg{max-width:760px}
         <text id="ouch" x="100" y="31" text-anchor="middle">…</text>
       </g>
       <text x="65" y="425" text-anchor="middle" class="cap">papa</text>
-      <text x="560" y="96" text-anchor="middle" class="cap">sa fille (tête isolée)</text>
+      <text x="546" y="100" class="cap">sa fille</text><text x="546" y="115" class="cap">(tête isolée)</text>
       <g id="labels"></g>
     </svg>
   </div>
@@ -308,9 +308,9 @@ const PARTS=[
   {id:3,hatch:null,skin:true,d:"M226 244 H480 V272 H226 Z",lbl:[260,330,[260,270]]},
   {id:5,hatch:"hx",d:"M480 239 H496 V277 H480 Z",lbl:[530,200,[490,241]]},
   {id:4,hatch:null,skin:true,d:"M496 246 H540 Q558 246 568 251 L600 253 Q607 258 600 263 L568 265 Q558 272 540 272 H496 Z",lbl:[610,310,[580,262]]},
-  {id:6,hatch:null,skin:true,k:"D",d:"M330 238 L318 200 Q300 170 312 120 Q330 58 390 56 Q455 58 465 120 Q470 170 442 200 L425 206 Q400 214 380 222 L372 238 Z",lbl:[262,150,[322,150]]},
+  {id:6,hatch:null,skin:true,k:"D",d:"M330 238 Q322 226 322 214 Q312 212 314 204 Q318 198 316 192 Q300 186 302 176 Q306 168 314 164 Q304 146 310 124 Q326 60 390 56 Q458 56 468 122 Q472 168 444 200 L425 206 Q400 214 380 222 L372 238 Z",lbl:[262,150,[346,204]]},
   {id:7,hatch:null,k:"D",d:teeth(238,1),lbl:[268,214,[339,240]]},
-  {id:11,hatch:"hx",k:"D",d:"M386 52 L400 62 L386 72 Z M414 52 L400 62 L414 72 Z",lbl:[470,30,[411,58]]},
+  {id:11,hatch:"hx",k:"D",d:"M458 74 Q452 62 462 60 L476 72 L462 84 Q452 82 458 74 Z M494 70 Q502 60 492 56 L476 72 L490 86 Q500 82 494 70 Z M472 68 H480 V76 H472 Z",lbl:[540,40,[490,64]]},
 ];
 const assign={}; let brush="A", fm=120, anim=null;
 const NS="http://www.w3.org/2000/svg";
@@ -327,11 +327,21 @@ for(const p of PARTS){
   const fill=el("path",{d:p.d,"fill-rule":"evenodd",fill:p.skin?"var(--skin)":"var(--sheet)"},g);
   if(p.hatch) el("path",{d:p.d,"fill-rule":"evenodd",fill:`url(#${p.hatch})`},g);
   const edge=el("path",{d:p.d,"fill-rule":"evenodd",class:"edge"},g);
-  if(p.id===6){ // face details
-    el("circle",{cx:340,cy:128,r:5,fill:"var(--ink)"},g);
-    el("path",{d:"M322 106 q10 -6 22 -2 M360 70 q8 -12 22 -10 M404 64 q14 -4 26 8 M436 80 q12 6 16 22",fill:"none",stroke:"var(--ink)","stroke-width":2,"stroke-linecap":"round"},g);
-    el("path",{d:"M350 160 q-8 8 -18 6",fill:"none",stroke:"var(--ink)","stroke-width":1.6},g);
+  if(p.id===6){ // face details: ponytail, hair, ear, eye, cheek
+    const deco=(tag,a)=>el(tag,Object.assign({"pointer-events":"none"},a),g);
+    deco("path",{d:"M458 84 Q498 66 516 96 Q530 124 510 156 Q500 170 488 168 Q502 146 500 124 Q496 100 470 96 Z",fill:"var(--hair)",stroke:"var(--ink)","stroke-width":1.8});
+    deco("path",{d:"M312 128 Q322 58 390 54 Q462 54 470 124 Q474 164 452 196 Q446 168 436 150 Q424 126 402 118 Q392 132 378 126 Q366 138 352 128 Q340 140 326 132 Q318 138 312 128 Z",fill:"var(--hair)",stroke:"var(--ink)","stroke-width":1.8,"stroke-linejoin":"round"});
+    deco("path",{d:"M340 84 Q370 66 404 70 M420 76 Q446 88 454 116",fill:"none",stroke:"var(--hair-hi)","stroke-width":4,"stroke-linecap":"round"});
+    deco("path",{d:"M414 150 Q430 146 432 164 Q432 182 416 180 Q424 170 414 166",fill:"var(--skin)",stroke:"var(--ink)","stroke-width":1.6});
+    deco("ellipse",{cx:346,cy:156,rx:7,ry:9,fill:"var(--eye)"});
+    deco("circle",{cx:343,cy:152,r:2.6,fill:"#fff"}); deco("circle",{cx:348,cy:159,r:1.2,fill:"#fff"});
+    deco("path",{d:"M339 148 l-6 -5 M342 146 l-4 -7 M346 145 l-1 -7",fill:"none",stroke:"var(--eye)","stroke-width":1.6,"stroke-linecap":"round"});
+    deco("path",{d:"M336 140 Q346 132 358 138",fill:"none",stroke:"var(--hair)","stroke-width":2.6,"stroke-linecap":"round"});
+    deco("ellipse",{cx:364,cy:184,rx:13,ry:8,fill:"var(--blush)"});
+    deco("path",{d:"M358 181 h.1 M366 179 h.1 M364 187 h.1",stroke:"var(--hair-hi)","stroke-width":2.4,"stroke-linecap":"round"});
+    deco("text",{x:246,y:188,class:"cap",style:"font-size:14px;fill:var(--cA)"}).textContent="grrr !";
   }
+
   if(p.id===5) el("circle",{cx:488,cy:258,r:6,fill:"var(--sheet)",stroke:"var(--ink)","stroke-width":1.4},g);
   nodes[p.id]={g,fill,edges:[edge],p,...mkLabel(p.id,p.lbl)}; hook(g,p.id);
 }
