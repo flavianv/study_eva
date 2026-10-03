@@ -5,7 +5,7 @@ Source of the chemistry section of the website. Run `node website/build.mjs` to 
 | Course | Pages |
 |---|---|
 | **1 · Dissolution et dilution** | formula map (course), conversion map, formula lab, worked examples, dissolution/dilution course, dilution lab, worked examples, exam *Sujet truffe, partie 1* (+ Q3), trainer |
-| **2 · Dosage par étalonnage** | course, calibration lab, worked examples, exam *Sujet truffe, partie 2*, trainer |
+| **2 · Dosage par étalonnage** | course, calibration lab, worked examples, exam *Sujet truffe, partie 2*, lab sheet *Sujet boisson bleue (E133)*, trainer |
 
 ## Where things live
 
@@ -13,7 +13,7 @@ Source of the chemistry section of the website. Run `node website/build.mjs` to 
 - `chimie_quiz.js`: random question generators and the practice UI (hint + step-by-step solution for every question).
 - `chimie.css`, `chimie_map.css`: styles (the second one is also appended to `site.css`).
 - `*.html`: interactive pages (fragments, wrapped by `website/chimie_pages.mjs`).
-- `website/chimie_pages.mjs`: the static course and solution pages. All numbers in the worked solutions are computed there, not typed.
+- `website/chimie_pages.mjs`: build wiring (reading order, interactive-page wrapper, language loop). The written pages come in two twins: `chimie_en.mjs` (English, dot decimals) and `chimie_fr.mjs` (French, comma decimals, files named `*_fr.html`). All numbers come from `chimie_numbers.mjs`, computed once, never typed. Keep the two twins in step when editing. The interactive pages are French only.
 
 ## Notes
 
