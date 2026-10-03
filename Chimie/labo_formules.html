@@ -1,0 +1,196 @@
+<title>Le labo des formules</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+<style>
+.tiles{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.tile{width:34px;height:34px;border:1.5px solid var(--ink);border-radius:4px;background:linear-gradient(90deg,var(--cB) var(--p),transparent var(--p))}
+.balloon{fill:rgba(var(--liq),.18);stroke:var(--cB);stroke-width:2.5}
+.glass{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linejoin:round}
+.tick{stroke:var(--ink);stroke-width:1}
+.tl{font:500 11px var(--f-mono);fill:var(--muted)}
+.dot{fill:var(--cA)}
+.sandline{font-size:.92rem}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Quantité de matière · Interactif</p>
+  <h1>Le labo des formules</h1>
+  <p>Six petites expériences, une par formule de la fiche. Bouge les curseurs, regarde ce qui change, et lis la phrase « Pourquoi ? » : c'est elle qu'il faut retenir.</p>
+</header>
+
+<section class="sheet lab" id="lab1">
+  <h2>1 · Masse volumique : ρ = m / V<sub>esp</sub></h2>
+  <div class="two">
+    <div><svg viewBox="0 0 300 300" role="img" aria-label="Éprouvette graduée"><g id="cyl1"></g></svg></div>
+    <div class="controls">
+      <div class="group"><label for="l1sp">Liquide</label><select id="l1sp"></select></div>
+      <div class="slide"><label for="l1v">Volume</label><input id="l1v" type="range" min="0" max="100" step="1" value="50"><span class="readout" id="l1vo"></span></div>
+      <code class="eq" id="l1eq"></code>
+      <div id="l1bars"></div>
+    </div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> ρ est la masse d'<b>un litre</b> de l'espèce. Même volume, liquide différent : masse différente. Attention aux unités : 0,789 g/mL = 789 g/L, et 50 mL = 0,050 L.</p>
+</section>
+
+<section class="sheet lab" id="lab2">
+  <h2>2 · Masse molaire : n = m / M</h2>
+  <div class="controls">
+    <div class="group"><label for="l2sp">Espèce</label><select id="l2sp"></select></div>
+    <div class="slide"><label for="l2m">Masse</label><input id="l2m" type="range" min="0" max="200" step="1" value="45"><span class="readout" id="l2mo"></span></div>
+    <div class="note">Chaque case = <b>1 mol</b> de cette espèce = <b id="l2M"></b> g. On remplit les cases avec la masse pesée.</div>
+    <div class="tiles" id="l2tiles"></div>
+    <code class="eq" id="l2eq"></code>
+    <div id="l2bars"></div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> M dit combien pèse un « paquet » d'une mole. Compter les moles, c'est compter combien de paquets on a pesé. À masse égale, une molécule lourde (saccharose) donne peu de moles ; une légère (eau) en donne beaucoup.</p>
+</section>
+
+<section class="sheet lab" id="lab3">
+  <h2>3 · Nombre d'entités : N = n × N<sub>A</sub></h2>
+  <div class="controls">
+    <div class="group"><label for="l3sp">Espèce</label><select id="l3sp"></select>
+      <button data-n="2.78e-3">Une goutte d'eau</button><button data-n="8.5e-6">Un grain de sel</button><button data-n="1">1 mol</button></div>
+    <div class="slide"><label for="l3n">n (échelle log)</label><input id="l3n" type="range" min="-7" max="1" step="0.02" value="-2"><span class="readout" id="l3no"></span></div>
+    <code class="eq" id="l3eq"></code>
+    <code class="eq" id="l3at"></code>
+    <p class="note sandline">Pour se représenter N<sub>A</sub> : une mole de grains de sable de 1 mm³ recouvrirait la France métropolitaine (≈ 5,5×10¹¹ m²) sur environ 1,1 km d'épaisseur. <i>(estimation)</i></p>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> N<sub>A</sub> est un facteur de conversion comme « 12 » pour une douzaine : atomes = mol × atomes/mol. Il est gigantesque parce que les atomes sont minuscules. Les atomes d'une molécule se comptent ensuite : 1 molécule de H<sub>2</sub>O = 3 atomes.</p>
+</section>
+
+<section class="sheet lab" id="lab4">
+  <h2>4 · Concentration molaire : C = n / V<sub>sol</sub></h2>
+  <div class="two">
+    <div><svg viewBox="0 0 300 300" role="img" aria-label="Bécher avec des particules de soluté"><g id="bk"></g></svg></div>
+    <div class="controls">
+      <div class="slide"><label for="l4n">n soluté</label><input id="l4n" type="range" min="0" max="40" step="1" value="12"><span class="readout" id="l4no"></span></div>
+      <div class="slide"><label for="l4v">V<sub>sol</sub></label><input id="l4v" type="range" min="50" max="500" step="10" value="200"><span class="readout" id="l4vo"></span></div>
+      <div class="group"><button id="l4add">+ 100 mL d'eau</button><button id="l4rst">Remise à zéro</button><span class="note">1 point = 1 mmol</span></div>
+      <code class="eq" id="l4eq"></code>
+      <div class="status" id="l4st"></div>
+    </div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> C compte les moles <b>par litre de solution</b> : c'est une densité de particules. Ajouter de l'eau ne change pas le nombre de points (n) mais agrandit le volume : C baisse. C'est toute l'idée de la dilution.</p>
+</section>
+
+<section class="sheet lab" id="lab5">
+  <h2>5 · Deux concentrations : C<sub>m</sub> = C × M</h2>
+  <div class="controls">
+    <div class="group"><label for="l5sp">Soluté</label><select id="l5sp"></select></div>
+    <div class="slide"><label for="l5c">C</label><input id="l5c" type="range" min="0" max="1" step="0.01" value="0.2"><span class="readout" id="l5co"></span></div>
+    <code class="eq" id="l5eq"></code>
+    <code class="eq" id="l5rev"></code>
+    <div id="l5bars"></div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> C et C<sub>m</sub> décrivent la <b>même</b> solution : l'une en moles par litre, l'autre en grammes par litre. Pour passer de l'une à l'autre il faut le poids d'une mole, donc M : g/L = mol/L × g/mol. À même C, le soluté le plus lourd donne la plus grande C<sub>m</sub>.</p>
+</section>
+
+<section class="sheet lab" id="lab6">
+  <h2>6 · Gaz : n = V / V<sub>m</sub></h2>
+  <div class="two">
+    <div><svg viewBox="0 0 260 260" role="img" aria-label="Ballon de gaz"><circle id="ball" class="balloon" cx="130" cy="120" r="50"/><text id="ballt" x="130" y="126" text-anchor="middle" font-family="JetBrains Mono" font-weight="600" font-size="16" fill="currentColor"></text><path d="M130 170 v14 M120 190 h20" stroke="currentColor" stroke-width="2.5" fill="none"/></svg></div>
+    <div class="controls">
+      <div class="group"><label for="l6sp">Gaz</label><select id="l6sp"></select></div>
+      <div class="group"><label>Conditions</label><button id="l6a" aria-pressed="true">20 °C : V<sub>m</sub> = 24,0 L/mol</button><button id="l6b" aria-pressed="false">0 °C : V<sub>m</sub> = 22,4 L/mol</button></div>
+      <div class="slide"><label for="l6v">Volume</label><input id="l6v" type="range" min="0" max="10" step="0.1" value="3"><span class="readout" id="l6vo"></span></div>
+      <code class="eq" id="l6eq"></code>
+      <code class="eq" id="l6m"></code>
+      <div id="l6bars"></div>
+    </div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> Dans les mêmes conditions, une mole de n'importe quel gaz occupe le même volume V<sub>m</sub>. Même volume ⇒ même n ⇒ même N ; mais les masses diffèrent car M diffère. V<sub>m</sub> dépend de la température (et de la pression) : l'énoncé te le donne. Et ce V est toujours le volume <b>du gaz</b>, jamais celui d'une solution.</p>
+</section>
+</div>
+
+<script src="chimie.js"></script>
+<script>
+CH.dec = ",";
+const $ = id => document.getElementById(id), F = CH.fmt, NS = "http://www.w3.org/2000/svg";
+const opt = s => `<option value="${s.id}">${s.name} (${s.form})</option>`;
+const bars = (rows, unit, fmt = F) => { const mx = Math.max(...rows.map(r => r.v), 1e-12);
+  return rows.map(r => `<div class="bar${r.me ? " me" : ""}"><span>${r.t}</span><span class="t"><span class="f" style="width:${Math.max(.5, r.v / mx * 100)}%"></span></span><span class="v">${fmt(r.v)} ${unit}</span></div>`).join(""); };
+
+// ---- 1 ρ
+const liq = ["H2O", "C2H6O", "Hg"], liqCol = {H2O: "47,111,208", C2H6O: "200,150,30", Hg: "130,135,145"};
+$("l1sp").innerHTML = liq.map(i => opt(CH.sp[i])).join("");
+function lab1(){
+  const sp = CH.sp[$("l1sp").value], V = +$("l1v").value / 1000, m = sp.rho * V;
+  $("l1vo").textContent = F(V * 1000, 3) + " mL";
+  const h = 220 * V * 1000 / 100;
+  let g = `<path class="glass" d="M60 30 V270 H130 V30"/><path d="M60 30 h-8 M130 30 h8" class="glass"/>`;
+  g += `<rect x="61.5" y="${270 - h}" width="67" height="${h}" fill="rgba(${liqCol[sp.id]},.45)"/>`;
+  for (let i = 0; i <= 10; i++){ const y = 270 - i * 22; g += `<path class="tick" d="M130 ${y} h${i % 5 ? 8 : 14}"/>${i % 5 === 0 ? `<text class="tl" x="148" y="${y + 4}">${i * 10}</text>` : ""}`; }
+  g += `<text class="tl" x="148" y="26">mL</text><rect x="190" y="200" width="100" height="70" rx="6" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="240" y="226" text-anchor="middle" class="tl">balance</text><text x="240" y="256" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="18" fill="var(--ink)">${F(m, 3)} g</text>`;
+  $("cyl1").innerHTML = g;
+  $("l1eq").innerHTML = `m = ρ × V = ${F(sp.rho)} g/L × ${F(V, 3)} L = <b>${F(m)} g</b>`;
+  $("l1bars").innerHTML = bars(liq.map(i => ({t: CH.sp[i].name, v: CH.sp[i].rho * V, me: i === sp.id})), "g");
+}
+// ---- 2 n = m/M
+const nongas = CH.species.filter(s => s.state !== "g" && s.id !== "Cu");
+$("l2sp").innerHTML = nongas.map(opt).join(""); $("l2sp").value = "H2O";
+function lab2(){
+  const sp = CH.sp[$("l2sp").value], m = +$("l2m").value, n = m / sp.M;
+  $("l2mo").textContent = m + " g"; $("l2M").textContent = F(sp.M);
+  const cnt = Math.max(1, Math.ceil(n - 1e-9)); let t = "";
+  for (let i = 0; i < Math.min(cnt, 60); i++) t += `<span class="tile" style="--p:${Math.max(0, Math.min(1, n - i)) * 100}%"></span>`;
+  $("l2tiles").innerHTML = t;
+  $("l2eq").innerHTML = `n = m / M = ${F(m)} g / ${F(sp.M)} g/mol = <b>${F(n)} mol</b>`;
+  $("l2bars").innerHTML = "<h3>Même masse, autres espèces</h3>" + bars(nongas.map(s => ({t: s.html, v: m / s.M, me: s.id === sp.id})), "mol");
+}
+// ---- 3 N
+$("l3sp").innerHTML = CH.species.map(opt).join(""); $("l3sp").value = "H2O";
+function lab3(){
+  const sp = CH.sp[$("l3sp").value], n = Math.pow(10, +$("l3n").value), N = n * CH.NA;
+  $("l3no").textContent = CH.sci(n, 2) + " mol";
+  $("l3eq").innerHTML = `N = n × N<sub>A</sub> = ${CH.sci(n, 2)} mol × 6,02×10²³ mol⁻¹ = <b>${CH.sci(N)}</b> entités de ${sp.html}`;
+  const tag = sp.atoms > 1 ? `${sp.atoms} atomes par entité` : "1 atome par entité";
+  $("l3at").innerHTML = `atomes = N × atomes/entité = ${CH.sci(N)} × ${sp.atoms} = <b>${CH.sci(N * sp.atoms)}</b> atomes <span class="muted">(${tag})</span>`;
+}
+document.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { $("l3n").value = Math.log10(+b.dataset.n); lab3(); });
+// ---- 4 C = n/V
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const pts = Array.from({length: 40}, () => [rnd(), rnd()]);
+function lab4(){
+  const n = +$("l4n").value, V = +$("l4v").value, C = n / V * 1; // mmol/mL = mol/L
+  $("l4no").textContent = n + " mmol"; $("l4vo").textContent = V + " mL";
+  const H = V / 500 * 230, x0 = 40, w = 180, yb = 270, alpha = Math.min(.75, .06 + C / .25 * .3);
+  let g = `<path class="glass" d="M${x0} 30 V${yb} H${x0 + w} V30"/><rect x="${x0 + 1.5}" y="${yb - H}" width="${w - 3}" height="${H}" fill="rgba(var(--liq),${alpha.toFixed(2)})"/>`;
+  g += `<path d="M${x0 + 1.5} ${yb - H} H${x0 + w - 1.5}" stroke="var(--cB)" stroke-width="2"/>`;
+  for (let i = 0; i < n; i++){ const [u, v] = pts[i]; g += `<circle class="dot" r="5" cx="${x0 + 10 + u * (w - 20)}" cy="${yb - 10 - v * Math.max(0, H - 20)}"/>`; }
+  g += `<text class="tl" x="${x0 + w + 6}" y="${yb - H + 4}">${V} mL</text>`;
+  $("bk").innerHTML = g;
+  $("l4eq").innerHTML = `C = n / V<sub>sol</sub> = ${F(n / 1000)} mol / ${F(V / 1000)} L = <b>${F(C)} mol/L</b>`;
+  $("l4st").textContent = n === 0 ? "Pas de soluté : C = 0." : "";
+}
+$("l4add").onclick = () => { $("l4v").value = Math.min(500, +$("l4v").value + 100); lab4(); $("l4st").textContent = "n n'a pas changé (même nombre de points), V a augmenté : C a baissé."; };
+$("l4rst").onclick = () => { $("l4n").value = 12; $("l4v").value = 200; lab4(); };
+// ---- 5 Cm = C M
+const solutes = CH.species.filter(s => s.solute && s.id !== "C2H6O");
+$("l5sp").innerHTML = solutes.map(opt).join(""); $("l5sp").value = "NaCl";
+function lab5(){
+  const sp = CH.sp[$("l5sp").value], C = +$("l5c").value;
+  $("l5co").textContent = F(C) + " mol/L";
+  $("l5eq").innerHTML = `C<sub>m</sub> = C × M = ${F(C)} mol/L × ${F(sp.M)} g/mol = <b>${F(C * sp.M)} g/L</b>`;
+  $("l5rev").innerHTML = `Retour : C = C<sub>m</sub> / M = ${F(C * sp.M)} / ${F(sp.M)} = <b>${F(C)} mol/L</b> <span class="muted">(g/L ÷ g/mol = mol/L)</span>`;
+  $("l5bars").innerHTML = "<h3>Même C, autres solutés : la masse par litre</h3>" + bars(solutes.map(s => ({t: s.html, v: C * s.M, me: s.id === sp.id})), "g/L");
+}
+// ---- 6 gaz
+const gases = CH.species.filter(s => s.state === "g"); let Vm = 24.0;
+$("l6sp").innerHTML = gases.map(opt).join(""); $("l6sp").value = "CO2";
+function lab6(){
+  const sp = CH.sp[$("l6sp").value], V = +$("l6v").value, n = V / Vm;
+  $("l6vo").textContent = F(V, 2) + " L";
+  $("ball").setAttribute("r", 14 + 48 * Math.cbrt(V / 10)); $("ballt").textContent = sp.form;
+  $("l6eq").innerHTML = `n = V / V<sub>m</sub> = ${F(V, 3)} L / ${F(Vm)} L/mol = <b>${F(n)} mol</b>`;
+  $("l6m").innerHTML = `m = n × M = ${F(n)} mol × ${F(sp.M)} g/mol = <b>${F(n * sp.M)} g</b> · N = <b>${CH.sci(n * CH.NA)}</b>`;
+  $("l6bars").innerHTML = "<h3>Même volume, même n, masses différentes</h3>" + bars(gases.map(s => ({t: s.html, v: n * s.M, me: s.id === sp.id})), "g");
+}
+$("l6a").onclick = () => { Vm = 24.0; $("l6a").setAttribute("aria-pressed", true); $("l6b").setAttribute("aria-pressed", false); lab6(); };
+$("l6b").onclick = () => { Vm = 22.4; $("l6b").setAttribute("aria-pressed", true); $("l6a").setAttribute("aria-pressed", false); lab6(); };
+
+for (const [id, f] of [["l1sp", lab1], ["l1v", lab1], ["l2sp", lab2], ["l2m", lab2], ["l3sp", lab3], ["l3n", lab3], ["l4n", lab4], ["l4v", lab4], ["l5sp", lab5], ["l5c", lab5], ["l6sp", lab6], ["l6v", lab6]]) $(id).addEventListener("input", f);
+lab1(); lab2(); lab3(); lab4(); lab5(); lab6();
+</script>

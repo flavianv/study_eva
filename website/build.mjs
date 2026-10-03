@@ -12,7 +12,7 @@ const SITE = "Eva's notes on Engineering";
 
 function page(file, {title, eyebrow, lede, body, prev, next, home=false}){
   const head = `<title>${home ? SITE : title + " · Eva's notes"}</title>\n${FONTS}\n<link rel="stylesheet" href="site.css">`;
-  const crumb = home ? `<span class="crumb">Sciences de l'ingénieur</span>` : `<a class="crumb" href="home.html">← ${SITE}</a>`;
+  const crumb = home ? `<span class="crumb">Sciences de l'ingénieur · Chimie</span>` : `<a class="crumb" href="home.html">← ${SITE}</a>`;
   const pager = (prev||next) ? `<nav class="pager">${prev?`<a href="${prev[0]}">← ${prev[1]}</a>`:"<span></span>"}${next?`<a href="${next[0]}">${next[1]} →</a>`:""}</nav>` : "";
   const html = `<header class="nb"><div class="nb-in">${crumb}${eyebrow?`<p class="eyebrow" style="margin-top:14px">${eyebrow}</p>`:""}<h1>${home?SITE:title}</h1>${lede?`<p class="lede">${lede}</p>`:""}</div></header>
 <main>${body}${pager}</main>`;
@@ -44,11 +44,14 @@ const EX = [
   ["papa_mordu.html","Papa mordu","The not-so-serious one: 5 classes, a ball joint, point contacts, and a jaw lever with an Aïe-mètre.","play","Pour rire"],
 ];
 const rows = (list,start) => list.map(([f,t,d,k,lab],i)=>`<a class="row" href="${f}"><span class="n">${String(start+i).padStart(2,"0")}</span><span class="t">${t}</span><span class="tag ${k}">${lab}</span><span class="d">${d}</span></a>`).join("");
+// ---------- chemistry courses (own module) ----------
+const CHIM = await (await import("./chimie_pages.mjs")).default({page, table, V, T, fs, path, ROOT, HERE, OUT, SITE, rows});
 page("index.html",{home:true,
-  lede:"Cours, fiches et exercices corrigés de sciences de l'ingénieur : statique avec les torseurs, puis modélisation des liaisons mécaniques. Les exercices interactifs se corrigent tout seuls.",
+  lede:"Cours, fiches et exercices corrigés : sciences de l'ingénieur (statique, liaisons mécaniques), puis chimie (quantité de matière, dissolution et dilution, dosage par étalonnage). Les exercices interactifs se corrigent tout seuls, et chaque exercice a sa solution pas à pas.",
   body:`<section><div class="sec-head"><h2>Statique : torseurs</h2><span class="muted">Actions mécaniques, déplacement de moments, PFS</span></div><div class="toc">${rows(EX.slice(0,3),1)}</div></section>
 <section><div class="sec-head"><h2>Modélisation : liaisons mécaniques</h2><span class="muted">Classes d'équivalence, graphe, schéma cinématique</span></div><div class="toc">${rows(EX.slice(3),4)}</div></section>
-<section class="key"><p><b>How to use the interactive exercises.</b> Colour the parts into classes, move the slider to watch the mechanism, press <i>Vérifier</i>. The full answers sit at the bottom of each page, folded. Try first, then open them.</p></section>`});
+${CHIM.home}
+<section class="key"><p><b>How to use the interactive exercises.</b> Colour the parts into classes, move the slider to watch the mechanism, press <i>Vérifier</i>. The full answers sit at the bottom of each page, folded. Try first, then open them. In the chemistry trainers, every question has a hint and a step-by-step solution.</p></section>`});
 
 page("torseurs.html",{title:"Torseurs : l'essentiel",eyebrow:"Statique · Fiche",
   lede:"A torseur describes a mechanical action: what it pushes (force) and what it turns (moment), written at one point.",next:["poignee.html","Poignée de porte"],

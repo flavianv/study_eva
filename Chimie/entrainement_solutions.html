@@ -1,0 +1,22 @@
+<title>Entraînement : formules, dissolution, dilution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Dissolution et dilution · Interactif</p>
+  <h1>Entraînement</h1>
+  <p>Des questions tirées au hasard sur les formules de la fiche, la dissolution et la dilution. Réponds, puis demande l'indice ou la <b>solution pas à pas</b>. La tolérance est de 2 % : garde 3 chiffres significatifs.</p>
+</header>
+<div id="quiz"></div>
+</div>
+<script src="chimie.js"></script>
+<script src="chimie_quiz.js"></script>
+<script>
+CH.dec = ",";
+CH.quiz(document.getElementById("quiz"),
+  ["M", "n_m", "m_n", "N_n", "m_N", "rho", "gaz", "diss_m", "diss_C", "Cm_C", "dil_V0", "dil_C1", "dil_eau", "calcaire"],
+  [{id: "formules", label: "Formules"}, {id: "dissolution", label: "Dissolution"}, {id: "dilution", label: "Dilution"}]);
+</script>

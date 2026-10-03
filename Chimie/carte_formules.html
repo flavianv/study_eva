@@ -1,0 +1,134 @@
+<title>La carte des conversions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Quantité de matière · Interactif</p>
+  <h1>La carte des conversions</h1>
+  <p>Choisis une espèce, dis ce que tu connais, tape une valeur : toutes les autres cases se calculent. Les flèches jaunes montrent le chemin suivi : on passe toujours par <b>n</b>.</p>
+</header>
+
+<section class="sheet controls">
+  <div class="group">
+    <label for="sp">Espèce</label><select id="sp"></select>
+    <label for="known">Je connais</label><select id="known"></select>
+    <input id="val" type="text" inputmode="decimal" class="wide" aria-label="Valeur connue" value="36"><span class="unit" id="valu">g</span>
+  </div>
+  <div class="group" id="vsolrow">
+    <label for="vsol">V<sub>sol</sub></label><input id="vsol" type="text" inputmode="decimal" value="250"><span class="unit">mL</span>
+    <span class="note">volume de la solution finale (fiole jaugée), pas le volume d'eau ajoutée.</span>
+  </div>
+  <div class="group">
+    <label for="target">Je cherche</label><select id="target"></select>
+    <span class="l">Exemples</span>
+    <button data-ex="H2O|m|36|250">36 g d'eau</button>
+    <button data-ex="NaCl|m|5,85|250">5,85 g de NaCl dans 250 mL</button>
+    <button data-ex="CO2|Vgaz|3|250">3 L de CO₂</button>
+    <button data-ex="C2H6O|Vesp|0,1|250">0,1 L d'éthanol</button>
+  </div>
+  <div class="status" id="status" aria-live="polite"></div>
+</section>
+
+<section class="sheet">
+  <div class="mapw" id="mapw"></div>
+  <p class="note" style="margin-top:8px">Bleu = ce que tu connais · vert = ce que tu cherches · jaune = chemin de calcul. Touche une case pour dire que tu connais cette grandeur. Les cases grisées n'existent pas pour cette espèce (un gaz n'a pas de V<sub>esp</sub>, un solide non soluble n'a pas de concentration).</p>
+</section>
+
+<section class="sheet">
+  <h2 id="stepsTitle">Calcul pas à pas</h2>
+  <ol class="steps" id="steps"></ol>
+</section>
+
+<section class="sheet">
+  <h2>Toutes les grandeurs</h2>
+  <div class="tablewrap"><table><thead><tr><th>Grandeur</th><th class="num">Valeur</th><th>Comment on l'obtient</th></tr></thead><tbody id="all"></tbody></table></div>
+  <p class="note" style="margin-top:8px">Rappel des données de l'espèce : <span id="data"></span></p>
+</section>
+</div>
+
+<script src="chimie.js"></script>
+<script>
+CH.dec = ",";
+const $ = id => document.getElementById(id), F = CH.fmt;
+const KNOWN_LABEL = {Vesp:"V de l'espèce", m:"masse m", n:"quantité n", N:"nombre N", Vgaz:"V du gaz", Cm:"Cm (g/L)", C:"C (mol/L)"};
+const UNIT_IN = {Vesp:"L", m:"g", n:"mol", N:"entités", Vgaz:"L", Cm:"g/L", C:"mol/L"};
+$("mapw").innerHTML = CH.mapSVG(); $("mapw").firstElementChild.classList.add("live");
+const svg = $("mapw").firstElementChild;
+
+const opt = (v, t) => `<option value="${v}">${t}</option>`;
+$("sp").innerHTML = [["l","Liquides"],["s","Solides"],["g","Gaz"]].map(([st,l]) =>
+  `<optgroup label="${l}">${CH.species.filter(s => s.state === st).map(s => opt(s.id, `${s.name} (${s.form})`)).join("")}</optgroup>`).join("");
+let known = "m";
+
+function fillSelects(){
+  const sp = CH.sp[$("sp").value], av = CH.available(sp);
+  if (!av.includes(known)) known = "m";
+  $("known").innerHTML = av.map(k => opt(k, KNOWN_LABEL[k])).join(""); $("known").value = known;
+  const t = $("target").value;
+  $("target").innerHTML = opt("", "— tout —") + av.map(k => opt(k, KNOWN_LABEL[k])).join(""); $("target").value = av.includes(t) ? t : "";
+  $("valu").textContent = UNIT_IN[known];
+  $("vsolrow").style.display = sp.solute ? "" : "none";
+}
+function read(){ return {sp: CH.sp[$("sp").value], x: CH.parse($("val").value), vs: CH.parse($("vsol").value) / 1000, tg: $("target").value}; }
+
+function render(){
+  const {sp, x, vs, tg} = read(), av = CH.available(sp);
+  for (const g of svg.querySelectorAll(".cn")){
+    const id = g.dataset.id, on = av.includes(id) || id === "Vsol" && sp.solute;
+    g.classList.toggle("off", !on); g.classList.toggle("known", id === known); g.classList.toggle("target", id === tg && id !== known);
+  }
+  const ok = isFinite(x) && x >= 0 && (!sp.solute || (isFinite(vs) && vs > 0));
+  $("status").textContent = ok ? "" : "Entre un nombre positif (ex. 36 ou 1,2e24).";
+  $("status").className = "status" + (ok ? "" : " bad");
+  for (const id in CH.NODES) $("v-" + id).textContent = "";
+  svg.querySelectorAll(".ce").forEach(e => { e.classList.remove("on"); e.classList.toggle("off", false); });
+  if (!ok){ $("steps").innerHTML = ""; $("all").innerHTML = ""; return; }
+  const res = CH.solve(sp, known, x, vs);
+  for (const id in res) $("v-" + id).textContent = F(res[id].val) + (CH.NODES[id].unit ? "" : "");
+  if (sp.solute) $("v-Vsol").textContent = F(vs);
+  // edges: highlight the path to the target, or every edge used when "tout"
+  const used = new Set();
+  const paths = tg ? [res[tg]] : Object.values(res);
+  for (const r of paths) for (const s of (r ? r.steps : [])) used.add([s.from, s.to].sort().join("|"));
+  svg.querySelectorAll(".ce").forEach(e => {
+    const [a, b] = e.dataset.e.split("-"), key = [a, b].sort().join("|");
+    e.classList.toggle("on", used.has(key));
+    e.classList.toggle("off", !(av.includes(a) && av.includes(b)));
+  });
+  // steps
+  if (tg && tg !== known){
+    $("stepsTitle").textContent = `Chemin : ${KNOWN_LABEL[known]} → ${KNOWN_LABEL[tg]}`;
+    const st = res[tg].steps;
+    $("steps").innerHTML = st.map(s => `<li><div><span class="why">${why(s)}</span>${CH.stepText(s)}</div></li>`).join("");
+  } else {
+    $("stepsTitle").textContent = "Calcul pas à pas";
+    $("steps").innerHTML = `<li><div><span class="why">Choisis « Je cherche » pour voir le chemin complet vers une grandeur.</span>Départ : ${KNOWN_LABEL[known]} = <b>${F(x)} ${UNIT_IN[known]}</b></div></li>`;
+  }
+  $("all").innerHTML = Object.keys(CH.NODES).filter(k => res[k] || k === "Vsol" && sp.solute).map(k => {
+    if (k === "Vsol") return `<tr><td>V<sub>sol</sub></td><td class="num">${F(vs)} L</td><td>donnée (fiole jaugée)</td></tr>`;
+    const r = res[k], n = CH.NODES[k], last = r.steps[r.steps.length - 1];
+    return `<tr><td>${n.sym[0]}${n.sym[1] ? `<sub>${n.sym[1]}</sub>` : ""} — ${n.name}</td><td class="num">${F(r.val)} ${n.unit}</td><td>${last ? CH.stepText(last).replace(/ = <b>.*$/, "") : "donnée de départ"}</td></tr>`;
+  }).join("");
+  $("data").innerHTML = `M(${sp.html}) = ${F(sp.M)} g/mol` + (sp.state === "g" ? ` · ρ = M/V<sub>m</sub> = ${F(sp.rho)} g/L` : ` · ρ = ${F(sp.rho)} g/L`) + ` · N<sub>A</sub> = 6,02×10²³ mol⁻¹` + (sp.state === "g" ? ` · V<sub>m</sub> = 24,0 L/mol` : "");
+}
+const WHY = {"Vesp>m":"On connaît ρ : la masse est ρ fois le volume.","m>Vesp":"On connaît ρ : le volume est la masse divisée par ρ.","m>n":"On passe de grammes à moles avec la masse molaire M.","n>m":"On passe de moles à grammes avec la masse molaire M.","n>N":"Une mole = N_A entités.","N>n":"On regroupe les entités par paquets de N_A.","n>Vgaz":"Une mole de gaz occupe V_m (24,0 L).","Vgaz>n":"Combien de paquets de 24,0 L ? C'est n.","m>Cm":"Masse dissoute par litre de solution.","Cm>m":"Masse dissoute dans tout le volume de solution.","n>C":"Moles dissoutes par litre de solution.","C>n":"Moles dissoutes dans tout le volume de solution.","Cm>C":"Cm est en g/L, on divise par M (g/mol) : on obtient des mol/L.","C>Cm":"C est en mol/L, on multiplie par M (g/mol) : on obtient des g/L."};
+const why = s => WHY[s.from + ">" + s.to];
+
+$("sp").addEventListener("change", () => { fillSelects(); render(); });
+$("known").addEventListener("change", () => { known = $("known").value; $("valu").textContent = UNIT_IN[known]; render(); });
+$("target").addEventListener("change", render);
+$("val").addEventListener("input", render); $("vsol").addEventListener("input", render);
+svg.addEventListener("click", e => pick(e)); svg.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
+function pick(e){
+  const g = e.target.closest(".cn"); if (!g) return;
+  const id = g.dataset.id; if (!CH.available(CH.sp[$("sp").value]).includes(id)) return;
+  known = id; $("known").value = id; $("valu").textContent = UNIT_IN[id]; $("val").focus(); $("val").select(); render();
+}
+document.querySelectorAll("[data-ex]").forEach(b => b.addEventListener("click", () => {
+  const [s, k, v, vs] = b.dataset.ex.split("|"); $("sp").value = s; known = k; fillSelects(); $("known").value = k; $("val").value = v; $("vsol").value = vs; $("valu").textContent = UNIT_IN[k]; render();
+}));
+fillSelects(); $("sp").value = "H2O"; fillSelects(); render();
+</script>

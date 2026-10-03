@@ -1,0 +1,22 @@
+<title>Entraînement : dosage par étalonnage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Dosage par étalonnage · Interactif</p>
+  <h1>Entraînement</h1>
+  <p>Questions aléatoires sur la gamme étalon, la droite A = k × C, la dilution de l'échantillon, la conductimétrie et la teneur dans le sol. Chaque question a un indice et une solution pas à pas.</p>
+</header>
+<div id="quiz"></div>
+</div>
+<script src="chimie.js"></script>
+<script src="chimie_quiz.js"></script>
+<script>
+CH.dec = ",";
+CH.quiz(document.getElementById("quiz"),
+  ["gamme", "k", "Cx", "dilue", "cond", "sol"],
+  [{id: "gamme", label: "Gamme étalon"}, {id: "etalonnage", label: "Courbe et concentration"}]);
+</script>

@@ -1,0 +1,50 @@
+/* Conversion map + calibration chart: used by the site pages (appended to site.css) and by the interactive pages */
+.mapw{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:8px}
+.cmap{display:block;width:100%;min-width:640px;height:auto;font-family:var(--f-body)}
+.cmap .cn rect{fill:var(--sheet);stroke:var(--ink);stroke-width:1.6}
+.cmap .cn.hub rect{stroke:var(--accent);stroke-width:3;fill:color-mix(in srgb,var(--accent) 9%,var(--sheet))}
+.cmap .cn.prm rect{stroke-dasharray:5 3}
+.cmap .cn{cursor:default}
+.cmap .cn .ns{font:700 19px var(--f-disp);fill:var(--ink)}
+.cmap .cn .nu{font:500 13px var(--f-mono);fill:var(--muted)}
+.cmap .cn .nn{font:500 12px var(--f-body);fill:var(--muted)}
+.cmap .cn .cv{font:600 15px var(--f-mono);fill:var(--ink)}
+.cmap .ce line{stroke:var(--muted);stroke-width:1.8}
+.cmap .ce .hd{stroke:var(--muted);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.cmap .ce .el{font:700 15px var(--f-disp);fill:var(--accent)}
+.cmap .param{stroke:var(--muted);stroke-width:1.4;stroke-dasharray:4 4}
+.cmap .lg{font:500 12px var(--f-body);fill:var(--muted)}
+.cmap.live .cn{cursor:pointer}
+.cmap.live .cn:hover rect,.cmap .cn:focus-visible rect{stroke:var(--accent);stroke-width:3}
+.cmap .cn:focus{outline:none}
+.cmap .cn.known rect{stroke:var(--cB);stroke-width:3.5;fill:color-mix(in srgb,var(--cB) 14%,var(--sheet))}
+.cmap .cn.target rect{stroke:var(--cC);stroke-width:3.5;fill:color-mix(in srgb,var(--cC) 14%,var(--sheet))}
+.cmap .cn.off{opacity:.38}
+.cmap .ce.on line,.cmap .ce.on .hd{stroke:var(--cD);stroke-width:3.2}
+.cmap .ce.on .el{fill:var(--cD)}
+.cmap .ce.off{opacity:.3}
+/* calibration chart */
+.chart{display:block;width:100%;max-width:640px;height:auto;font-family:var(--f-body)}
+.chart .gr{stroke:var(--line);stroke-width:.8}
+.chart .ax{stroke:var(--ink);stroke-width:1.6;fill:none}
+.chart .tk{font:500 12px var(--f-mono);fill:var(--muted)}
+.chart .al{font:600 13px var(--f-body);fill:var(--ink)}
+.chart .fit{stroke:var(--cB);stroke-width:2}
+.chart .pt path{stroke:var(--cA);stroke-width:2.2;fill:none}
+.chart .pt text{font:600 11px var(--f-mono);fill:var(--cA)}
+.chart .probe{stroke:var(--cC);stroke-width:1.8;stroke-dasharray:5 4;fill:none}
+.chart .pp{fill:var(--cC)}
+.chart .pl{font:700 12px var(--f-mono);fill:var(--cC)}
+
+/* steps */
+.steps{margin:0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:2rem minmax(0,1fr);gap:8px;align-items:baseline}
+.steps li::before{content:counter(s);font:700 1rem var(--f-disp);color:var(--muted);text-align:center;border:1.5px solid var(--line);border-radius:50%;width:1.7rem;height:1.7rem;line-height:1.5rem}
+.steps li>div{font-family:var(--f-mono);font-size:.95rem;overflow-x:auto}
+.steps li .why{display:block;font:400 .9rem var(--f-body);color:var(--muted);margin-bottom:2px}
+.path{font:600 .85rem var(--f-mono);color:var(--accent);margin:0 0 8px}
+.ex{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.ex h2{margin-top:0}
+.givens{color:var(--muted);font-size:.95rem}
+.ans{font:700 1.05rem var(--f-mono);background:var(--paper);border-left:4px solid var(--cC);padding:8px 12px;border-radius:4px;display:block;margin-top:10px}
+h3.fm{text-transform:none;letter-spacing:.02em;font-size:1.1rem}

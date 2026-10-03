@@ -1,0 +1,154 @@
+<title>Labo : courbe d'étalonnage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+<style>
+.sw{display:inline-block;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--ink);vertical-align:middle}
+td input{width:7ch;padding:4px 6px}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.res div{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:8px 12px}
+.res small{display:block;font:600 .72rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.res b{font:700 1.1rem var(--f-mono)}
+.warnbox{background:var(--tD);border-left:4px solid var(--cD);border-radius:4px;padding:8px 12px}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Dosage par étalonnage · Interactif</p>
+  <h1>Labo : courbe d'étalonnage</h1>
+  <p>Prépare une gamme de solutions étalons par dilution, mesure-les, trace la droite, puis retrouve la concentration d'une solution inconnue. Le préréglage « Sujet truffe » reprend les données de l'exercice sur le cuivre du sol.</p>
+</header>
+
+<section class="sheet controls">
+  <div class="group" id="presets" role="group" aria-label="Choix du dosage"><span class="l">Dosage</span></div>
+  <p class="note" id="pdesc"></p>
+</section>
+
+<section class="sheet">
+  <h2>1 · La gamme étalon (par dilution de S<sub>0</sub>)</h2>
+  <div class="tablewrap"><table><thead><tr><th>Solution</th><th></th><th class="num">V<sub>0</sub> prélevé (mL)</th><th class="num">C (mol/L)</th><th class="num" id="thm">Mesure</th></tr></thead><tbody id="gam"></tbody></table></div>
+  <div class="group" style="margin-top:10px"><button id="measure" class="primary">Mesurer les étalons</button><button id="renew">Nouvelle série (autre bruit)</button><span class="note" id="gnote"></span></div>
+  <code class="eq" id="g1" style="margin-top:10px"></code>
+</section>
+
+<section class="sheet">
+  <h2>2 · La courbe d'étalonnage</h2>
+  <div class="two">
+    <div id="chart"></div>
+    <div class="controls">
+      <div class="group"><span class="l">Droite</span><button id="fo" aria-pressed="true">par l'origine</button><button id="fa" aria-pressed="false">affine</button></div>
+      <div class="res" id="fres"></div>
+      <p class="note" id="fnote"></p>
+    </div>
+  </div>
+</section>
+
+<section class="sheet">
+  <h2>3 · La solution inconnue</h2>
+  <div class="controls">
+    <div class="group" id="ugrp"><button id="uea">Nouvelle inconnue (dans la gamme)</button><button id="uhi">Nouvelle inconnue (trop concentrée)</button>
+      <label for="uf">Diluer l'échantillon × </label><select id="uf"><option>1</option><option>2</option><option>5</option><option>10</option><option>20</option></select></div>
+    <div class="res" id="ures"></div>
+    <div class="group"><label for="uans">Ta valeur de C de l'échantillon</label><input id="uans" type="text" inputmode="decimal" class="wide" placeholder="ex. 0,31"><span class="unit">mmol/L</span><button id="uchk" class="primary">Vérifier</button><button id="uprobe">Lire sur la courbe</button></div>
+    <div class="status" id="ust" aria-live="polite"></div>
+  </div>
+  <details style="margin-top:12px"><summary>Solution pas à pas</summary><div class="body"><ol class="steps" id="usteps"></ol></div></details>
+</section>
+</div>
+
+<script src="chimie.js"></script>
+<script>
+CH.dec = ",";
+const $ = id => document.getElementById(id), F = CH.fmt;
+// ---- presets : C0 in mol/L, Vf in mL, k in (unit)/(mol/L)
+const PRESETS = {
+  mn: {name: "Permanganate · spectrophotométrie", qty: "Absorbance A", sym: "A", unit: "", k: 2400, kunit: "L/mol", C0: 1.00e-3, Vf: 50, V0s: [5, 10, 15, 20, 25], noise: .012, hue: "150,40,160", ymax: 1.4, xmax: 6e-4, sp: "KMnO4",
+       desc: "Solution de permanganate de potassium (violette), cuve de 1 cm. Valable tant que A reste inférieure à environ 1,2."},
+  cu: {name: "Sujet truffe · Cu²⁺", qty: "Absorbance A", sym: "A", unit: "", C0: 1.00e-2, Vf: 50, V0s: [5, 10, 25, 40, 50], fixed: [0.010, 0.019, 0.045, 0.082, 0.103], unk: 0.035, hue: "60,150,220", ymax: 0.12, xmax: 1.05e-2, kunit: "L/mol", sp: "CuSO4",
+       desc: "Données du sujet : S₁ à S₄ et S₀ (sulfate de cuivre), A mesurée à la longueur d'onde du maximum d'absorption. Solution de sol : A = 0,035."},
+  na: {name: "Chlorure de sodium · conductimétrie", qty: "Conductivité σ", sym: "σ", unit: "mS/cm", k: 126.4, kunit: "mS·cm⁻¹/(mol/L)", C0: 1.00e-2, Vf: 50, V0s: [5, 10, 15, 20, 25], noise: .004, hue: "150,150,150", ymax: .7, xmax: 6e-3, sp: "NaCl",
+       desc: "Sonde de conductimétrie, solutions de NaCl. σ = k × C (solutions diluées, même température)."},
+};
+let P = PRESETS.mn, key = "mn", seed = 5, meas = [], mode = "o", unk = null, probe = false;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, gauss = () => (rnd() + rnd() + rnd() - 1.5) * 2;
+const V0 = () => [...document.querySelectorAll("#gam input")].map(i => CH.parse(i.value));
+const Cs = () => V0().map(v => P.C0 * v / P.Vf);
+$("presets").insertAdjacentHTML("beforeend", Object.entries(PRESETS).map(([k, p]) => `<button data-k="${k}">${p.name}</button>`).join(""));
+function setPreset(k){
+  key = k; P = PRESETS[k]; $("pdesc").textContent = P.desc;
+  $("presets").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+  $("gam").innerHTML = P.V0s.map((v, i) => { const nm = P.fixed ? ["S₁", "S₂", "S₃", "S₄", "S₀"][i] : "S" + (i + 1);
+    return `<tr><td>${nm}</td><td><span class="sw" style="background:rgba(${P.hue},${.1 + .8 * (P.C0 * v / P.Vf) / P.xmax * 0.9})"></span></td><td class="num"><input type="text" inputmode="decimal" value="${F(v)}" ${P.fixed ? "disabled" : ""}></td><td class="num">${CH.sci(P.C0 * v / P.Vf, 3)}</td><td class="num" id="m${i}">—</td></tr>`; }).join("");
+  $("thm").textContent = `${P.qty}${P.unit ? " (" + P.unit + ")" : ""}`;
+  $("gam").addEventListener("input", draw);
+  $("renew").style.display = $("uea").style.display = $("uhi").style.display = P.fixed ? "none" : "";
+  $("gnote").textContent = P.fixed ? "Mesures données par l'énoncé." : `S₀ = ${CH.sci(P.C0, 3)} mol/L, fioles de ${P.Vf} mL. Tu peux changer les volumes prélevés.`;
+  meas = P.fixed ? P.fixed.slice() : []; mode = "o"; probe = false; unk = P.fixed ? {x: null, y: P.unk} : null;
+  if (!P.fixed) newUnknown(false); else $("uf").value = "1";
+  draw();
+}
+function measure(){ meas = Cs().map(c => Math.max(0, P.k * c + gauss() * P.noise)); draw(); }
+function newUnknown(hi){
+  const na = key === "na", a = hi ? (na ? 2.5e-2 : 1.2e-3) : .22 * P.xmax, b = hi ? (na ? 6e-2 : 3e-3) : .85 * P.xmax;
+  unk = {x: Math.round((a + rnd() * (b - a)) * 1e5) / 1e5, y: null, noiseKey: rnd()}; probe = false; $("uans").value = ""; $("ust").textContent = ""; draw();
+}
+function fitNow(){
+  const C = Cs(), pts = C.map((c, i) => ({x: c, y: meas[i]})).filter(p => p.y != null && isFinite(p.y));
+  if (pts.length < 2) return null;
+  if (mode === "o"){ const k = CH.fit0(pts), f = CH.fit(pts); const my = pts.reduce((a, p) => a + p.y, 0) / pts.length; const sst = pts.reduce((s, p) => s + (p.y - my) ** 2, 0), ssr = pts.reduce((s, p) => s + (p.y - k * p.x) ** 2, 0); return {k, b: 0, r2: 1 - ssr / sst, pts}; }
+  const f = CH.fit(pts); return {k: f.slope, b: f.b, r2: f.r2, pts};
+}
+function unkMeasured(){ // value measured on the (possibly diluted) sample
+  if (P.fixed) return unk.y; const Fd = +$("uf").value; return Math.max(0, P.k * unk.x / Fd * (1 + .006 * gauss0(unk.noiseKey)));
+}
+const gauss0 = k => (k - .5) * 2;
+function draw(){
+  const C = Cs(); C.forEach((c, i) => { $("m" + i).textContent = meas[i] != null ? (P.fixed ? meas[i].toFixed(3).replace(".", ",") : F(meas[i], 3)) : "—"; });
+  $("g1").innerHTML = `C = C₀ × V₀ / V = ${CH.sci(P.C0, 3)} × V₀ / ${P.Vf}` + (V0().some(v => v >= P.Vf) ? " <b>(V₀ = V : pas de dilution)</b>" : "");
+  const f = meas.length ? fitNow() : null, F0 = +$("uf").value;
+  $("fo").setAttribute("aria-pressed", mode === "o"); $("fa").setAttribute("aria-pressed", mode === "a");
+  const pts = meas.length ? C.map((c, i) => ({x: c, y: meas[i], label: ""})) : [];
+  const um = unk && (P.fixed || unk.x) ? unkMeasured() : null;
+  let probeO = null;
+  if (probe && f && um != null){ const cx = (um - f.b) / f.k; probeO = {x: cx, y: um}; }
+  $("chart").innerHTML = CH.calibSVG({pts, k: f ? f.k : null, b: f ? f.b : 0, xmax: P.xmax, ymax: P.ymax, xs: 1000, xl: "Concentration C (mmol/L)", yl: `${P.qty}${P.unit ? " (" + P.unit + ")" : ""}`, probe: probeO});
+  if (!f){ $("fres").innerHTML = ""; $("fnote").textContent = "Mesure les étalons pour voir apparaître les points et la droite."; }
+  else {
+    $("fres").innerHTML = `<div><small>pente k</small><b>${F(f.k, 3)} ${P.kunit}</b></div><div><small>ordonnée à l'origine</small><b>${mode === "o" ? "0 (imposée)" : F(f.b, 2)}</b></div><div><small>R²</small><b>${F(f.r2, 4)}</b></div>`;
+    $("fnote").innerHTML = `Les points sont alignés sur une droite qui passe par l'origine : ${P.sym} est <b>proportionnelle</b> à C (${key === "na" ? "loi de Kohlrausch" : "loi de Beer-Lambert"}) : ${P.sym} = k × C. ${f.r2 < .99 ? "<b>R² un peu bas : vérifie tes volumes ou refais les mesures.</b>" : ""}`;
+  }
+  // unknown panel
+  if (um == null){ $("ures").innerHTML = ""; $("usteps").innerHTML = ""; return; }
+  const out = f && um > Math.max(...meas) * 1.001, F1 = +$("uf").value;
+  $("ures").innerHTML = `<div><small>${P.sym} mesurée (échantillon${F1 > 1 ? " dilué ×" + F1 : ""})</small><b>${F(um, 3)}${P.unit ? " " + P.unit : ""}</b></div>` + (out ? `<div class="warnbox"><b>Hors gamme !</b> La valeur dépasse le plus grand étalon : dilue l'échantillon.</div>` : "");
+  if (!f){ $("usteps").innerHTML = ""; return; }
+  const Cmes = (um - f.b) / f.k, Cx = Cmes * F1, sp = CH.sp[P.sp];
+  const steps = [
+    ["Préparer la gamme : C = C₀ V₀ / V pour chaque fiole.", `${C.map(c => CH.sci(c, 3)).join(" ; ")} mol/L`],
+    ["Mesurer et tracer " + P.sym + " en fonction de C. La droite passe par l'origine : " + P.sym + " = k × C.", `k = ${F(f.k, 3)} ${P.kunit} (R² = ${F(f.r2, 4)})`],
+    ["Lire la concentration mesurée : on remplace " + P.sym + " dans " + P.sym + " = k C.", `C<sub>mesurée</sub> = ${P.sym} / k = ${F(um, 3)} / ${F(f.k, 3)} = <b>${CH.sci(Cmes, 3)} mol/L</b>`],
+  ];
+  if (F1 > 1) steps.push(["L'échantillon a été dilué F fois : on remonte à la concentration d'origine.", `C = F × C<sub>mesurée</sub> = ${F1} × ${CH.sci(Cmes, 3)} = <b>${CH.sci(Cx, 3)} mol/L</b>`]);
+  else steps.push(["Pas de dilution (F = 1) : la concentration mesurée est celle de l'échantillon.", `C = <b>${CH.sci(Cx, 3)} mol/L</b>`]);
+  if (key === "cu") steps.push(["Concentration massique en Cu²⁺ : C<sub>m</sub> = C × M, avec M(Cu) = 63,5 g/mol.", `C<sub>m</sub> = ${CH.sci(Cx, 3)} × 63,5 = <b>${F(Cx * 63.5)} g/L</b> (soit ${F(Cx * 63.5 / 0.5)} g de cuivre par kg de sol pour 500,0 g de sol dans 1,00 L)`]);
+  if (key === "na") steps.push(["Concentration massique : C<sub>m</sub> = C × M, M(NaCl) = 58,5 g/mol.", `C<sub>m</sub> = ${CH.sci(Cx, 3)} × 58,5 = <b>${F(Cx * 58.5)} g/L</b>`]);
+  $("usteps").innerHTML = steps.map(([w, c]) => `<li><div><span class="why">${w}</span>${c}</div></li>`).join("");
+  $("usteps").dataset.cx = Cx;
+}
+$("presets").addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (b) setPreset(b.dataset.k); });
+$("measure").onclick = () => { if (P.fixed) meas = P.fixed.slice(); else measure(); draw(); };
+$("renew").onclick = () => { seed = Math.floor(Math.random() * 1e6) + 1; measure(); };
+$("fo").onclick = () => { mode = "o"; draw(); }; $("fa").onclick = () => { mode = "a"; draw(); };
+$("uea").onclick = () => newUnknown(false); $("uhi").onclick = () => newUnknown(true);
+$("uf").onchange = draw; $("uprobe").onclick = () => { probe = true; draw(); };
+$("uchk").onclick = () => {
+  const f = meas.length ? fitNow() : null; if (!f){ $("ust").className = "status bad"; $("ust").textContent = "Mesure d'abord les étalons."; return; }
+  const ans = CH.parse($("uans").value) / 1000, truth = Number($("usteps").dataset.cx);
+  if (!isFinite(ans)){ $("ust").className = "status bad"; $("ust").textContent = "Entre un nombre (en mmol/L)."; return; }
+  const ok = CH.close(ans, truth, .06);
+  $("ust").className = "status " + (ok ? "ok" : "bad");
+  $("ust").innerHTML = ok ? `Juste (à 6 % près) : C = ${F(truth * 1000)} mmol/L.` : `Pas encore. Rappelle-toi : C<sub>mesurée</sub> = ${P.sym} / k, puis × F si tu as dilué. Ouvre « Solution pas à pas » pour comparer.`;
+};
+setPreset("mn");
+</script>

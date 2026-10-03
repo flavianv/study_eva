@@ -1,0 +1,175 @@
+<title>Labo : dissoudre et diluer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="chimie.css">
+<link rel="stylesheet" href="chimie_map.css">
+<style>
+.glass{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linejoin:round}
+.mark{stroke:var(--cA);stroke-width:2.2}
+.dot{fill:var(--cA)}
+.grain{fill:var(--ink)}
+.tl{font:500 12px var(--f-mono);fill:var(--muted)}
+.tt{font:700 14px var(--f-disp);fill:var(--ink);letter-spacing:.04em}
+.stepbtns{display:flex;flex-wrap:wrap;gap:6px}
+.stepbtns button{min-width:44px}
+.stepdesc{background:var(--paper);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px;min-height:5.2em}
+.wide svg{min-width:640px}
+.wide{overflow-x:auto}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.res div{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:8px 12px}
+.res small{display:block;font:600 .72rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.res b{font:700 1.15rem var(--f-mono)}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chimie · Dissolution et dilution · Interactif</p>
+  <h1>Labo : dissoudre et diluer</h1>
+  <p>Deux gestes de laboratoire à maîtriser : fabriquer une solution en dissolvant un solide, puis la diluer. Dans les deux cas, tout se calcule avec <b>n</b>.</p>
+</header>
+
+<section class="sheet lab" id="A">
+  <h2>A · Dissolution dans une fiole jaugée</h2>
+  <div class="two">
+    <div><svg viewBox="0 0 320 310" role="img" aria-label="Fiole jaugée et balance"><defs><clipPath id="fc"><path id="fclip" d=""/></clipPath></defs><g id="flask"></g></svg></div>
+    <div class="controls">
+      <div class="group"><label for="asp">Soluté</label><select id="asp"></select>
+        <label for="av">Fiole</label><select id="av"><option>50</option><option>100</option><option selected>250</option><option>500</option><option>1000</option></select><span class="unit">mL</span></div>
+      <div class="slide"><label for="ac">C voulue</label><input id="ac" type="range" min="0.01" max="1" step="0.01" value="0.10"><span class="readout" id="aco"></span></div>
+      <div class="res" id="ares"></div>
+      <code class="eq" id="aeq"></code>
+      <div class="stepbtns" id="abtns" role="group" aria-label="Étapes du protocole"></div>
+      <div class="stepdesc" id="adesc" aria-live="polite"></div>
+      <div class="group"><label for="aw">Tu as pesé</label><input id="aw" type="text" inputmode="decimal" class="wide"><span class="unit">g</span><span id="aerr" class="note"></span></div>
+    </div>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> Le volume qui compte est celui de la <b>solution finale</b> (le trait de jauge), pas celui de l'eau versée : le solide prend de la place. C'est pour ça qu'on complète <i>après</i> avoir dissous. Un petit écart de pesée donne un petit écart de C, proportionnel.</p>
+</section>
+
+<section class="sheet lab" id="B">
+  <h2>B · Dilution : n ne change pas</h2>
+  <div class="controls">
+    <div class="group"><label for="bc0">C mère</label><input id="bc0" type="text" inputmode="decimal" value="0,500"><span class="unit">mol/L</span>
+      <label for="bv0">Pipette</label><select id="bv0"><option>1</option><option>2</option><option>5</option><option selected>10</option><option>20</option><option>25</option></select><span class="unit">mL</span>
+      <label for="bv1">Fiole fille</label><select id="bv1"><option>25</option><option>50</option><option selected>100</option><option>200</option><option>250</option><option>500</option></select><span class="unit">mL</span></div>
+    <div class="wide"><svg viewBox="0 0 760 270" role="img" aria-label="Dilution : bécher mère, pipette, fiole fille"><g id="dil"></g></svg></div>
+    <div class="res" id="bres"></div>
+    <code class="eq" id="beq1"></code><code class="eq" id="beq2"></code>
+  </div>
+  <p class="why"><b>Pourquoi ?</b> Les points prélevés dans la pipette sont tous renversés dans la fiole fille : <b>n est conservé</b>. On ajoute seulement de l'eau, donc V augmente et C diminue : C<sub>0</sub> V<sub>0</sub> = C<sub>1</sub> V<sub>1</sub>. Le facteur de dilution F = C<sub>0</sub>/C<sub>1</sub> = V<sub>1</sub>/V<sub>0</sub> est toujours supérieur à 1.</p>
+</section>
+
+<section class="sheet lab" id="Cc">
+  <h2>C · À l'envers : quel volume prélever ?</h2>
+  <div class="controls">
+    <div class="group"><label for="rc0">C mère</label><input id="rc0" type="text" inputmode="decimal" value="1,00e-2"><span class="unit">mol/L</span>
+      <label for="rc1">C voulue</label><input id="rc1" type="text" inputmode="decimal" value="5,00e-3"><span class="unit">mol/L</span>
+      <label for="rv1">Fiole</label><select id="rv1"><option>25</option><option selected>50</option><option>100</option><option>200</option><option>250</option><option>500</option></select><span class="unit">mL</span></div>
+    <code class="eq" id="req"></code>
+    <div class="status" id="rst" aria-live="polite"></div>
+    <details><summary>Les 4 solutions de la gamme S<sub>1</sub> à S<sub>4</sub> (sujet truffe)</summary><div class="body"><div class="tablewrap"><table><thead><tr><th>Solution</th><th class="num">C (mol/L)</th><th class="num">F</th><th class="num">V<sub>0</sub> à prélever (50,0 mL)</th><th>Verrerie</th></tr></thead><tbody id="gamme"></tbody></table></div><p class="note">Données du sujet : S<sub>0</sub> = 1,00×10⁻² mol/L, fioles de 50,0 mL. 40,0 mL ne sont pas une pipette jaugée usuelle : burette graduée, ou deux fois la pipette de 20,0 mL.</p></div></details>
+  </div>
+</section>
+</div>
+
+<script src="chimie.js"></script>
+<script>
+CH.dec = ",";
+const $ = id => document.getElementById(id), F = CH.fmt;
+const NS = "http://www.w3.org/2000/svg";
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const pts = Array.from({length: 140}, () => [rnd(), rnd()]);
+
+// ---------- A : dissolution ----------
+const solutes = CH.species.filter(s => s.solute && s.id !== "C2H6O");
+$("asp").innerHTML = solutes.map(s => `<option value="${s.id}">${s.name} (${s.form})</option>`).join("");
+const FLASK = "M135 24 V120 C70 140 50 195 70 245 Q82 285 130 290 H190 Q238 285 250 245 C270 195 250 140 185 120 V24 Z";
+$("fclip").setAttribute("d", FLASK);
+const STEPS = [
+  ["Calculer puis peser", "Calculer m = C × V × M, puis peser le soluté sur la balance (coupelle, spatule). On pèse un peu plus ou un peu moins : on note la vraie masse."],
+  ["Introduire", "Verser le solide dans la fiole jaugée avec un entonnoir. Rincer la coupelle et l'entonnoir avec de l'eau distillée dans la fiole : on ne perd aucun grain."],
+  ["Dissoudre", "Ajouter de l'eau distillée jusqu'à environ les deux tiers de la fiole. Boucher, agiter jusqu'à dissolution complète : le solide a disparu."],
+  ["Ajuster au trait", "Compléter avec de l'eau distillée jusqu'au trait de jauge (dernières gouttes à la pipette Pasteur). Le bas du ménisque est sur le trait, l'œil au même niveau."],
+  ["Homogénéiser", "Boucher et retourner la fiole plusieurs fois : la concentration est maintenant la même partout dans la solution."],
+];
+let step = 0;
+$("abtns").innerHTML = STEPS.map((s, i) => `<button data-i="${i}" title="${s[0]}">${i + 1}</button>`).join("") + `<button id="anext" class="primary">Étape suivante →</button>`;
+function calcA(){ const sp = CH.sp[$("asp").value], V = +$("av").value / 1000, C = +$("ac").value, n = C * V, m = n * sp.M; return {sp, V, C, n, m}; }
+function drawA(){
+  const {sp, V, C, n, m} = calcA(), alpha = Math.min(.8, .12 + C * .6);
+  $("aco").textContent = F(C) + " mol/L";
+  $("ares").innerHTML = `<div><small>n à dissoudre</small><b>${F(n)} mol</b></div><div><small>M(${sp.html})</small><b>${F(sp.M)} g/mol</b></div><div><small>masse à peser</small><b>${F(m)} g</b></div><div><small>C<sub>m</sub> obtenue</small><b>${F(C * sp.M)} g/L</b></div>`;
+  $("aeq").innerHTML = `n = C × V = ${F(C)} × ${F(V)} = ${F(n)} mol<br>m = n × M = ${F(n)} × ${F(sp.M)} = <b>${F(m)} g</b>`;
+  const lvl = [null, null, 190, 52, 52][step], full = step >= 3;
+  let g = `<g clip-path="url(#fc)">`;
+  if (lvl) g += `<rect x="40" y="${lvl}" width="240" height="${300 - lvl}" fill="rgba(var(--liq),${step === 2 ? alpha * .7 : alpha})"/>`;
+  g += `</g><path class="glass" d="${FLASK}"/><path class="mark" d="M128 52 h64"/><text class="tl" x="200" y="56">trait de jauge</text><text class="tt" x="160" y="312" text-anchor="middle">${$("av").value} mL</text>`;
+  if (step === 0) {                                      // balance
+    g += `<rect x="238" y="226" width="78" height="56" rx="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text x="277" y="248" class="tl" text-anchor="middle">balance</text><text x="277" y="272" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="var(--ink)">${F(m)} g</text><path d="M246 222 h62 l-6 -10 h-50 z" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>`;
+    for (let i = 0; i < 18; i++) g += `<rect class="grain" x="${256 + pts[i][0] * 42}" y="${214 + pts[i][1] * -4}" width="3.5" height="3.5"/>`;
+  }
+  if (step === 1) for (let i = 0; i < 40; i++) g += `<rect class="grain" x="${90 + pts[i][0] * 140}" y="${262 + pts[i][1] * 18}" width="4" height="4"/>`;
+  if (step === 2) for (let i = 0; i < 9; i++) g += `<rect class="grain" x="${110 + pts[i][0] * 100}" y="${268 + pts[i][1] * 14}" width="3.5" height="3.5" opacity=".6"/>`;
+  if (step >= 3) { const k = 70; for (let i = 0; i < k; i++) g += `<circle class="dot" r="3" cx="${88 + pts[i][0] * 144}" cy="${140 + pts[i][1] * 125}" opacity="${step === 3 ? .55 : .9}"/>`; }
+  if (step === 2) for (let i = 0; i < 40; i++) g += `<circle class="dot" r="3" cx="${90 + pts[i][0] * 140}" cy="${205 + pts[i][1] * 65}" opacity=".7"/>`;
+  $("flask").innerHTML = g;
+  $("abtns").querySelectorAll("button[data-i]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.i === step));
+  $("adesc").innerHTML = `<b>${step + 1}. ${STEPS[step][0]}.</b> ${STEPS[step][1]}`;
+  if (document.activeElement !== $("aw")) $("aw").value = F(m, 4);
+  weighed();
+}
+function weighed(){
+  const {sp, V, C, m} = calcA(), w = CH.parse($("aw").value);
+  if (!isFinite(w) || w <= 0){ $("aerr").textContent = ""; return; }
+  const Cr = w / (sp.M * V), e = (Cr - C) / C * 100;
+  $("aerr").innerHTML = `C réelle = m / (M × V) = <b>${F(Cr)} mol/L</b> (${e >= 0 ? "+" : ""}${F(e, 2)} %)`;
+}
+for (const id of ["asp", "av", "ac"]) $(id).addEventListener("input", () => { $("aw").value = ""; drawA(); });
+$("aw").addEventListener("input", weighed);
+$("abtns").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; if (b.id === "anext") step = (step + 1) % 5; else step = +b.dataset.i; drawA(); });
+
+// ---------- B : dilution ----------
+function vessel(g, x, y, w, h, lvlH, alpha, n, kind){
+  let s = `<path class="glass" d="M${x} ${y} V${y + h} H${x + w} V${y}"/><rect x="${x + 1.2}" y="${y + h - lvlH}" width="${w - 2.4}" height="${lvlH}" fill="rgba(var(--liq),${alpha})"/>`;
+  for (let i = 0; i < n; i++) s += `<circle class="dot" r="3.2" cx="${x + 8 + pts[i][0] * (w - 16)}" cy="${y + h - 8 - pts[i][1] * Math.max(4, lvlH - 14)}"/>`;
+  return s;
+}
+function drawB(){
+  const C0 = CH.parse($("bc0").value), V0 = +$("bv0").value, V1 = +$("bv1").value;
+  if (!(C0 > 0)){ $("bres").innerHTML = ""; return; }
+  const bad = V0 >= V1, n = C0 * V0 / 1000, C1 = n / (V1 / 1000), Fd = V1 / V0, alpha1 = .07 + .5 * C1 / C0;
+  const taken = Math.max(1, Math.round(60 * V0 / 100));
+  let g = `<text class="tt" x="105" y="26" text-anchor="middle">Solution mère</text><text class="tl" x="105" y="44" text-anchor="middle">C₀ = ${F(C0)} mol/L</text>`;
+  g += vessel(g, 30, 60, 150, 170, 150, .55, 60);
+  g += `<path d="M190 130 H262" stroke="var(--accent)" stroke-width="2.4" fill="none"/><path d="M254 122 l10 8 l-10 8" stroke="var(--accent)" stroke-width="2.4" fill="none"/><text class="tl" x="226" y="118" text-anchor="middle">prélever</text>`;
+  g += `<text class="tt" x="330" y="26" text-anchor="middle">Pipette jaugée</text><text class="tl" x="330" y="44" text-anchor="middle">V₀ = ${V0} mL</text>`;
+  g += `<path class="glass" d="M322 60 V190 L330 232 L338 190 V60"/><path class="glass" d="M318 108 h24" /><rect x="323.2" y="120" width="13.6" height="70" fill="rgba(var(--liq),.55)"/>`;
+  for (let i = 0; i < Math.min(taken, 6); i++) g += `<circle class="dot" r="3" cx="${326 + (i % 2) * 8}" cy="${128 + i * 10}"/>`;
+  g += `<text class="tl" x="352" y="200">${taken} point${taken > 1 ? "s" : ""}</text>`;
+  g += `<path d="M400 130 H470" stroke="var(--accent)" stroke-width="2.4" fill="none"/><path d="M462 122 l10 8 l-10 8" stroke="var(--accent)" stroke-width="2.4" fill="none"/><text class="tl" x="436" y="118" text-anchor="middle">+ eau</text><text class="tl" x="436" y="150" text-anchor="middle">jusqu'au trait</text>`;
+  g += `<text class="tt" x="600" y="26" text-anchor="middle">Solution fille</text><text class="tl" x="600" y="44" text-anchor="middle">C₁ = ${bad ? "?" : F(C1)} mol/L · V₁ = ${V1} mL</text>`;
+  const fx = 500, fy = 60;
+  g += `<g transform="translate(${fx} ${fy}) scale(.62)"><path d="${FLASK}" fill="rgba(var(--liq),${alpha1.toFixed(2)})" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round" transform="translate(-40 -20)"/></g>`;
+  for (let i = 0; i < taken; i++) g += `<circle class="dot" r="3.2" cx="${fx + 32 + pts[i][0] * 96}" cy="${fy + 86 + pts[i][1] * 66}"/>`;
+  $("dil").innerHTML = g;
+  $("bres").innerHTML = bad ? `<div><small>Attention</small><b>V₀ &lt; V₁</b></div>` : `<div><small>n prélevé</small><b>${CH.sci(n, 3)} mol</b></div><div><small>C fille</small><b>${F(C1)} mol/L</b></div><div><small>facteur F</small><b>${F(Fd)}</b></div><div><small>V d'eau ajoutée ≈</small><b>${F(V1 - V0)} mL</b></div>`;
+  $("beq1").innerHTML = bad ? "Le volume prélevé doit être plus petit que celui de la fiole." : `n = C₀ × V₀ = ${F(C0)} × ${F(V0 / 1000)} = <b>${CH.sci(n, 3)} mol</b> (conservé)`;
+  $("beq2").innerHTML = bad ? "" : `C₁ = n / V₁ = ${CH.sci(n, 3)} / ${F(V1 / 1000)} = <b>${F(C1)} mol/L</b> · F = C₀ / C₁ = V₁ / V₀ = <b>${F(Fd)}</b>`;
+}
+for (const id of ["bc0", "bv0", "bv1"]) $(id).addEventListener("input", drawB);
+
+// ---------- C : inverse ----------
+const PIP = [1, 2, 5, 10, 20, 25];
+function pipetteFor(v){ return PIP.includes(+v.toFixed(3)) ? `pipette jaugée de ${F(v)} mL` : `burette graduée (ou ${PIP.filter(p => v / p === Math.round(v / p) && v / p <= 4).map(p => (v / p) + " × " + p + " mL").join(" ou ") || "une pipette graduée"})`; }
+function drawC(){
+  const C0 = CH.parse($("rc0").value), C1 = CH.parse($("rc1").value), V1 = +$("rv1").value;
+  if (!(C0 > 0 && C1 > 0)){ $("req").textContent = ""; return; }
+  const V0 = C1 * V1 / C0, Fd = C0 / C1;
+  $("req").innerHTML = `V₀ = C₁ × V₁ / C₀ = ${F(C1)} × ${F(V1)} / ${F(C0)} = <b>${F(V0)} mL</b><br>F = C₀ / C₁ = ${F(Fd)}`;
+  if (C1 >= C0){ $("rst").className = "status bad"; $("rst").textContent = "Une dilution ne peut que baisser la concentration : C voulue doit être plus petite que C mère."; return; }
+  $("rst").className = "status ok"; $("rst").innerHTML = `Prélever ${F(V0)} mL de solution mère (${pipetteFor(V0)}), les verser dans une fiole jaugée de ${V1} mL, compléter avec de l'eau distillée jusqu'au trait.`;
+}
+for (const id of ["rc0", "rc1", "rv1"]) $(id).addEventListener("input", drawC);
+$("gamme").innerHTML = [["S₁", 1e-3], ["S₂", 2e-3], ["S₃", 5e-3], ["S₄", 8e-3]].map(([n, c]) => { const v = c * 50 / 1e-2; return `<tr><td>${n}</td><td class="num">${CH.sci(c, 3)}</td><td class="num">${F(1e-2 / c)}</td><td class="num">${F(v)} mL</td><td>${pipetteFor(v)}</td></tr>`; }).join("");
+drawA(); drawB(); drawC();
+</script>
