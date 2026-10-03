@@ -48,3 +48,12 @@
 .givens{color:var(--muted);font-size:.95rem}
 .ans{font:700 1.05rem var(--f-mono);background:var(--paper);border-left:4px solid var(--cC);padding:8px 12px;border-radius:4px;display:block;margin-top:10px}
 h3.fm{text-transform:none;letter-spacing:.02em;font-size:1.1rem}
+/* exercise pages: data box + hidden solutions */
+.databox{background:var(--sheet);border:1px solid var(--line);border-left:4px solid var(--cD);border-radius:4px;padding:10px 16px;margin:10px 0}
+.databox ul{margin:6px 0 0}
+.qa{margin:12px 0}
+.qa>p{margin:0 0 6px}
+details.qsol{background:var(--paper);border:1px solid var(--line);border-radius:6px}
+details.qsol summary{cursor:pointer;padding:8px 14px;font:600 .8rem var(--f-disp);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+details.qsol[open] summary{border-bottom:1px solid var(--line)}
+details.qsol .steps{padding:12px 14px}

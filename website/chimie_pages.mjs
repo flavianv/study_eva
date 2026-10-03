@@ -30,8 +30,9 @@ export default async function ({page, table, V, T, fs, path, ROOT, HERE, OUT, SI
     ["sujet_boisson.html", "Sujet boisson bleue : le colorant E133", "Lab sheet: dose brilliant blue in an energy drink, question by question, with the marathon-runner conclusion.", "sol", "Corrigé"],
     ["entrainement_dosage.html", "Entraînement : dosage par étalonnage", "Random questions with hints and a step-by-step solution for each.", "play", "Interactif"],
   ];
-  const ORDER = [...A, ...B].map(r => r[0]), TITLE = Object.fromEntries([...A, ...B].map(r => [r[0], r[1]]));
-  const STATIC = new Set([...A, ...B].filter(r => r[3] !== "play").map(r => r[0]));
+  const X = [["exercices_chimie.html", "Exercices : le gâteau et autres problèmes", "Six problems in the style of your cake sheet: yeast and gas, lemonade, syrup, saline, helium, a dosage. Solutions hidden.", "sol", "Exercices"]];
+  const ORDER = [...A, ...B, ...X].map(r => r[0]), TITLE = Object.fromEntries([...A, ...B, ...X].map(r => [r[0], r[1]]));
+  const STATIC = new Set([...A, ...B, ...X].filter(r => r[3] !== "play").map(r => r[0]));
   const L = (file, lang) => lang === "fr" && STATIC.has(file) ? file.replace(".html", "_fr.html") : file;
   const nav = (file, lang) => { const i = ORDER.indexOf(file), g = k => [L(ORDER[k], lang), TITLE[ORDER[k]]];
     return {prev: i > 0 ? g(i - 1) : undefined, next: i < ORDER.length - 1 ? g(i + 1) : undefined}; };
@@ -53,7 +54,9 @@ export default async function ({page, table, V, T, fs, path, ROOT, HERE, OUT, SI
   const {default: numbers} = await import("./chimie_numbers.mjs");
   const {default: pagesEN} = await import("./chimie_en.mjs");
   const {default: pagesFR} = await import("./chimie_fr.mjs");
-  for (const [lang, gen] of [["en", pagesEN], ["fr", pagesFR]]) {
+  const {default: exEN} = await import("./chimie_ex_en.mjs");
+  const {default: exFR} = await import("./chimie_ex_fr.mjs");
+  for (const [lang, gen, genEx] of [["en", pagesEN, exEN], ["fr", pagesFR, exFR]]) {
     CH.dec = lang === "fr" ? "," : ".";                       // decimal mark of the page being generated
     const route = lang === "fr" ? "Chemin sur la carte :" : "Path on the map:";
     const ex = (title, given, rt, sol, ans) => `<section class="ex"><h2>${title}</h2><p class="givens">${given}</p>${rt ? `<p class="path">${route} ${rt}</p>` : ""}${steps(sol)}${ans ? `<span class="ans">${ans}</span>` : ""}</section>`;
@@ -61,12 +64,14 @@ export default async function ({page, table, V, T, fs, path, ROOT, HERE, OUT, SI
       const twin = lang === "fr" ? file : L(file, "fr"), sw = lang === "fr" ? `<a href="${file}">English</a>` : `<a href="${twin}">Français</a>`;
       page(L(file, lang), {...o, eyebrow: `${o.eyebrow} · ${sw}`, ...nav(file, lang)});
     };
-    gen({pg, table, steps, ex, mapBlock, f: (x, s = 3) => CH.fmt(x, s), e: (x, s = 3) => CH.sci(x, s), CH, num: numbers(CH), L: file => L(file, lang)});
+    const ctx = {pg, table, steps, ex, mapBlock, f: (x, s = 3) => CH.fmt(x, s), e: (x, s = 3) => CH.sci(x, s), CH, num: numbers(CH), L: file => L(file, lang)};
+    gen(ctx); genEx(ctx);
   }
   CH.dec = ".";
 
   const home = `<section><div class="sec-head"><h2>Chimie : dissolution et dilution</h2><span class="muted">Quantité de matière, concentrations, fabriquer et diluer une solution</span></div><div class="toc">${rows(A, 11)}</div></section>
 <section><div class="sec-head"><h2>Chimie : dosage par étalonnage</h2><span class="muted">Gamme étalon, Beer–Lambert, courbe d'étalonnage, sujet truffe</span></div><div class="toc">${rows(B, 11 + A.length)}</div></section>
+<section><div class="sec-head"><h2>Chimie : exercices</h2><span class="muted">Problèmes dans le style des sujets, corrigés masqués</span></div><div class="toc">${rows(X, 11 + A.length + B.length)}</div></section>
 <p class="muted">Les fiches, exemples corrigés et sujets existent aussi <b>en français</b> : bouton « Français » en haut de chaque page.</p>`;
   return {home};
 }

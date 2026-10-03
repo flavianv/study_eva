@@ -5,6 +5,7 @@ Source of the chemistry section of the website. Run `node website/build.mjs` to 
 | Course | Pages |
 |---|---|
 | **1 · Dissolution et dilution** | formula map (course), conversion map, formula lab, worked examples, dissolution/dilution course, dilution lab, worked examples, exam *Sujet truffe, partie 1* (+ Q3), trainer |
+| **Exercices** | *Exercices : le gâteau et autres problèmes*: the cake sheet (solved) + 5 new problems in the same style (lemonade, syrup, saline, helium balloon, copper sulfate dosage), solutions hidden, EN + FR |
 | **2 · Dosage par étalonnage** | course, calibration lab, worked examples, exam *Sujet truffe, partie 2*, lab sheet *Sujet boisson bleue (E133)*, trainer |
 
 ## Where things live
@@ -13,7 +14,7 @@ Source of the chemistry section of the website. Run `node website/build.mjs` to 
 - `chimie_quiz.js`: random question generators and the practice UI (hint + step-by-step solution for every question).
 - `chimie.css`, `chimie_map.css`: styles (the second one is also appended to `site.css`).
 - `*.html`: interactive pages (fragments, wrapped by `website/chimie_pages.mjs`).
-- `website/chimie_pages.mjs`: build wiring (reading order, interactive-page wrapper, language loop). The written pages come in two twins: `chimie_en.mjs` (English, dot decimals) and `chimie_fr.mjs` (French, comma decimals, files named `*_fr.html`). All numbers come from `chimie_numbers.mjs`, computed once, never typed. Keep the two twins in step when editing. The interactive pages are French only.
+- `website/chimie_pages.mjs`: build wiring (reading order, interactive-page wrapper, language loop). The written pages come in two twins: `chimie_en.mjs` (English, dot decimals) and `chimie_fr.mjs` (French, comma decimals, files named `*_fr.html`). The exercise page lives in `chimie_ex_en.mjs` / `chimie_ex_fr.mjs` with its numbers in `chimie_ex_data.mjs`. All numbers come from `chimie_numbers.mjs`, computed once, never typed. Keep the two twins in step when editing. The interactive pages are French only.
 
 ## Notes
 
