@@ -8,6 +8,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 | Pédale de commande (control pedal) | `docs/pedale.jpeg`, `docs/pedale2.jpeg` | [pedale_de_commande.md](pedale_de_commande.md) |
 | Suspension automobile (car suspension) | `docs/suspension.jpeg` | [suspension.html](suspension.html) (interactive, animated) |
 | Robot 6 axes (6-axis robot) | `docs/robot.jpeg` | [robot.html](robot.html) (interactive, animated) |
+| Pédale de frein (brake pedal, practice exercise) | — | [pedale_frein.html](pedale_frein.html) (statement, hints, hidden corrections) |
 
 ## Key ideas
 

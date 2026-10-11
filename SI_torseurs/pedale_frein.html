@@ -1,0 +1,415 @@
+<title>Pédale de frein</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing (sticky on wide screens) + scene buttons and explanation panel; each question replays its own animation on the mechanism */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06; --cS:#8a4fc4;
+  --tD:rgba(224,162,27,.30); --f:#c2185b; --ok:#2f9a55; --bad:#d6453d;
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px;margin:0}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.top>*{min-width:0}
+.stick{position:sticky;top:12px}
+@media (max-width:820px){.top{grid-template-columns:1fr}.stick{position:static}}
+svg#dwg{display:block;width:100%;max-width:470px;margin:0 auto;height:auto}
+.lbl{font:600 30px var(--f-mono);fill:var(--ink)}
+.num{font:700 26px var(--f-mono);fill:var(--ink)}
+.flab{font:700 30px var(--f-mono);fill:var(--f)}
+.dlab{font:600 24px var(--f-mono);fill:var(--muted)}
+.part{transition:opacity .35s}
+.part.dim{opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent);min-width:0}
+.readout{font:600 .9rem var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gauge{display:grid;gap:4px}
+.gauge .bar{position:relative;height:14px;border-radius:7px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:visible}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--ok);transition:background .2s}
+.gauge .fill.over{background:var(--bad)}
+.gauge .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.gauge .txt{display:flex;justify-content:space-between;font:600 .85rem var(--f-mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.gauge .txt b{color:var(--ink)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+#panel{display:grid;gap:10px}
+#panel p,#panel ol,#panel ul{margin:0;max-width:75ch}
+#panel ol,#panel ul{padding-left:1.3em}
+#panel li{margin:4px 0}
+.q{font-weight:600;border-left:4px solid var(--accent);padding:2px 0 2px 10px}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.key{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px}
+.key.warn{border-left-color:var(--cD)}
+.key.good{border-left-color:var(--ok)}
+.key.bad{border-left-color:var(--bad)}
+.eq{font:600 .95rem var(--f-mono);display:grid;gap:4px;padding:8px 12px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px;overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted)}
+.f{color:var(--f);font-weight:700}
+sub{font-size:.72em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+/* torseur */
+.tzs{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
+.tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+.vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
+.vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
+details.why{border-left:4px solid var(--cD)}
+details.why summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+details.why .body{padding:10px 12px 12px;gap:8px}
+details.why ul{padding-left:1.2em}
+/* answers */
+.answers{display:grid;gap:10px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;padding:14px 16px;font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px}
+.body p,.body ul{margin:0;max-width:75ch}
+.body img{max-width:100%;height:auto;border-radius:4px;display:block}
+@media (max-width:640px){
+  body{padding:16px 16px 48px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  input[type=range]{height:36px}
+  h1{font-size:1.6rem}
+}
+</style>
+<style>
+/* brake pedal exercise: statement first, each correction hidden behind a button */
+#dwg .lbl{font:600 17px var(--f-mono);fill:var(--ink)}
+#dwg .num{font:700 15px var(--f-mono);fill:var(--ink)}
+#dwg .flab{font:700 16px var(--f-mono);fill:var(--f)}
+#dwg .dlab{font:600 13px var(--f-mono);fill:var(--muted)}
+.reveal{justify-self:start}
+.hint{border-left:4px solid var(--cD)}
+.hint summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+.hint .body{padding:10px 12px 12px}
+.data{display:grid;gap:4px;font-family:var(--f-mono);font-size:.92rem}
+.qs{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.live{font:600 .9rem var(--f-mono);display:grid;gap:2px}
+.live b{color:var(--f)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Exercice d'entraînement · Statique · PFS dans le plan</div>
+    <h1>Pédale de frein</h1>
+    <p>Même méthode que la suspension automobile : deux pièces qui ne reçoivent que deux actions, deux PFS sur des leviers, puis une exigence du cahier des charges à vérifier. Lis l'énoncé, cherche chaque question sur ta feuille, puis ouvre la correction : l'animation montre le raisonnement sur le mécanisme.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet stick">
+      <svg id="dwg" viewBox="-95 -75 495 405" role="img" aria-label="Schéma cinématique de la pédale de frein : bâti 1, pédale 2, bielle 3, levier 4, tige 5, piston 6">
+        <defs>
+          <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1.5"/></pattern>
+        </defs>
+        <g id="axes"></g>
+        <g id="dims"></g>
+        <g id="g1" class="part" style="color:var(--ink)"></g>
+        <g id="g6" class="part"></g>
+        <g id="g5" class="part"></g>
+        <g id="g3" class="part"></g>
+        <g id="g4" class="part"></g>
+        <g id="g2" class="part"></g>
+        <g id="labels"></g>
+        <g id="forces"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--ink)"></i>1 bâti</span>
+        <span><i style="background:var(--cA)"></i>2 pédale</span>
+        <span><i style="background:var(--cB)"></i>3 bielle</span>
+        <span><i style="background:var(--cC)"></i>4 levier</span>
+        <span><i style="background:var(--cS)"></i>5 tige</span>
+        <span><i style="background:var(--cD)"></i>6 piston</span>
+        <span><i style="background:var(--f)"></i>efforts</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Étape">
+          <span>Étape</span>
+          <button data-s="st" aria-pressed="true">Énoncé</button>
+          <button data-s="q1">Q1</button>
+          <button data-s="q2">Q2</button>
+          <button data-s="q3">Q3</button>
+          <button data-s="q4">Q4</button>
+          <button data-s="q5">Q5</button>
+          <button data-s="q6">Q6</button>
+        </div>
+        <label class="crank" for="foot">
+          <span class="group"><span>Effort au pied</span></span>
+          <input id="foot" type="range" min="0" max="400" step="10" value="300">
+          <span class="readout" id="footOut">300 N</span>
+        </label>
+        <div class="gauge" aria-live="polite">
+          <div class="txt"><span>Pression : <b id="pOut"></b></span><span>effort piston : <b id="fpOut"></b></span></div>
+          <div class="bar"><div class="fill" id="pFill"></div><div class="lim" style="left:60%" title="minimum 60 bar"></div></div>
+          <div class="txt"><span>0</span><span>minimum 60 bar</span><span>100 bar</span></div>
+        </div>
+        <div class="group"><button id="replay">↻ Rejouer l'animation</button></div>
+      </div>
+      <div class="sheet" id="panel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <details>
+      <summary>Pièges fréquents</summary>
+      <div class="body"><ul>
+        <li><b>La bielle et la tige ne reçoivent que deux actions</b> (deux pivots, sans poids) : les forces sont portées par la droite qui joint les deux points. C'est Q1 et Q3, comme le bras 3 et le ressort de la suspension.</li>
+        <li><b>Changer de solide, c'est changer de signe.</b> La bielle pousse la pédale vers −x en B, et le levier vers +x en C. Écris chaque fois « action de … sur … ».</li>
+        <li><b>Bras de levier :</b> pour une force horizontale, seule la distance <b>verticale</b> compte (a, b, e). Pour une force verticale, seule la distance <b>horizontale</b> compte (d).</li>
+        <li><b>Pression :</b> p = F / S avec S en m² donne des Pa. 1 bar = 100 000 Pa. Le diamètre est en mm : 20 mm = 0,02 m, et S = π·d² / 4.</li>
+      </ul></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(()=>{
+// ---------- data (mm, N) ----------
+const a=300,b=60,c=250,e=60,d=40,g=80,dp=20,PMIN=60;
+const A0=[0,0],P0=[0,-a],B0=[0,-b],C0=[c,-b],E0=[c,-b-e],D0=[c+d,-b-e],G0=[c+d,-b-e-g];
+const RB=b/1, K1=a/b, K2=e/d, KT=K1*K2;              // 5, 1.5, 7.5
+const S_m2=Math.PI*(dp/1000)**2/4;
+const fmt=(x,n=0)=>x.toLocaleString("fr-FR",{minimumFractionDigits:n,maximumFractionDigits:n});
+const FS=16;                                         // 1 × F drawn 16 mm long
+
+// ---------- geometry ----------
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]], sub=(p,q)=>[p[0]-q[0],p[1]-q[1]];
+const rot=(v,t)=>[v[0]*Math.cos(t)-v[1]*Math.sin(t),v[0]*Math.sin(t)+v[1]*Math.cos(t)];
+const len=v=>Math.hypot(v[0],v[1]);
+function kin(F){
+  // pedal turns with the foot force (drawing only), the rod keeps its length, the lever follows
+  const th=F/400*0.12, T2=p=>rot(p,th), B=T2(B0);
+  let lo=-0.8,hi=0.2;
+  const Cof=ph=>add(E0,rot(sub(C0,E0),ph));
+  for(let i=0;i<40;i++){const m=(lo+hi)/2; len(sub(Cof(m),B))>c?lo=m:hi=m}
+  const ph=(lo+hi)/2, T4=p=>add(E0,rot(sub(p,E0),ph)), D=T4(D0);
+  return {T2,T4,D,G:[G0[0],D[1]-g]};
+}
+const P=p=>[p[0],-p[1]], XY=p=>{const q=P(p);return q[0].toFixed(1)+","+q[1].toFixed(1)};
+
+// ---------- state ----------
+let F=300, scene="st", t0=performance.now(), raf=0;
+const shown={};
+const $=id=>document.getElementById(id);
+
+// ---------- drawing helpers ----------
+const line=(p,q,col,w=6,extra="")=>`<line x1="${P(p)[0]}" y1="${P(p)[1]}" x2="${P(q)[0]}" y2="${P(q)[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const poly=(pts,col,w=6,fill="none")=>`<polyline points="${pts.map(XY).join(" ")}" stroke="${col}" stroke-width="${w}" fill="${fill}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const pivot=p=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="7" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`;
+const tag=(p,n)=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="12" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text class="num" x="${P(p)[0]}" y="${P(p)[1]+5}" text-anchor="middle">${n}</text>`;
+const txt=(p,s,cls="lbl",anchor="middle")=>`<text class="${cls}" x="${P(p)[0]}" y="${P(p)[1]}" text-anchor="${anchor}">${s}</text>`;
+function ground(p,dir){
+  // dir: "up" = frame above the joint, "down" = below
+  const s=dir==="up"?1:-1, q=add(p,[0,16*s]);
+  return line(p,q,"var(--ink)",3)+line(add(q,[-22,0]),add(q,[22,0]),"var(--ink)",3)+
+    `<rect x="${P(q)[0]-24}" y="${dir==="up"?P(q)[1]-11:P(q)[1]}" width="48" height="11" fill="url(#hatch)"/>`+pivot(p);
+}
+function arrow(p,v,lab,headAt,frac){
+  const vv=[v[0]*FS*frac,v[1]*FS*frac], n=len(vv); if(n<1) return "";
+  const tail=headAt?sub(p,vv):p, head=headAt?p:add(p,vv), u=[vv[0]/n,vv[1]/n], w=[-u[1],u[0]], hl=Math.min(12,n*.6);
+  const base=sub(head,[u[0]*hl,u[1]*hl]), l1=add(base,[w[0]*6,w[1]*6]), l2=sub(base,[w[0]*6,w[1]*6]);
+  const far=headAt?tail:head, o=headAt?[-u[0],-u[1]]:u, hz=Math.abs(o[0])>Math.abs(o[1]);
+  const lp=add(far,hz?[o[0]*6,-5]:[0,o[1]>0?6:-18]), anchor=hz?(o[0]>0?"start":"end"):"middle";
+  return line(tail,base,"var(--f)",4,'stroke-linecap="butt"')+`<polygon points="${[head,l1,l2].map(XY).join(" ")}" fill="var(--f)"/>`+
+    (frac>.6?`<text class="flab" x="${P(lp)[0]}" y="${P(lp)[1]}" text-anchor="${anchor}" opacity="${Math.min(1,(frac-.6)/.3)}">${lab}</text>`:"");
+}
+function dim(p,q,lab,o){
+  const v=sub(q,p),n=len(v),w=[-v[1]/n*6,v[0]/n*6], tk=r=>line(sub(r,w),add(r,w),"var(--muted)",1.5);
+  const m=add([(p[0]+q[0])/2,(p[1]+q[1])/2],o);
+  return line(p,q,"var(--muted)",1.5,'stroke-dasharray="5 4"')+tk(p)+tk(q)+txt(m,lab,"dlab");
+}
+const sb=(X,i)=>`${X}<tspan font-size="11" dy="4">${i}</tspan><tspan dy="-4"></tspan>`;
+
+// ---------- scenes (arrows in units of F: [point, vector, label, headAt]) ----------
+const SC={
+ st:{iso:null,arrows:[["Pf",[2.5,0],"F",true]]},
+ q1:{iso:["3"],arrows:[["B",[K1,0],sb("B","x"),true],["C",[-K1,0],sb("C","x"),true]],dims:[["c",B0,C0,"c",[0,10]]]},
+ q2:{iso:["2"],arrows:[["Pf",[2.5,0],"F",true],["A",[K1-1,0],sb("A","x"),false],["B",[-K1,0],sb("B","x"),false]],dims:[["a",[-40,0],[-40,-a],"a = 300",[-6,0]],["b",[-18,0],[-18,-b],"b",[-10,0]]]},
+ q3:{iso:["5"],arrows:[["D",[0,-KT],sb("D","y"),true],["G",[0,KT],sb("G","y"),true]]},
+ q4:{iso:["4"],arrows:[["C",[K1,0],sb("C","x"),true],["D",[0,KT],sb("D","y"),false],["E",[-K1,0],sb("E","x"),false],["E",[0,-KT],sb("E","y"),false]],dims:[["e",[c-22,-b],[c-22,-b-e],"e",[-10,0]],["d",[c,-b-e-22],[c+d,-b-e-22],"d",[0,-12]]]},
+ q5:{iso:null,arrows:[["Pf",[2.5,0],"F",true],["A",[K1-1,0],sb("A","x"),false],["E",[-K1,0],sb("E","x"),false],["E",[0,-KT],sb("E","y"),false],["G",[0,KT],sb("G","y"),true]]},
+ q6:{iso:["6"],arrows:[["G",[0,-KT],sb("F","p"),false]]},
+};
+
+function render(now){
+  const sc=SC[scene], el=(now-t0)/1000, open=scene==="st"||shown[scene];
+  const K=kin(F), pts={A:A0,P:K.T2(P0),Pf:add(K.T2(P0),[-12,0]),B:K.T2(B0),C:K.T4(C0),E:E0,D:K.D,G:K.G};
+  // frame 1: pedal pivot, lever pivot, cylinder
+  const cx=c+d, cyl=`<rect x="${cx-24}" y="${-(-b-e-g+12)}" width="10" height="110" fill="url(#hatch)"/><rect x="${cx+14}" y="${-(-b-e-g+12)}" width="10" height="110" fill="url(#hatch)"/>`+
+    line([cx-14,-b-e-g+12],[cx-14,-b-e-g-98],"var(--ink)",2.5)+line([cx+14,-b-e-g+12],[cx+14,-b-e-g-98],"var(--ink)",2.5)+line([cx-14,-b-e-g-98],[cx+14,-b-e-g-98],"var(--ink)",2.5)+
+    `<rect x="${cx-13}" y="${-(K.G[1]-12)}" width="26" height="${-(-b-e-g-98)-(-(K.G[1]-12))}" fill="color-mix(in srgb,var(--accent) 16%,transparent)"/>`+
+    txt([cx+32,-b-e-g-70],"liquide","dlab","start");
+  $("g1").innerHTML=ground(A0,"up")+ground(E0,"down")+cyl+tag([-55,40],1);
+  $("g2").innerHTML=line(pts.A,pts.P,"var(--cA)")+line(add(pts.P,[-12,0]),add(pts.P,[6,0]),"var(--cA)",9)+tag(K.T2([22,-180]),2)+pivot(pts.A)+pivot(pts.B);
+  $("g3").innerHTML=line(pts.B,pts.C,"var(--cB)",5)+tag(add([(pts.B[0]+pts.C[0])/2,pts.B[1]],[0,18]),3)+pivot(pts.B)+pivot(pts.C);
+  $("g4").innerHTML=poly([pts.C,pts.E,pts.D],"var(--cC)")+tag(K.T4([c+30,-b-20]),4)+pivot(pts.C)+pivot(pts.E)+pivot(pts.D);
+  $("g5").innerHTML=line(pts.D,pts.G,"var(--cS)",4)+tag([cx+28,(pts.D[1]+pts.G[1])/2],5)+pivot(pts.D)+pivot(pts.G);
+  $("g6").innerHTML=`<rect x="${cx-12}" y="${-(K.G[1]+2)}" width="24" height="14" fill="var(--tD)" stroke="var(--cD)" stroke-width="2.5"/>`+tag([cx-40,K.G[1]-8],6)+pivot(pts.G);
+  const off={A:[-16,6],P:[10,-18],B:[-14,-14],C:[4,10],E:[-16,-12],D:[12,10],G:[-16,4]};
+  $("labels").innerHTML=Object.entries(off).map(([n,o])=>txt(add(pts[n],o),n)).join("");
+  $("axes").innerHTML=line([150,-280],[190,-280],"var(--muted)",1.5)+line([150,-280],[150,-240],"var(--muted)",1.5)+txt([198,-284],"x","dlab","start")+txt([150,-230],"y","dlab");
+  ["1","2","3","4","5","6"].forEach(id=>$("g"+id).classList.toggle("dim",open&&!!sc.iso&&!sc.iso.includes(id)));
+  // forces
+  const p=F/300;
+  let fh="";
+  if(open) sc.arrows.forEach(([pt,v,lab,ha],i)=>{
+    const f=Math.min(1,Math.max(0,(el-.4-i*.55)/.6));
+    fh+=arrow(pts[pt],[v[0]*p,v[1]*p],lab,ha,f>0?1-Math.pow(1-f,3):0);
+  });
+  $("forces").innerHTML=fh;
+  const dt=.4+sc.arrows.length*.55+.3;
+  $("dims").innerHTML=open&&sc.dims&&el>dt?sc.dims.map(([,p1,p2,lab,o])=>dim(p1,p2,lab,o)).join(""):"";
+  // gauge
+  const Fp=KT*F, pb=Fp/S_m2/1e5;
+  $("fpOut").textContent=fmt(Fp)+" N"; $("pOut").textContent=fmt(pb,1)+" bar";
+  const fill=$("pFill"); fill.style.width=Math.min(100,pb)+"%"; fill.classList.toggle("over",pb<PMIN);
+  document.querySelectorAll("#panel .step").forEach(st=>st.classList.toggle("on",open&&el>=+st.dataset.t));
+  raf=el<9?requestAnimationFrame(render):0;
+}
+
+// ---------- panel ----------
+const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const Vc=(...cols)=>`<span class="vx">${cols.map(c=>typeof c==="string"?`<span>${c}</span>`:`<span class="col">${c.map(x=>`<span>${x}</span>`).join("")}</span>`).join("")}</span>`;
+const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+const Z0=["0","0","0"], t2=(X,Y)=>[[X,"0"],[Y,"0"],["0","0"]];
+const Q={
+ q1:["Montrer que Y<sub>32</sub> = 0.","Isole la bielle 3. Combien d'actions reçoit-elle ? Écris le PFS en B : que dit l'équation de moment ?"],
+ q2:["Déterminer les équations obtenues en appliquant le PFS à la pédale 2 au point A.","Trois actions : le pied en P, le bâti en A, la bielle en B. Utilise Q1 pour la bielle. Pour les moments, seule la distance verticale compte (les forces sont horizontales)."],
+ q3:["Montrer que X<sub>54</sub> = 0.","Même idée que Q1, avec la tige 5 entre D et G. DG est parallèle à y."],
+ q4:["Déterminer les équations obtenues en appliquant le PFS au levier 4 au point E.","Trois actions : le bâti en E, la bielle en C, la tige en D. Attention aux signes : la bielle pousse le levier dans l'autre sens que la pédale."],
+ q5:["Déterminer toutes les inconnues d'effort en fonction de F.","Résous les équations de Q2 puis de Q4, dans cet ordre : Q4 a besoin du résultat de Q2."],
+ q6:["Avec F = 300 N, la pression dans le maître-cylindre respecte-t-elle l'exigence 1.2 ?","Effort sur le piston (Q5), puis surface du piston S = π·d² / 4 en m², puis p = F / S en Pa, puis en bar."],
+};
+const SOL={
+ q1:`${St(.2,`<p><b>Étape 1 · On isole la bielle 3.</b> Elle ne touche que la pédale 2 (pivot en B) et le levier 4 (pivot en C). Poids négligé.</p>
+   <div class="tzs">${T("T<sub>2→3</sub>","B",t2("B<sub>x</sub>","B<sub>y</sub>"))}${T("T<sub>4→3</sub>","C",t2("C<sub>x</sub>","C<sub>y</sub>"))}</div>`)}
+  ${St(1.4,`<p><b>Étape 2 · BABAR en B.</b> BC = (c ; 0 ; 0).</p>
+   <p>${Vc(Z0,"+",["c","0","0"],"∧",["C<sub>x</sub>","C<sub>y</sub>","0"],"=",["0·0 − 0·C<sub>y</sub>","0·C<sub>x</sub> − c·0","c·C<sub>y</sub> − 0·C<sub>x</sub>"],"=",["0","0","c·C<sub>y</sub>"])}</p>`)}
+  ${St(2.2,`<p><b>Étape 3 · PFS en B :</b></p><div class="eq">
+   <span>TRS x : B<sub>x</sub> + C<sub>x</sub> = 0</span><span>TRS y : B<sub>y</sub> + C<sub>y</sub> = 0</span><span>TMS z : c·C<sub>y</sub> = 0</span></div>
+   <p><b>Étape 4 · On résout :</b> c ≠ 0 ⇒ C<sub>y</sub> = 0, puis B<sub>y</sub> = 0.</p>
+   <p>B<sub>y</sub> est l'action de 2 sur 3 : Y<sub>23</sub> = 0, donc <b>Y<sub>32</sub> = −Y<sub>23</sub> = 0</b>. ✓</p>
+   <div class="key good"><p>Deux actions seulement ⇒ forces opposées, portées par BC (horizontale). Ici la bielle est <b>comprimée</b> : elle est poussée par ses deux bouts.</p></div>`)}`,
+ q2:`${St(.2,`<p><b>Étape 1 · On isole la pédale 2.</b> Trois actions : le pied en P, le bâti 1 en A (pivot), la bielle 3 en B.</p>
+   <div class="tzs">${T("T<sub>pied→2</sub>","P",t2("F","0"))}${T("T<sub>1→2</sub>","A",t2("A<sub>x</sub>","A<sub>y</sub>"))}${T("T<sub>3→2</sub>","B",t2("B<sub>x</sub>","0"))}</div>
+   <p class="note">En B : B<sub>x</sub> = X<sub>32</sub>, et B<sub>y</sub> = Y<sub>32</sub> = 0 d'après Q1.</p>`)}
+  ${St(2.2,`<p><b>Étape 2 · BABAR en A.</b></p>
+   <p>Pied : AP = (0 ; −a ; 0) : ${Vc(["0","−a","0"],"∧",["F","0","0"],"=",["(−a)·0 − 0·0","0·F − 0·0","0·0 − (−a)·F"],"=",["0","0","a·F"])}</p>
+   <p>Bielle : AB = (0 ; −b ; 0) : ${Vc(["0","−b","0"],"∧",["B<sub>x</sub>","0","0"],"=",["0","0","b·B<sub>x</sub>"])}</p>`)}
+  ${St(3,`<p><b>Étape 3 · PFS en A :</b></p><div class="eq">
+   <span>TRS x : F + A<sub>x</sub> + B<sub>x</sub> = 0</span><span>TRS y : A<sub>y</sub> = 0</span><span>TMS z : a·F + b·B<sub>x</sub> = 0</span></div>
+   <p><b>Étape 4 · On résout :</b></p><div class="eq">
+   <span>TMS z : B<sub>x</sub> = −(a/b)·F = −(300/60)·F = −5·F</span>
+   <span>TRS x : A<sub>x</sub> = −F − B<sub>x</sub> = −F + 5·F = 4·F</span>
+   <span>TRS y : A<sub>y</sub> = 0</span></div>
+   <div class="key"><p>Levier : le pied est à 300 mm de A, la bielle à 60 mm. L'effort est multiplié par 300/60 = <b>5</b>.</p></div>`)}`,
+ q3:`${St(.2,`<p><b>Étape 1 · On isole la tige 5.</b> Deux actions : le levier 4 en D et le piston 6 en G.</p>
+   <div class="tzs">${T("T<sub>4→5</sub>","D",t2("D<sub>x</sub>","D<sub>y</sub>"))}${T("T<sub>6→5</sub>","G",t2("G<sub>x</sub>","G<sub>y</sub>"))}</div>`)}
+  ${St(1.4,`<p><b>Étape 2 · BABAR en D.</b> G est sous D, à une distance g (non donnée, inutile) : DG = (0 ; −g ; 0).</p>
+   <p>${Vc(Z0,"+",["0","−g","0"],"∧",["G<sub>x</sub>","G<sub>y</sub>","0"],"=",["(−g)·0 − 0·G<sub>y</sub>","0·G<sub>x</sub> − 0·0","0·G<sub>y</sub> − (−g)·G<sub>x</sub>"],"=",["0","0","g·G<sub>x</sub>"])}</p>`)}
+  ${St(2.2,`<p><b>Étape 3 · PFS en D :</b></p><div class="eq">
+   <span>TRS x : D<sub>x</sub> + G<sub>x</sub> = 0</span><span>TRS y : D<sub>y</sub> + G<sub>y</sub> = 0</span><span>TMS z : g·G<sub>x</sub> = 0</span></div>
+   <p><b>Étape 4 :</b> g ≠ 0 ⇒ G<sub>x</sub> = 0 ⇒ D<sub>x</sub> = 0. D<sub>x</sub> = X<sub>45</sub>, donc <b>X<sub>54</sub> = −X<sub>45</sub> = 0</b>. ✓</p>`)}`,
+ q4:`${St(.2,`<p><b>Étape 1 · On isole le levier 4.</b> Trois actions : le bâti 1 en E, la bielle 3 en C, la tige 5 en D.</p>
+   <div class="tzs">${T("T<sub>1→4</sub>","E",t2("E<sub>x</sub>","E<sub>y</sub>"))}${T("T<sub>3→4</sub>","C",t2("C<sub>x</sub>","0"))}${T("T<sub>5→4</sub>","D",t2("0","D<sub>y</sub>"))}</div>
+   <p><b>Ce qu'on sait déjà :</b></p><ul>
+   <li>En D : X<sub>54</sub> = 0 (Q3).</li>
+   <li>En C : on remonte la bielle. Q2 : la bielle pousse la pédale avec −5F. Donc la pédale pousse la bielle avec +5F. La bielle (Q1) a des forces opposées à ses deux bouts : le levier la pousse avec −5F. Donc elle pousse le levier avec <b>C<sub>x</sub> = +5·F</b>.</li></ul>`)}
+  ${St(3,`<p><b>Étape 2 · BABAR en E.</b></p>
+   <p>Bielle : EC = (0 ; e ; 0) : ${Vc(["0","e","0"],"∧",["C<sub>x</sub>","0","0"],"=",["e·0 − 0·0","0·C<sub>x</sub> − 0·0","0·0 − e·C<sub>x</sub>"],"=",["0","0","−e·C<sub>x</sub>"])}</p>
+   <p>Tige : ED = (d ; 0 ; 0) : ${Vc(["d","0","0"],"∧",["0","D<sub>y</sub>","0"],"=",["0","0","d·D<sub>y</sub>"])}</p>`)}
+  ${St(3.8,`<p><b>Étape 3 · PFS en E :</b></p><div class="eq">
+   <span>TRS x : E<sub>x</sub> + C<sub>x</sub> = 0</span><span>TRS y : E<sub>y</sub> + D<sub>y</sub> = 0</span><span>TMS z : −e·C<sub>x</sub> + d·D<sub>y</sub> = 0</span></div>
+   <p><b>Étape 4 · On résout</b> (C<sub>x</sub> = 5·F) :</p><div class="eq">
+   <span>TMS z : D<sub>y</sub> = (e/d)·C<sub>x</sub> = (60/40)·5·F = 7,5·F</span>
+   <span>TRS x : E<sub>x</sub> = −C<sub>x</sub> = −5·F</span>
+   <span>TRS y : E<sub>y</sub> = −D<sub>y</sub> = −7,5·F</span></div>
+   <div class="key"><p>Deuxième levier : e = 60 mm contre d = 40 mm, l'effort est encore multiplié par 1,5. Au total 5 × 1,5 = <b>7,5</b>.</p></div>`)}`,
+ q5:`${St(.2,`<p><b>Avec F = 300 N :</b></p>
+   <div class="tablewrap"><table><thead><tr><th>Action</th><th>Inconnue</th><th>Énoncé</th><th>En fonction de F</th><th>Valeur</th></tr></thead><tbody>
+   <tr><td>1→2 en A</td><td>A<sub>x</sub> ; A<sub>y</sub></td><td>X<sub>12</sub> ; Y<sub>12</sub></td><td>4·F ; 0</td><td class="n">1 200 N ; 0</td></tr>
+   <tr><td>3→2 en B</td><td>B<sub>x</sub> ; B<sub>y</sub></td><td>X<sub>32</sub> ; Y<sub>32</sub></td><td>−5·F ; 0</td><td class="n">−1 500 N ; 0</td></tr>
+   <tr><td>3→4 en C</td><td>C<sub>x</sub></td><td>X<sub>34</sub></td><td>5·F</td><td class="n">1 500 N</td></tr>
+   <tr><td>5→4 en D</td><td>D<sub>x</sub> ; D<sub>y</sub></td><td>X<sub>54</sub> ; Y<sub>54</sub></td><td>0 ; 7,5·F</td><td class="n">0 ; 2 250 N</td></tr>
+   <tr><td>1→4 en E</td><td>E<sub>x</sub> ; E<sub>y</sub></td><td>X<sub>14</sub> ; Y<sub>14</sub></td><td>−5·F ; −7,5·F</td><td class="n">−1 500 ; −2 250 N</td></tr>
+   <tr><td>6→5 en G</td><td>G<sub>y</sub></td><td>Y<sub>65</sub></td><td>7,5·F</td><td class="n">2 250 N</td></tr>
+   </tbody></table></div>
+   <p class="note">La tige 5 pousse le piston vers le bas avec 7,5·F = 2 250 N (et le piston la repousse vers le haut : G<sub>y</sub> = +7,5·F).</p>`)}
+  ${St(1.6,`<p><b>Vérification sur {2, 3, 4, 5}</b> : actions extérieures = pied (P), bâti (A et E), piston (G). Moments en A, en F et en mm :</p><div class="eq">
+   <span>TRS x : F + 4F − 5F = 0 ✓</span>
+   <span>TRS y : 0 − 7,5F + 7,5F = 0 ✓</span>
+   <span>TMS z : 300·F + (250·E<sub>y</sub> + 120·E<sub>x</sub>) + 290·G<sub>y</sub></span>
+   <span>      = 300 − 1875 − 600 + 2175 = 0 ✓</span></div>
+   <p class="note">AE = (250 ; −120), donc AE ∧ (E<sub>x</sub> ; E<sub>y</sub>) a pour composante z : 250·E<sub>y</sub> − (−120)·E<sub>x</sub>. AG = (290 ; −200), et G<sub>y</sub> est vertical : 290·G<sub>y</sub>.</p>`)}`,
+ q6:`${St(.2,`<p><b>Étape 1 · Effort sur le piston</b> (Q5) : F<sub>p</sub> = 7,5 × 300 = <b>2 250 N</b>.</p>`)}
+  ${St(1,`<p><b>Étape 2 · Surface du piston.</b> d = 20 mm = 0,02 m :</p><div class="eq">
+   <span>S = π·d² / 4 = π × 0,02² / 4 = ${fmt(S_m2*1e4,3)} × 10⁻⁴ m²</span></div>`)}
+  ${St(1.8,`<p><b>Étape 3 · Pression.</b></p><div class="eq">
+   <span>p = F<sub>p</sub> / S = 2 250 / (${fmt(S_m2*1e4,3)} × 10⁻⁴)</span>
+   <span>p = ${fmt(2250/S_m2/1e6,2)} × 10⁶ Pa</span>
+   <span>p = ${fmt(2250/S_m2,0)} / 100 000 ≈ <b>${fmt(2250/S_m2/1e5,1)} bar</b></span></div>`)}
+  ${St(2.6,`<div class="key good"><p><b>${fmt(2250/S_m2/1e5,1)} bar ≥ 60 bar : l'exigence 1.2 est satisfaite.</b></p></div>
+   <p class="note">Pour aller plus loin : effort au pied minimal. 60 bar × S = 6 000 000 × ${fmt(S_m2*1e4,3)} × 10⁻⁴ ≈ ${fmt(6e6*S_m2,0)} N sur le piston, donc F = ${fmt(6e6*S_m2,0)} / 7,5 ≈ ${fmt(6e6*S_m2/7.5,0)} N au pied. Essaie avec le curseur.</p>`)}`,
+};
+const STATEMENT=`<h2>Énoncé</h2>
+  <p>On étudie la commande de frein d'une voiture. Le conducteur appuie sur la pédale 2 avec un effort F. La pédale tourne autour de A sur le bâti 1 et pousse la bielle 3. La bielle fait tourner le levier coudé 4 autour de E. Le levier pousse la tige 5, qui enfonce le piston 6 dans le maître-cylindre : le liquide de frein est mis sous pression.</p>
+  <div class="key warn"><p><b>Exigence 1.2 du cahier des charges :</b> avec un effort au pied de 300 N, la pression dans le maître-cylindre doit atteindre <b>au moins 60 bar</b>.</p></div>
+  <p><b>Hypothèses :</b> problème plan (x, y) ; poids des pièces négligé ; liaisons parfaites (pivots en A, B, C, D, E, G) ; l'effort du pied est horizontal : F = F·x, appliqué en P.</p>
+  <p><b>Données :</b></p>
+  <div class="data"><span>AP = −a·y ; AB = −b·y ; BC = c·x</span><span>EC = e·y ; ED = d·x ; DG est toujours parallèle à y</span>
+  <span>a = 300 mm ; b = 60 mm ; c = 250 mm ; e = 60 mm ; d = 40 mm</span><span>diamètre du piston : 20 mm ; 1 bar = 10⁵ Pa ; p = F / S</span></div>
+  <p><b>Questions :</b></p>
+  <ol class="qs">${Object.values(Q).map(([q])=>`<li>${q}</li>`).join("")}</ol>
+  <p class="note">Choisis une question en haut pour avoir un indice, puis la correction pas à pas. Notation : X<sub>ij</sub> = action de i sur j. Dans les corrections, on nomme les inconnues d'après le point, comme dans le cahier.</p>`;
+
+function setScene(s){
+  scene=s; t0=performance.now();
+  document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s));
+  if(s==="st") $("panel").innerHTML=STATEMENT;
+  else {
+    const [q,h]=Q[s];
+    $("panel").innerHTML=`<p class="q">${s.toUpperCase()}. ${q}</p>
+      <details class="hint"><summary>Indice</summary><div class="body"><p>${h}</p></div></details>
+      ${shown[s]?SOL[s]:`<button class="primary reveal" id="reveal">Voir la correction</button>`}`;
+    const r=$("reveal"); if(r) r.addEventListener("click",()=>{shown[s]=true; setScene(s)});
+  }
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(render);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
+$("replay").addEventListener("click",()=>setScene(scene));
+$("foot").addEventListener("input",ev=>{F=+ev.target.value; $("footOut").textContent=F+" N"; t0=Math.min(t0,performance.now()-10000); if(!raf) raf=requestAnimationFrame(render)});
+setScene("st");
+})();
+</script>
