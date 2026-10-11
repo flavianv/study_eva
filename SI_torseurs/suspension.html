@@ -355,40 +355,53 @@ const PANEL={
   ${St(.75,`<div class="key warn"><p><b>Notation.</b> Comme dans le cahier d'Eva, on nomme les inconnues d'après le point : {T<sub>4→2</sub>}<sub>D</sub> a pour force (D<sub>x</sub> ; D<sub>y</sub>). Les noms valent <b>pour le solide isolé dans la question</b>. Quand on change de solide, l'action réciproque change de signe : si D<sub>x</sub> est l'action de 2 sur 4 en Q2, l'action de 4 sur 2 en Q4 vaut −D<sub>x</sub> de Q2. Le lien avec l'énoncé est donné à chaque fois : X<sub>ij</sub> = action de i sur j.</p></div>`)}
   ${St(.9,`<p class="note">Sur le dessin, les déplacements sont réduits (×0,3) pour garder le schéma lisible ; la jauge donne la vraie valeur. Les calculs des questions 1, 2, 4 et 5 se font dans la position de référence (petits déplacements) : le mécanisme y est dessiné au repos, seules les flèches suivent la masse.</p>`)}`,
  q1:`<p class="q">Q1. Montrer que Y<sub>43</sub> = 0.</p>
-  ${St(.2,`<p><b>On isole le bras 3.</b> Il ne reçoit que deux actions : le pivot en B (châssis 1) et le pivot en C (porte-moyeu 4). Pas de poids (pesanteur négligée).</p>
+  ${St(.2,`<p><b>Étape 1 · On isole le bras 3.</b> Il ne touche que deux pièces : le châssis 1 (pivot en B) et le porte-moyeu 4 (pivot en C). Pas de poids (pesanteur négligée).</p>
+   <p><b>Étape 2 · Les torseurs.</b> Pivots, donc moment nul à leur propre point :</p>
    <div class="tzs">${T("T<sub>1→3</sub>","B",[["B<sub>x</sub>","0"],["B<sub>y</sub>","0"],["0","0"]])}${T("T<sub>4→3</sub>","C",[["C<sub>x</sub>","0"],["C<sub>y</sub>","0"],["0","0"]])}</div>
    <p class="note">Dans l'énoncé : C<sub>x</sub> = X<sub>43</sub>, C<sub>y</sub> = Y<sub>43</sub>. On veut montrer que C<sub>y</sub> = 0.</p>`)}
-  ${St(1.2,`<p>Si l'action en C était inclinée (avec une composante C<sub>y</sub>), elle ferait tourner le bras autour de B. Le pivot en B ne peut pas l'en empêcher : il ne transmet aucun moment.</p>`)}
-  ${St(2.2,`<p><b>BABAR : on déplace {T<sub>4→3</sub>} en B.</b> BC = b·x :</p>
-   <p>M<sub>B</sub>(C) = M<sub>C</sub> + BC ∧ C</p>
-   <p>${Vc(["0","0","0"],"+",["b","0","0"],"∧",["C<sub>x</sub>","C<sub>y</sub>","0"],"=",["0","0","b·C<sub>y</sub>"])}</p>
-   <p><b>PFS en B :</b></p><div class="eq">
+  ${St(1.2,`<p class="note">Idée : si l'action en C était inclinée (avec une composante C<sub>y</sub>), elle ferait tourner le bras autour de B, et le pivot en B ne peut pas l'en empêcher.</p>`)}
+  ${St(2.2,`<p><b>Étape 3 · BABAR : on écrit tout en B.</b> {T<sub>1→3</sub>} est déjà en B. On déplace {T<sub>4→3</sub>} de C vers B.</p>
+   <p>Vecteur BC : de B à C, on avance de b selon x : BC = (b ; 0 ; 0).</p>
+   <p>M<sub>B</sub> = M<sub>C</sub> + BC ∧ C</p>
+   <p>${Vc(["0","0","0"],"+",["b","0","0"],"∧",["C<sub>x</sub>","C<sub>y</sub>","0"],"=",["0·0 − 0·C<sub>y</sub>","0·C<sub>x</sub> − b·0","b·C<sub>y</sub> − 0·C<sub>x</sub>"],"=",["0","0","b·C<sub>y</sub>"])}</p>`)}
+  ${St(3,`<p><b>Étape 4 · PFS en B :</b> {T<sub>1→3</sub>}<sub>B</sub> + {T<sub>4→3</sub>}<sub>B</sub> = {0}</p><div class="eq">
    <span>TRS x : B<sub>x</sub> + C<sub>x</sub> = 0</span>
    <span>TRS y : B<sub>y</sub> + C<sub>y</sub> = 0</span>
-   <span>TMS z : b·C<sub>y</sub> = 0</span>
-   <span>⇒ C<sub>y</sub> = 0, donc <b>Y<sub>43</sub> = 0</b> (et B<sub>y</sub> = 0, B<sub>x</sub> = −C<sub>x</sub>)</span></div>`)}
-  ${St(3.8,`<div class="key good"><p><b>À retenir :</b> un solide soumis à deux actions seulement est en équilibre si les deux forces sont <b>opposées et portées par la droite qui joint les deux points</b>, ici BC, donc selon x.</p></div>`)}`,
+   <span>TMS z : 0 + b·C<sub>y</sub> = 0</span></div>
+   <p><b>Étape 5 · On résout.</b></p><div class="eq">
+   <span>TMS z : b·C<sub>y</sub> = 0, et b = 33 cm ≠ 0 ⇒ C<sub>y</sub> = 0</span>
+   <span>TRS y : B<sub>y</sub> = −C<sub>y</sub> = 0</span>
+   <span>TRS x : B<sub>x</sub> = −C<sub>x</sub> (encore inconnu, trouvé en Q2)</span></div>
+   <p>Donc <b>Y<sub>43</sub> = C<sub>y</sub> = 0</b>. ✓</p>`)}
+  ${St(4,`<div class="key good"><p><b>À retenir :</b> un solide soumis à deux actions seulement est en équilibre si les deux forces sont <b>opposées et portées par la droite qui joint les deux points</b>, ici BC, donc selon x.</p></div>`)}`,
  q2:`<p class="q">Q2. Équations du PFS appliqué à {4+6} au point D.</p>
-  ${St(.2,`<p><b>Bilan des actions extérieures sur {4+6}</b> (la liaison E entre 4 et 6 est intérieure, on ne la compte pas) :</p>
-   <div class="tzs">${T("T<sub>0→6</sub>","L",[["0","0"],["F<sub>06</sub>","0"],["0","0"]])}${T("T<sub>3→4</sub>","C",[["C<sub>x</sub>","0"],["0","0"],["0","0"]])}${T("T<sub>2→4</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["0","0"]])}</div>
-   <p class="note">Nouveaux noms pour ce solide : ici C<sub>x</sub> est l'action de <b>3 sur 4</b> (X<sub>34</sub>), l'opposé du C<sub>x</sub> de Q1. Sa composante sur y est nulle grâce à Q1. D<sub>x</sub> = X<sub>24</sub>, D<sub>y</sub> = Y<sub>24</sub>.</p>`)}
-  ${St(2.5,`<p><b>BABAR : tout en D.</b></p>
-   <p>Pour C, DC = c·x − a·y :</p>
-   <p>${Vc(["c","−a","0"],"∧",["C<sub>x</sub>","0","0"],"=",["0","0","a·C<sub>x</sub>"])}</p>
-   <p>Pour L, DL = DC + CL = (c+e)·x − (a+μ)·y :</p>
-   <p>${Vc(["c+e","−(a+μ)","0"],"∧",["0","F<sub>06</sub>","0"],"=",["0","0","(c+e)·F<sub>06</sub>"])}</p>
+  ${St(.2,`<p><b>Étape 1 · On isole {4+6}.</b> La liaison E entre 4 et 6 est à l'intérieur : on ne la compte pas. Il reste trois actions extérieures : la route en L, le bras 3 en C, le bras 2 en D.</p>
+   <p><b>Étape 2 · Les torseurs.</b></p>
+   <div class="tzs">${T("T<sub>0→6</sub>","L",[["0","0"],["F<sub>06</sub>","0"],["0","0"]])}${T("T<sub>3→4</sub>","C",[["C<sub>x</sub>","0"],["C<sub>y</sub>","0"],["0","0"]])}${T("T<sub>2→4</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["0","0"]])}</div>
+   <p><b>On utilise Q1.</b> {T<sub>3→4</sub>} = −{T<sub>4→3</sub>} (action réciproque). Q1 a donné Y<sub>43</sub> = 0, donc ici C<sub>y</sub> = −0 = <b>0</b>.</p>
+   <p class="note">Attention : ce C<sub>x</sub> est l'action de <b>3 sur 4</b> (X<sub>34</sub>), l'opposé du C<sub>x</sub> de Q1. De même D<sub>x</sub> = X<sub>24</sub>, D<sub>y</sub> = Y<sub>24</sub>.</p>`)}
+  ${St(2.5,`<p><b>Étape 3 · BABAR : on écrit tout en D.</b> {T<sub>2→4</sub>} est déjà en D.</p>
+   <p><b>Action en C.</b> De D à C : c selon x, puis a vers le bas : DC = (c ; −a ; 0).</p>
+   <p>M<sub>D</sub> = M<sub>C</sub> + DC ∧ C</p>
+   <p>${Vc(["0","0","0"],"+",["c","−a","0"],"∧",["C<sub>x</sub>","0","0"],"=",["(−a)·0 − 0·0","0·C<sub>x</sub> − c·0","c·0 − (−a)·C<sub>x</sub>"],"=",["0","0","a·C<sub>x</sub>"])}</p>
+   <p><b>Action en L.</b> De D à L, on passe par C : DL = DC + CL = (c ; −a ; 0) + (e ; −μ ; 0) = (c+e ; −(a+μ) ; 0).</p>
+   <p>M<sub>D</sub> = M<sub>L</sub> + DL ∧ F<sub>06</sub></p>
+   <p>${Vc(["0","0","0"],"+",["c+e","−(a+μ)","0"],"∧",["0","F<sub>06</sub>","0"],"=",["−(a+μ)·0 − 0·F<sub>06</sub>","0·0 − (c+e)·0","(c+e)·F<sub>06</sub> − (−(a+μ))·0"],"=",["0","0","(c+e)·F<sub>06</sub>"])}</p>
    <p class="note">Bras de levier en pointillés : pour la force verticale, seule la distance horizontale c + e compte ; pour la force horizontale, seule la hauteur a compte.</p>`)}
-  ${St(3.4,`<p><b>PFS en D :</b></p><div class="eq">
-   <span>TRS x : D<sub>x</sub> + C<sub>x</sub> = 0</span>
-   <span>TRS y : D<sub>y</sub> + F<sub>06</sub> = 0</span>
-   <span>TMS z : a·C<sub>x</sub> + (c+e)·F<sub>06</sub> = 0</span></div>
-   <div class="key"><p>D'où C<sub>x</sub> = −(c+e)/a · F<sub>06</sub> = −17/16 · F<sub>06</sub>, D<sub>x</sub> = 17/16 · F<sub>06</sub>, D<sub>y</sub> = −F<sub>06</sub>.</p></div>`)}`,
+  ${St(3.4,`<p><b>Étape 4 · PFS en D :</b> {T<sub>0→6</sub>}<sub>D</sub> + {T<sub>3→4</sub>}<sub>D</sub> + {T<sub>2→4</sub>}<sub>D</sub> = {0}</p><div class="eq">
+   <span>TRS x : 0 + C<sub>x</sub> + D<sub>x</sub> = 0</span>
+   <span>TRS y : F<sub>06</sub> + 0 + D<sub>y</sub> = 0</span>
+   <span>TMS z : (c+e)·F<sub>06</sub> + a·C<sub>x</sub> + 0 = 0</span></div>
+   <p><b>Étape 5 · On résout.</b></p><div class="eq">
+   <span>TMS z : C<sub>x</sub> = −(c+e)·F<sub>06</sub> / a = −(8+9)/16 · F<sub>06</sub> = −17/16 · F<sub>06</sub></span>
+   <span>TRS x : D<sub>x</sub> = −C<sub>x</sub> = 17/16 · F<sub>06</sub></span>
+   <span>TRS y : D<sub>y</sub> = −F<sub>06</sub></span></div>`)}`,
  q3:`<p class="q">Q3. Montrer que X<sub>92</sub> = 0.</p>
   ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée. Il ne reçoit que deux actions : celle du bras 2 en H et celle du châssis 1 en J. Ce sont des liaisons, donc pas de moment à leur propre point. On nomme les inconnues d'après le point :</p>
    <div class="tzs">${T("T<sub>2→9</sub>","H",[["H<sub>x</sub>","0"],["H<sub>y</sub>","0"],["0","0"]])}${T("T<sub>1→9</sub>","J",[["J<sub>x</sub>","0"],["J<sub>y</sub>","0"],["0","0"]])}</div>`)}
   ${St(1.2,`<p><b>BABAR : on déplace {T<sub>1→9</sub>} en H.</b> HJ est parallèle à y, de longueur ℓ (longueur du ressort) :</p>
    <p>M<sub>H</sub>(J) = M<sub>J</sub> + HJ ∧ J</p>
-   <p>${Vc(["0","0","0"],"+",["0","ℓ","0"],"∧",["J<sub>x</sub>","J<sub>y</sub>","0"],"=",["0","0","0·J<sub>y</sub> − ℓ·J<sub>x</sub>"],"=",["0","0","−ℓ·J<sub>x</sub>"])}</p>
+   <p>${Vc(["0","0","0"],"+",["0","ℓ","0"],"∧",["J<sub>x</sub>","J<sub>y</sub>","0"],"=",["ℓ·0 − 0·J<sub>y</sub>","0·J<sub>x</sub> − 0·0","0·J<sub>y</sub> − ℓ·J<sub>x</sub>"],"=",["0","0","−ℓ·J<sub>x</sub>"])}</p>
    <p class="note">Le moment en H de {T<sub>2→9</sub>} est nul : la force est appliquée en H. J<sub>y</sub> ne donne pas de moment, car il est parallèle à HJ.</p>
    <details class="why"><summary>Pourquoi M<sub>J</sub> = 0 ?</summary><div class="body">
     <p>M<sub>J</sub> est le moment de l'action du châssis sur le ressort, écrit en J. Il est nul pour deux raisons :</p>
@@ -415,45 +428,82 @@ const PANEL={
   ${St(4.4,`<div class="key warn"><p><b>Piège :</b> isoler le bras 2 ne marche pas pour Q3. Il reçoit trois actions (en A, H et D), ce qui fait 6 inconnues pour 3 équations, et l'équation en x mélange l'action en A et celle en H. Le bras 2, c'est pour Q4.</p></div>`)}
   ${St(5.2,`<p class="note">Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b> ; il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p>`)}`,
  q4:`<p class="q">Q4. Équations du PFS appliqué au solide 2 au point A.</p>
-  ${St(.2,`<p><b>Bilan sur le bras 2 :</b></p>
+  ${St(.2,`<p><b>Étape 1 · On isole le bras 2.</b> Il touche trois pièces : le châssis 1 (pivot en A), le ressort 9 (en H) et le porte-moyeu 4 (pivot en D).</p>
+   <p><b>Étape 2 · Les torseurs.</b></p>
    <div class="tzs">${T("T<sub>1→2</sub>","A",[["A<sub>x</sub>","0"],["A<sub>y</sub>","0"],["0","0"]])}${T("T<sub>9→2</sub>","H",[["H<sub>x</sub>","0"],["H<sub>y</sub>","0"],["0","0"]])}${T("T<sub>4→2</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["0","0"]])}</div>
-   <p class="note">Ici H<sub>x</sub> = X<sub>92</sub> et H<sub>y</sub> = Y<sub>92</sub>. <b>Q3 a montré que H<sub>x</sub> = 0</b> : on le garde dans le torseur, puis on le remplace par 0 dans les équations. En D, c'est l'action de <b>4 sur 2</b> : l'opposé de Q2, donc D<sub>x</sub> = −17/16·F<sub>06</sub> et D<sub>y</sub> = +F<sub>06</sub> (la roue pousse le bras vers le haut).</p>`)}
-  ${St(3.2,`<p><b>BABAR : tout en A.</b></p>
-   <p>Pour H, AH = L·x + h·y :</p>
-   <p>${Vc(["L","h","0"],"∧",["H<sub>x</sub>","H<sub>y</sub>","0"],"=",["0","0","L·H<sub>y</sub> − h·H<sub>x</sub>"],"=",["0","0","L·H<sub>y</sub>"])}</p><p class="note">Le dernier pas utilise H<sub>x</sub> = 0 (Q3).</p>
-   <p>Pour D, AD = d·x :</p>
-   <p>${Vc(["d","0","0"],"∧",["D<sub>x</sub>","D<sub>y</sub>","0"],"=",["0","0","d·D<sub>y</sub>"])}</p>
-   <p class="note">h disparaît car H<sub>x</sub> = 0 et h est parallèle à H<sub>y</sub>. D<sub>x</sub> disparaît : il vise A (AD est selon x).</p>`)}
-  ${St(4,`<p><b>PFS en A :</b></p><div class="eq">
-   <span>TRS x : A<sub>x</sub> + H<sub>x</sub> + D<sub>x</sub> = 0, avec H<sub>x</sub> = 0 ⇒ A<sub>x</sub> + D<sub>x</sub> = 0</span>
+   <p><b>Ce qu'on sait déjà :</b></p><ul>
+   <li><b>En H (Q3)</b> : H<sub>x</sub> = X<sub>92</sub> = 0. On le garde dans les calculs, et on le remplace à la fin.</li>
+   <li><b>En D (Q2)</b> : {T<sub>4→2</sub>} = −{T<sub>2→4</sub>} (action réciproque). Q2 a donné l'action de 2 sur 4 : 17/16·F<sub>06</sub> sur x et −F<sub>06</sub> sur y. Donc ici <b>D<sub>x</sub> = −17/16·F<sub>06</sub></b> et <b>D<sub>y</sub> = +F<sub>06</sub></b> : la roue pousse le bras vers le haut.</li></ul>`)}
+  ${St(3.2,`<p><b>Étape 3 · BABAR : on écrit tout en A.</b> {T<sub>1→2</sub>} est déjà en A.</p>
+   <p><b>Action en H.</b> De A à H : L selon x, puis h vers le haut : AH = (L ; h ; 0).</p>
+   <p>M<sub>A</sub> = M<sub>H</sub> + AH ∧ H</p>
+   <p>${Vc(["0","0","0"],"+",["L","h","0"],"∧",["H<sub>x</sub>","H<sub>y</sub>","0"],"=",["h·0 − 0·H<sub>y</sub>","0·H<sub>x</sub> − L·0","L·H<sub>y</sub> − h·H<sub>x</sub>"],"=",["0","0","L·H<sub>y</sub> − h·H<sub>x</sub>"])}</p>
+   <p><b>Action en D.</b> De A à D : d selon x : AD = (d ; 0 ; 0).</p>
+   <p>M<sub>A</sub> = M<sub>D</sub> + AD ∧ D</p>
+   <p>${Vc(["0","0","0"],"+",["d","0","0"],"∧",["D<sub>x</sub>","D<sub>y</sub>","0"],"=",["0·0 − 0·D<sub>y</sub>","0·D<sub>x</sub> − d·0","d·D<sub>y</sub> − 0·D<sub>x</sub>"],"=",["0","0","d·D<sub>y</sub>"])}</p>`)}
+  ${St(4,`<p><b>Étape 4 · PFS en A :</b> {T<sub>1→2</sub>}<sub>A</sub> + {T<sub>9→2</sub>}<sub>A</sub> + {T<sub>4→2</sub>}<sub>A</sub> = {0}</p><div class="eq">
+   <span>TRS x : A<sub>x</sub> + H<sub>x</sub> + D<sub>x</sub> = 0</span>
    <span>TRS y : A<sub>y</sub> + H<sub>y</sub> + D<sub>y</sub> = 0</span>
-   <span>TMS z : L·H<sub>y</sub> + d·D<sub>y</sub> = 0</span></div>
-   <div class="key"><p>C'est un <b>levier</b> autour de A : la roue pousse en D, à 25 cm de A ; le ressort retient en H, à 15 cm seulement. Il doit donc forcer 25/15 = 5/3 fois plus : H<sub>y</sub> = −5/3·F<sub>06</sub>.</p></div>`)}`,
+   <span>TMS z : 0 + (L·H<sub>y</sub> − h·H<sub>x</sub>) + d·D<sub>y</sub> = 0</span></div>
+   <p>On remplace H<sub>x</sub> = 0 (Q3) :</p><div class="eq">
+   <span>TRS x : A<sub>x</sub> + D<sub>x</sub> = 0</span>
+   <span>TRS y : A<sub>y</sub> + H<sub>y</sub> + D<sub>y</sub> = 0</span>
+   <span>TMS z : L·H<sub>y</sub> + d·D<sub>y</sub> = 0</span></div>`)}
+  ${St(4.8,`<p><b>Étape 5 · On résout</b> (avec D<sub>x</sub> = −17/16·F<sub>06</sub> et D<sub>y</sub> = F<sub>06</sub>) :</p><div class="eq">
+   <span>TMS z : H<sub>y</sub> = −d·D<sub>y</sub> / L = −25·F<sub>06</sub> / 15 = −5/3 · F<sub>06</sub></span>
+   <span>TRS x : A<sub>x</sub> = −D<sub>x</sub> = −(−17/16·F<sub>06</sub>) = 17/16 · F<sub>06</sub></span>
+   <span>TRS y : A<sub>y</sub> = −H<sub>y</sub> − D<sub>y</sub> = 5/3·F<sub>06</sub> − F<sub>06</sub> = 2/3 · F<sub>06</sub></span></div>
+   <div class="key"><p>C'est un <b>levier</b> autour de A : la roue pousse en D, à 25 cm de A ; le ressort retient en H, à 15 cm seulement. Il doit donc forcer 25/15 = 5/3 fois plus.</p></div>`)}`,
  q5:`<p class="q">Q5. Toutes les inconnues en fonction de F<sub>06</sub>.</p>
-  ${St(.2,`<div class="tablewrap"><table><thead><tr><th>Action</th><th>Inconnue</th><th>Énoncé</th><th>En fonction de F<sub>06</sub></th><th>Valeur</th></tr></thead><tbody>
+  ${St(.2,`<p><b>Étape 1 · Calculer F<sub>06</sub>.</b> C'est le quart du poids de la voiture :</p><div class="eq">
+   <span>Poids = m·g = 2200 × 9,81 = ${fmt(2200*g,0)} N</span>
+   <span>F<sub>06</sub> = ${fmt(2200*g,0)} / 4 = ${N(F0)}</span></div>
+   <p><b>Étape 2 · Les trois fractions trouvées en Q2 et Q4 :</b></p><div class="eq">
+   <span>17/16 × ${fmt(F0)} = ${N(v.X43)}</span>
+   <span>5/3 × ${fmt(F0)} = ${N(v.Y92)}</span>
+   <span>2/3 × ${fmt(F0)} = ${N(v.Y12)}</span></div>`)}
+  ${St(1,`<p><b>Étape 3 · Le tableau.</b> Chaque inconnue avec son nom dans la question où on l'a trouvée, et son nom dans l'énoncé.</p>
+   <div class="tablewrap"><table><thead><tr><th>Action</th><th>Inconnue</th><th>Énoncé</th><th>En fonction de F<sub>06</sub></th><th>Valeur</th></tr></thead><tbody>
    <tr><td>0→6 en L</td><td>F<sub>06</sub></td><td>F<sub>06</sub></td><td>m·g / 4</td><td class="n">${N(F0)}</td></tr>
-   <tr><td rowspan="2">4→3 en C</td><td>C<sub>x</sub></td><td>X<sub>43</sub></td><td>(c+e)/a · F<sub>06</sub> = 17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td rowspan="2">4→3 en C (Q1)</td><td>C<sub>x</sub></td><td>X<sub>43</sub></td><td>−X<sub>34</sub> = 17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
    <tr><td>C<sub>y</sub></td><td>Y<sub>43</sub></td><td>0 (Q1)</td><td class="n">0</td></tr>
-   <tr><td>1→3 en B</td><td>B<sub>x</sub></td><td>X<sub>13</sub></td><td>−17/16 · F<sub>06</sub></td><td class="n">${N(-v.X43)}</td></tr>
-   <tr><td rowspan="2">2→4 en D</td><td>D<sub>x</sub></td><td>X<sub>24</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td rowspan="2">1→3 en B (Q1)</td><td>B<sub>x</sub></td><td>X<sub>13</sub></td><td>−C<sub>x</sub> = −17/16 · F<sub>06</sub></td><td class="n">${N(-v.X43)}</td></tr>
+   <tr><td>B<sub>y</sub></td><td>Y<sub>13</sub></td><td>0 (Q1)</td><td class="n">0</td></tr>
+   <tr><td rowspan="2">2→4 en D (Q2)</td><td>D<sub>x</sub></td><td>X<sub>24</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
    <tr><td>D<sub>y</sub></td><td>Y<sub>24</sub></td><td>−F<sub>06</sub></td><td class="n">${N(-F0)}</td></tr>
-   <tr><td rowspan="2">1→2 en A</td><td>A<sub>x</sub></td><td>X<sub>12</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
-   <tr><td>A<sub>y</sub></td><td>Y<sub>12</sub></td><td>(d/L − 1) · F<sub>06</sub> = 2/3 · F<sub>06</sub></td><td class="n">${N(v.Y12)}</td></tr>
-   <tr><td rowspan="2">9→2 en H</td><td>H<sub>x</sub></td><td>X<sub>92</sub></td><td>0 (Q3)</td><td class="n">0</td></tr>
-   <tr><td>H<sub>y</sub></td><td>Y<sub>92</sub></td><td>−d/L · F<sub>06</sub> = −5/3 · F<sub>06</sub></td><td class="n">${N(-v.Y92)}</td></tr>
-   <tr><td>1→9 en J</td><td>J<sub>y</sub></td><td>Y<sub>19</sub></td><td>−5/3 · F<sub>06</sub></td><td class="n">${N(-v.Y92)}</td></tr>
+   <tr><td rowspan="2">1→2 en A (Q4)</td><td>A<sub>x</sub></td><td>X<sub>12</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td>A<sub>y</sub></td><td>Y<sub>12</sub></td><td>2/3 · F<sub>06</sub></td><td class="n">${N(v.Y12)}</td></tr>
+   <tr><td rowspan="2">9→2 en H (Q4)</td><td>H<sub>x</sub></td><td>X<sub>92</sub></td><td>0 (Q3)</td><td class="n">0</td></tr>
+   <tr><td>H<sub>y</sub></td><td>Y<sub>92</sub></td><td>−5/3 · F<sub>06</sub></td><td class="n">${N(-v.Y92)}</td></tr>
+   <tr><td>1→9 en J (Q3)</td><td>J<sub>y</sub></td><td>Y<sub>19</sub></td><td>−5/3 · F<sub>06</sub></td><td class="n">${N(-v.Y92)}</td></tr>
    </tbody></table></div>
-   <p class="note">F<sub>06</sub> = 2200 × 9,81 / 4. Signes : B<sub>x</sub> &lt; 0 et C<sub>x</sub> &gt; 0, donc le bras 3 est tiré par ses deux bouts : il travaille en traction. H<sub>y</sub> &lt; 0 : le ressort pousse le bras 2 vers le bas, il est comprimé.</p>`)}
-  ${St(1.2,`<p><b>Vérification sur toute la suspension</b> {2, 3, 4, 6, 9} : les seules actions extérieures sont celles du châssis (A, B, J) et de la route (L), dessinées ci-contre.</p><div class="eq">
+   <p class="note">J<sub>y</sub> : en Q3, H<sub>y</sub> + J<sub>y</sub> = 0 sur le ressort, avec H<sub>y</sub> (action de 2 sur 9) = +5/3·F<sub>06</sub>, donc J<sub>y</sub> = −5/3·F<sub>06</sub>. Signes : B<sub>x</sub> &lt; 0 et C<sub>x</sub> &gt; 0, donc le bras 3 est tiré par ses deux bouts (traction). H<sub>y</sub> &lt; 0 : le ressort pousse le bras 2 vers le bas, il est comprimé.</p>`)}
+  ${St(2,`<p><b>Étape 4 · Vérification sur toute la suspension</b> {2, 3, 4, 6, 9}. Les seules actions extérieures sont celles du châssis (A, B, J) et de la route (L), dessinées ci-contre. BABAR en A :</p>
+   <p>AB = (0 ; −a ; 0) : ${Vc(["0","−a","0"],"∧",["B<sub>x</sub>","0","0"],"=",["0","0","a·B<sub>x</sub>"])}</p>
+   <p>AJ = (L ; … ; 0) : ${Vc(["L","…","0"],"∧",["0","J<sub>y</sub>","0"],"=",["0","0","L·J<sub>y</sub>"])}</p>
+   <p>AL = (d+c+e ; −(a+μ) ; 0) : ${Vc(["d+c+e","−(a+μ)","0"],"∧",["0","F<sub>06</sub>","0"],"=",["0","0","(d+c+e)·F<sub>06</sub>"])}</p>
+   <div class="eq">
    <span>TRS x : A<sub>x</sub> + B<sub>x</sub> = 17/16 − 17/16 = 0 ✓</span>
    <span>TRS y : A<sub>y</sub> + J<sub>y</sub> + F<sub>06</sub> = 2/3 − 5/3 + 1 = 0 ✓</span>
-   <span>TMS z en A : 16·B<sub>x</sub> + 15·J<sub>y</sub> + 42·F<sub>06</sub> = −17 − 25 + 42 = 0 ✓</span></div>
-   <p class="note">Bras de levier depuis A : B est 16 cm sous A, J est à 15 cm à droite (x de H), L est à 42 cm à droite (d + c + e).</p>`)}`,
+   <span>TMS z : a·B<sub>x</sub> + L·J<sub>y</sub> + (d+c+e)·F<sub>06</sub></span>
+   <span>      = 16·(−17/16) + 15·(−5/3) + 42·1 = −17 − 25 + 42 = 0 ✓</span></div>
+   <p class="note">(en F<sub>06</sub> et en cm.) La hauteur de J ne compte pas : J<sub>y</sub> est vertical.</p>`)}`,
  q6:`<p class="q">Q6. La suspension satisfait-elle l'exigence d'affaissement statique ?</p>
-  ${St(.2,`<p>Effort dans le ressort, trouvé en Q4 : |H<sub>y</sub>| = 5/3 · F<sub>06</sub> = 5/3 × ${fmt(F0)} = <b>${N(v.Y92)}</b>.</p>`)}
-  ${St(1.4,`<div class="eq"><span>F = k·Δx ⇒ Δx = F / k = ${fmt(v.Y92)} / 100 000</span><span>Δx = ${fmt(v.Y92/k,3)} m ≈ <b>${fmt(v.Y92/k*100)} cm</b></span></div>`)}
-  ${St(2.8,`<div class="key good"><p><b>${fmt(v.Y92/k*100)} cm &lt; 12 cm : l'exigence 1.4 est satisfaite</b>, avec environ 3 cm de marge.</p></div>`)}
-  ${St(3.6,`<p class="note">Pour aller plus loin, pousse le curseur de masse : la limite de 12 cm correspond à un effort de k × 0,12 = 12 000 N dans le ressort, soit F<sub>06</sub> = 3/5 × 12 000 = 7200 N, donc une masse de 4 × 7200 / 9,81 ≈ ${fmt(4*7200/g,0)} kg. La voiture peut encore porter environ ${fmt(4*7200/g-2200,0)} kg de passagers et bagages.</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · L'effort dans le ressort.</b> C'est H<sub>y</sub>, trouvé en Q4 :</p><div class="eq">
+   <span>|H<sub>y</sub>| = 5/3 · F<sub>06</sub> = 5/3 × ${fmt(F0)} = ${N(v.Y92)}</span></div>`)}
+  ${St(1.4,`<p><b>Étape 2 · L'écrasement du ressort.</b> Formule du ressort : F = k·Δx, donc Δx = F / k.</p><div class="eq">
+   <span>Δx = ${fmt(v.Y92)} N / 100 000 N/m</span>
+   <span>Δx = ${fmt(v.Y92/k,4)} m</span>
+   <span>Δx = ${fmt(v.Y92/k,4)} × 100 = ${fmt(v.Y92/k*100,2)} cm ≈ <b>${fmt(v.Y92/k*100)} cm</b></span></div>
+   <p class="note">Unités : N divisé par N/m donne des mètres. On multiplie par 100 pour passer en cm.</p>`)}
+  ${St(2.8,`<p><b>Étape 3 · On compare au cahier des charges</b> (exigence 1.4 : au plus 12 cm).</p>
+   <div class="key good"><p><b>${fmt(v.Y92/k*100)} cm &lt; 12 cm : l'exigence 1.4 est satisfaite</b>, avec 12 − ${fmt(v.Y92/k*100)} ≈ 3 cm de marge.</p></div>`)}
+  ${St(3.6,`<p><b>Pour aller plus loin : quelle masse maximale ?</b> On refait le calcul à l'envers.</p><div class="eq">
+   <span>Effort max dans le ressort : k × 0,12 = 100 000 × 0,12 = 12 000 N</span>
+   <span>F<sub>06</sub> max = 12 000 / (5/3) = 3/5 × 12 000 = 7200 N</span>
+   <span>Poids max = 4 × 7200 = 28 800 N</span>
+   <span>Masse max = 28 800 / 9,81 ≈ ${fmt(4*7200/g,0)} kg</span></div>
+   <p class="note">La voiture peut encore porter environ ${fmt(4*7200/g-2200,0)} kg de passagers et bagages. Essaie avec le curseur de masse.</p>`)}`,
 };
 
 function setScene(s){
