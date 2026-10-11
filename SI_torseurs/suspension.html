@@ -80,6 +80,8 @@ td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-num
 .tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
 .tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
 .tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+.vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
+.vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
 /* answers */
 .answers{display:grid;gap:10px}
 details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
@@ -258,7 +260,7 @@ const SC={
  q1:{iso:["3"],arrows:[],dims:[["b",[0,-9],[b,-9],"b = 33 cm",[0,-3.5]]]},
  q2:{iso:["4","6"],arrows:[["L",[0,1],sb("F","06"),true],["C",[-r,0],sb("X","34"),true],["D",[r,0],sb("X","24"),false],["D",[0,-1],sb("Y","24"),false]],
      dims:[["ce",null,null,"c + e = 17 cm",[0,2.4]],["aa",null,null,"a = 16",[-1.5,0]]]},
- q3:{iso:["9"],load:true,move:true,arrows:[["H",[0,q9],sb("Y","29"),true],["J",[0,-q9],sb("Y","19"),true]]},
+ q3:{iso:["9"],load:true,move:true,arrows:[["H",[0,q9],sb("H","y"),true],["J",[0,-q9],sb("J","y"),true]]},
  q4:{iso:["2"],arrows:[["A",[r,0],sb("X","12"),true],["A",[0,2/3],sb("Y","12"),false],["H",[0,-q9],sb("Y","92"),false],["D",[-r,0],sb("X","42"),true],["D",[0,1],sb("Y","42"),false]],
      dims:[["L",[0,28],[L,28],"L = 15 cm",[0,2]],["d",[0,10],[d,10],"d = 25 cm",[0,-4]]]},
  q5:{iso:null,arrows:[["L",[0,1],sb("F","06"),true],["A",[r,0],sb("X","12"),true],["A",[0,2/3],sb("Y","12"),false],["B",[-r,0],sb("X","13"),false],["J",[0,-q9],"1→9",true]]},
@@ -336,6 +338,7 @@ function q1Arrows(pts,el,p){
 
 // ---------- panel text ----------
 const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const Vc=(...cols)=>`<span class="vx">${cols.map(c=>typeof c==="string"?`<span>${c}</span>`:`<span class="col">${c.map(x=>`<span>${x}</span>`).join("")}</span>`).join("")}</span>`;
 const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
 const N=x=>fmt(x,1)+" N";
 const v={X43:r*F0,Y12:2/3*F0,Y92:q9*F0,F06:F0};
@@ -365,20 +368,22 @@ const PANEL={
    <span>z (moment) : a·X<sub>34</sub> + (c+e)·F<sub>06</sub> = 0</span></div>
    <div class="key"><p>D'où X<sub>34</sub> = −(c+e)/a · F<sub>06</sub> = −17/16 · F<sub>06</sub>, X<sub>24</sub> = 17/16 · F<sub>06</sub>, Y<sub>24</sub> = −F<sub>06</sub>.</p></div>`)}`,
  q3:`<p class="q">Q3. Montrer que X<sub>92</sub> = 0.</p>
-  ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée. Deux actions extérieures, par les liaisons en H (avec 2) et en J (avec 1), sans moment à leur propre point :</p>
-   <div class="tzs">${T("2→9","H",[["X<sub>29</sub>","0"],["Y<sub>29</sub>","0"],["0","0"]])}${T("1→9","J",[["X<sub>19</sub>","0"],["Y<sub>19</sub>","0"],["0","0"]])}</div>`)}
-  ${St(1.2,`<p><b>BABAR : on déplace {1→9} en H.</b> HJ est parallèle à y : HJ = ℓ·y (ℓ = longueur du ressort).</p><div class="eq">
-   <span>M<sub>H</sub>(1→9) = M<sub>J</sub>(1→9) + HJ ∧ (X<sub>19</sub>·x + Y<sub>19</sub>·y)</span>
-   <span>= 0 + ℓ·y ∧ X<sub>19</sub>·x = −ℓ·X<sub>19</sub>·z</span></div>
-   <p class="note">y ∧ x = −z et y ∧ y = 0 : Y<sub>19</sub> est parallèle à HJ, il ne donne pas de moment.</p>`)}
+  ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée. Il ne reçoit que deux actions : celle du bras 2 en H et celle du châssis 1 en J. Ce sont des liaisons, donc pas de moment à leur propre point. On nomme les inconnues d'après le point :</p>
+   <div class="tzs">${T("T<sub>2→9</sub>","H",[["H<sub>x</sub>","0"],["H<sub>y</sub>","0"],["0","0"]])}${T("T<sub>1→9</sub>","J",[["J<sub>x</sub>","0"],["J<sub>y</sub>","0"],["0","0"]])}</div>`)}
+  ${St(1.2,`<p><b>BABAR : on déplace {T<sub>1→9</sub>} en H.</b> HJ est parallèle à y, de longueur ℓ (longueur du ressort) :</p>
+   <p>M<sub>H</sub>(J) = M<sub>J</sub> + HJ ∧ J</p>
+   <p>${Vc(["0","0","0"],"+",["0","ℓ","0"],"∧",["J<sub>x</sub>","J<sub>y</sub>","0"],"=",["0","0","0·J<sub>y</sub> − ℓ·J<sub>x</sub>"],"=",["0","0","−ℓ·J<sub>x</sub>"])}</p>
+   <p class="note">Le moment en H de {T<sub>2→9</sub>} est nul : la force est appliquée en H. J<sub>y</sub> ne donne pas de moment, car il est parallèle à HJ.</p>`)}
   ${St(2.4,`<p><b>PFS en H :</b></p><div class="eq">
-   <span>x : X<sub>29</sub> + X<sub>19</sub> = 0</span>
-   <span>y : Y<sub>29</sub> + Y<sub>19</sub> = 0</span>
-   <span>z (moment) : −ℓ·X<sub>19</sub> = 0</span>
-   <span>⇒ X<sub>19</sub> = 0 ⇒ X<sub>29</sub> = 0 ⇒ <b>X<sub>92</sub> = −X<sub>29</sub> = 0</b></span></div>
+   <span>TRS x : H<sub>x</sub> + J<sub>x</sub> = 0</span>
+   <span>TRS y : H<sub>y</sub> + J<sub>y</sub> = 0</span>
+   <span>TMS z : −ℓ·J<sub>x</sub> = 0</span>
+   <span>⇒ J<sub>x</sub> = 0 ⇒ H<sub>x</sub> = 0</span></div>
+   <p>{T<sub>9→2</sub>} = −{T<sub>2→9</sub>}, donc <b>X<sub>92</sub> = −H<sub>x</sub> = 0</b>.</p>
    <p class="note">On n'a pas besoin de la valeur de ℓ : il suffit qu'elle ne soit pas nulle.</p>`)}
   ${St(3.4,`<div class="key good"><p><b>À retenir (raccourci) :</b> un solide soumis à deux actions seulement, sans moment, a ses deux forces opposées et portées par la droite qui joint les deux points, ici HJ ∥ y. C'est exactement ce que le PFS vient de montrer, comme pour le bras 3 en Q1.</p></div>`)}
-  ${St(4.4,`<p class="note">Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b> ; il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p>`)}`,
+  ${St(4.4,`<div class="key warn"><p><b>Piège :</b> isoler le bras 2 ne marche pas pour Q3. Il reçoit trois actions (en A, H et D), ce qui fait 6 inconnues pour 3 équations, et l'équation en x mélange l'action en A et celle en H. Le bras 2, c'est pour Q4.</p></div>`)}
+  ${St(5.2,`<p class="note">Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b> ; il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p>`)}`,
  q4:`<p class="q">Q4. Équations du PFS appliqué au solide 2 au point A.</p>
   ${St(.2,`<p><b>Bilan sur le bras 2 :</b></p>
    <div class="tzs">${T("1→2","A",[["X<sub>12</sub>","0"],["Y<sub>12</sub>","0"],["0","0"]])}${T("9→2","H",[["0","0"],["Y<sub>92</sub>","0"],["0","0"]])}${T("4→2","D",[["X<sub>42</sub>","0"],["Y<sub>42</sub>","0"],["0","0"]])}</div>
