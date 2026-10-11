@@ -10,6 +10,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 | Robot 6 axes (6-axis robot) | `docs/robot.jpeg` | [robot.html](robot.html) (interactive, animated) |
 | Pédale de frein (brake pedal, practice exercise) | — | [pedale_frein.html](pedale_frein.html) (statement, hints, hidden corrections) |
 | Console portante de bateau (boat crane) | `docs/console.jpeg` | [console_bateau.html](console_bateau.html) (interactive, animated) |
+| Portail battant motorisé (gate, practice exercise) | — | [portail.html](portail.html) (statement, hints, hidden corrections) |
 
 ## Key ideas
 
