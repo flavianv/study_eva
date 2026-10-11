@@ -6,6 +6,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 |---|---|---|
 | Poignée de porte (door handle) | `docs/clanta.jpeg`, `docs/clanta2.jpeg` | [poignee_de_porte.md](poignee_de_porte.md) |
 | Pédale de commande (control pedal) | `docs/pedale.jpeg`, `docs/pedale2.jpeg` | [pedale_de_commande.md](pedale_de_commande.md) |
+| Suspension automobile (car suspension) | `docs/suspension.jpeg` | [suspension.html](suspension.html) (interactive, animated) |
 
 ## Key ideas
 

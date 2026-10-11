@@ -1,0 +1,422 @@
+<title>Suspension automobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing (sticky on wide screens) + scene buttons and explanation panel; each question replays its own animation on the mechanism */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06; --cS:#8a4fc4;
+  --tD:rgba(224,162,27,.30); --f:#c2185b; --ok:#2f9a55; --bad:#d6453d;
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px;margin:0}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.top>*{min-width:0}
+.stick{position:sticky;top:12px}
+@media (max-width:820px){.top{grid-template-columns:1fr}.stick{position:static}}
+svg#dwg{display:block;width:100%;max-width:470px;margin:0 auto;height:auto}
+.lbl{font:600 30px var(--f-mono);fill:var(--ink)}
+.num{font:700 26px var(--f-mono);fill:var(--ink)}
+.flab{font:700 30px var(--f-mono);fill:var(--f)}
+.dlab{font:600 24px var(--f-mono);fill:var(--muted)}
+.part{transition:opacity .35s}
+.part.dim{opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent);min-width:0}
+.readout{font:600 .9rem var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gauge{display:grid;gap:4px}
+.gauge .bar{position:relative;height:14px;border-radius:7px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:visible}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--ok);transition:background .2s}
+.gauge .fill.over{background:var(--bad)}
+.gauge .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.gauge .txt{display:flex;justify-content:space-between;font:600 .85rem var(--f-mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.gauge .txt b{color:var(--ink)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+#panel{display:grid;gap:10px}
+#panel p,#panel ol,#panel ul{margin:0;max-width:75ch}
+#panel ol,#panel ul{padding-left:1.3em}
+#panel li{margin:4px 0}
+.q{font-weight:600;border-left:4px solid var(--accent);padding:2px 0 2px 10px}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.key{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px}
+.key.warn{border-left-color:var(--cD)}
+.key.good{border-left-color:var(--ok)}
+.key.bad{border-left-color:var(--bad)}
+.eq{font:600 .95rem var(--f-mono);display:grid;gap:4px;padding:8px 12px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px;overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted)}
+.f{color:var(--f);font-weight:700}
+sub{font-size:.72em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+/* torseur */
+.tzs{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
+.tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+/* answers */
+.answers{display:grid;gap:10px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;padding:14px 16px;font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px}
+.body p,.body ul{margin:0;max-width:75ch}
+.body img{max-width:100%;height:auto;border-radius:4px;display:block}
+@media (max-width:640px){
+  body{padding:16px 16px 48px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  input[type=range]{height:36px}
+  h1{font-size:1.6rem}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD · Statique · PFS dans le plan</div>
+    <h1>Suspension automobile</h1>
+    <p>La voiture, sous son propre poids, écrase les ressorts de sa suspension. Le cahier des charges (exigence 1.4) dit que l'amortisseur ne doit pas s'affaisser de plus de 12 cm. On calcule l'effort dans le ressort, puis son écrasement. Choisis une question : l'animation montre sur le mécanisme ce que dit le calcul.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet stick">
+      <svg id="dwg" viewBox="-160 -580 780 900" role="img" aria-label="Schéma cinématique de la suspension en vue de face : châssis 1, bras 2 et 3, porte-moyeu 4, roue 6, ressort 9">
+        <defs>
+          <pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="12" stroke="currentColor" stroke-width="2"/></pattern>
+        </defs>
+        <g id="axes"></g>
+        <g id="dims"></g>
+        <g id="g1" class="part" style="color:var(--ink)"></g>
+        <g id="g3" class="part"></g>
+        <g id="g6" class="part"></g>
+        <g id="g4" class="part"></g>
+        <g id="g2" class="part"></g>
+        <g id="g9" class="part"></g>
+        <g id="labels"></g>
+        <g id="forces"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--ink)"></i>1 châssis</span>
+        <span><i style="background:var(--cA)"></i>2 bras sup.</span>
+        <span><i style="background:var(--cB)"></i>3 bras inf.</span>
+        <span><i style="background:var(--cC)"></i>4 porte-moyeu</span>
+        <span><i style="background:var(--cD)"></i>6 roue</span>
+        <span><i style="background:var(--cS)"></i>9 ressort</span>
+        <span><i style="background:var(--f)"></i>efforts</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Étape">
+          <span>Étape</span>
+          <button data-s="sys" aria-pressed="true">Système</button>
+          <button data-s="q1">Q1</button>
+          <button data-s="q2">Q2</button>
+          <button data-s="q3">Q3</button>
+          <button data-s="q4">Q4</button>
+          <button data-s="q5">Q5</button>
+          <button data-s="q6">Q6</button>
+        </div>
+        <label class="crank" for="mass">
+          <span class="group"><span>Masse</span></span>
+          <input id="mass" type="range" min="0" max="3300" step="50" value="2200">
+          <span class="readout" id="massOut">2200 kg</span>
+        </label>
+        <div class="gauge" aria-live="polite">
+          <div class="txt"><span>Écrasement du ressort : <b id="sOut">9,0 cm</b></span><span>F<sub>06</sub> = <b id="fOut"></b></span></div>
+          <div class="bar"><div class="fill" id="sFill"></div><div class="lim" style="left:80%" title="limite 12 cm"></div></div>
+          <div class="txt"><span>0</span><span>limite 12 cm</span><span>15 cm</span></div>
+        </div>
+        <div class="group"><button id="replay">↻ Rejouer l'animation</button></div>
+      </div>
+      <div class="sheet" id="panel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <details>
+      <summary>La feuille d'exercice</summary>
+      <div class="body"><img src="img/suspension.jpeg" alt="Énoncé : suspension automobile, questions Q1 à Q6" loading="lazy"></div>
+    </details>
+    <details>
+      <summary>Pièges fréquents</summary>
+      <div class="body"><ul>
+        <li><b>X<sub>ij</sub> = action de i sur j.</b> X<sub>43</sub> est l'action de 4 sur 3, et X<sub>34</sub> = −X<sub>43</sub>. Quand on isole un autre solide, on change de signe.</li>
+        <li>« Pesanteur négligée » veut dire : on ne compte pas le poids <b>des pièces</b> de la suspension. Le poids de la voiture, lui, est bien là : c'est F<sub>06</sub>, le quart du poids, qui arrive par la route.</li>
+        <li>Un solide qui ne reçoit que <b>deux</b> actions (deux pivots, sans poids) : les deux forces sont opposées et portées par la droite qui joint les deux points. C'est le cas du bras 3 (Q1) et du ressort 9 (Q3).</li>
+        <li>Dans un problème plan, un torseur n'a que 3 composantes utiles : X, Y et le moment N sur z. Le PFS donne donc <b>3 équations</b> par solide isolé, pas 6.</li>
+        <li>Moment d'une force verticale F·y en un point : seule la distance <b>horizontale</b> compte (h et μ disparaissent). Pour une force horizontale, seule la distance verticale compte.</li>
+        <li>Unités : k est en N/m, donc Δx = F/k sort en <b>mètres</b>. 0,09 m = 9 cm.</li>
+      </ul></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(()=>{
+// ---------- data (cm, N) ----------
+const a=16,b=33,c=8,d=25,h=3,L=15,e=9,mu=18,k=100000,g=9.81,LIMIT=12;
+const A0=[0,16],B0=[0,0],D0=[A0[0]+d,A0[1]],C0=[B0[0]+b,0],H0=[L,A0[1]+h],L0=[C0[0]+e,C0[1]-mu];
+const E0=[37,5],W0=[42,5],K0=[33,9],J0=[L,36];
+const AMP=0.3;          // displacements drawn at 30 % so the mechanism stays readable
+const FS=10;            // 1 F06 (at 2200 kg) is drawn 10 cm long
+const fmt=(x,n=1)=>x.toLocaleString("fr-FR",{minimumFractionDigits:n,maximumFractionDigits:n});
+const F0=2200*g/4;      // nominal F06
+
+// ---------- geometry ----------
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]], sub=(p,q)=>[p[0]-q[0],p[1]-q[1]];
+const rot=(v,t)=>[v[0]*Math.cos(t)-v[1]*Math.sin(t),v[0]*Math.sin(t)+v[1]*Math.cos(t)];
+const len=v=>Math.hypot(v[0],v[1]), ang=v=>Math.atan2(v[1],v[0]);
+const RDC=len(sub(C0,D0));
+function kin(sDraw){
+  // rotate 2 about A until H has risen by sDraw, then close the four-bar A-D-C-B
+  let lo=0,hi=1.2;
+  const rise=t=>add(A0,rot(sub(H0,A0),t))[1]-H0[1];
+  for(let i=0;i<40;i++){const m=(lo+hi)/2; rise(m)<sDraw?lo=m:hi=m}
+  const th=lo, D=add(A0,rot(sub(D0,A0),th));
+  const dv=sub(D,B0), dd=len(dv), x=(b*b-RDC*RDC+dd*dd)/(2*dd), y=Math.sqrt(Math.max(0,b*b-x*x));
+  const u=[dv[0]/dd,dv[1]/dd], base=add(B0,[u[0]*x,u[1]*x]);
+  const c1=add(base,[-u[1]*y,u[0]*y]), c2=add(base,[u[1]*y,-u[0]*y]);
+  const C=len(sub(c1,C0))<len(sub(c2,C0))?c1:c2;
+  const ph=ang(sub(C,D))-ang(sub(C0,D0)), ps=ang(sub(C,B0));
+  return {T2:p=>add(A0,rot(sub(p,A0),th)),T3:p=>add(B0,rot(sub(p,B0),ps)),T4:p=>add(D,rot(sub(p,D0),ph))};
+}
+const S=10, P=p=>[p[0]*S,-p[1]*S], XY=p=>{const q=P(p);return q[0].toFixed(1)+","+q[1].toFixed(1)};
+
+// ---------- state ----------
+let mass=2200, scene="sys", t0=performance.now(), raf=0;
+const $=id=>document.getElementById(id);
+const sReal=m=>(5/3)*(m*g/4)/k*100;   // spring compression (cm)
+
+// ---------- drawing helpers ----------
+const line=(p,q,col,w=7,extra="")=>`<line x1="${P(p)[0]}" y1="${P(p)[1]}" x2="${P(q)[0]}" y2="${P(q)[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const poly=(pts,col,w=7,fill="none")=>`<polyline points="${pts.map(XY).join(" ")}" stroke="${col}" stroke-width="${w}" fill="${fill}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const pivot=p=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="12" fill="var(--sheet)" stroke="var(--ink)" stroke-width="3.5"/>`;
+const tag=(p,n)=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="20" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/><text class="num" x="${P(p)[0]}" y="${P(p)[1]+9}" text-anchor="middle">${n}</text>`;
+const txt=(p,s,cls="lbl",anchor="middle")=>`<text class="${cls}" x="${P(p)[0]}" y="${P(p)[1]}" text-anchor="${anchor}">${s}</text>`;
+function ground(p,up){
+  const s=up?1:-1, q=add(p,[0,3*s]);
+  return line(p,q,"var(--ink)",4)+line(add(q,[-4,0]),add(q,[4,0]),"var(--ink)",4)+
+    `<rect x="${P(q)[0]-40}" y="${up?P(q)[1]-18:P(q)[1]}" width="80" height="18" fill="url(#hatch)"/>`+pivot(p);
+}
+function spring(p,q){
+  const v=sub(q,p), n=len(v), u=[v[0]/n,v[1]/n], w=[-u[1],u[0]], pts=[p,add(p,[u[0]*2.5,u[1]*2.5])], N=10, seg=(n-5)/N;
+  for(let i=0;i<N;i++){const s=2.5+seg*(i+.5), off=(i%2?-1:1)*2.2; pts.push(add(p,[u[0]*s+w[0]*off,u[1]*s+w[1]*off]))}
+  pts.push(add(p,[u[0]*(n-2.5),u[1]*(n-2.5)]),q);
+  return poly(pts,"var(--cS)",4.5);
+}
+function arrow(p,v,lab,headAt,frac){
+  // v in F06 units; frac grows the arrow from 0 to 1
+  const vv=[v[0]*FS*frac,v[1]*FS*frac], n=len(vv); if(n<.3) return "";
+  const tail=headAt?sub(p,vv):p, head=headAt?p:add(p,vv), u=[vv[0]/n,vv[1]/n], w=[-u[1],u[0]], hl=Math.min(3,n*.6);
+  const base=sub(head,[u[0]*hl,u[1]*hl]), l1=add(base,[w[0]*1.4,w[1]*1.4]), l2=sub(base,[w[0]*1.4,w[1]*1.4]);
+  // label just beyond the far end of the arrow, away from the point letters
+  const far=headAt?tail:head, o=headAt?[-u[0],-u[1]]:u, hz=Math.abs(o[0])>Math.abs(o[1]);
+  const lp=add(far,hz?[o[0]*1.2,-1]:[0,o[1]>0?1.2:-3.4]), anchor=hz?(o[0]>0?"start":"end"):"middle";
+  return line(tail,base,"var(--f)",5,'stroke-linecap="butt"')+`<polygon points="${[head,l1,l2].map(XY).join(" ")}" fill="var(--f)"/>`+
+    (frac>.6?`<text class="flab" x="${P(lp)[0]}" y="${P(lp)[1]}" text-anchor="${anchor}" opacity="${Math.min(1,(frac-.6)/.3)}">${lab}</text>`:"");
+}
+function dim(p,q,lab,o){
+  const tk=(r)=>{const v=sub(q,p),n=len(v),w=[-v[1]/n*1.2,v[0]/n*1.2];return line(sub(r,w),add(r,w),"var(--muted)",2.5)};
+  const m=add([(p[0]+q[0])/2,(p[1]+q[1])/2],o);
+  return line(p,q,"var(--muted)",2.5,'stroke-dasharray="8 6"')+tk(p)+tk(q)+txt(m,lab,"dlab");
+}
+const sb=(X,i)=>`${X}<tspan font-size="22" dy="7">${i}</tspan><tspan dy="-7"></tspan>`;
+
+// ---------- scenes ----------
+// arrows: [point, vector (F06 units, signed), label, headAt]; iso: parts kept bright
+const r=(c+e)/a, q9=d/L;
+const SC={
+ sys:{iso:null,move:true,arrows:[["L",[0,1],sb("F","06"),true]]},
+ q1:{iso:["3"],arrows:[],dims:[["b",[0,-9],[b,-9],"b = 33 cm",[0,-3.5]]]},
+ q2:{iso:["4","6"],arrows:[["L",[0,1],sb("F","06"),true],["C",[-r,0],sb("X","34"),true],["D",[r,0],sb("X","24"),false],["D",[0,-1],sb("Y","24"),false]],
+     dims:[["ce",null,null,"c + e = 17 cm",[0,2.4]],["aa",null,null,"a = 16",[-1.5,0]]]},
+ q3:{iso:["9"],load:true,move:true,arrows:[["H",[0,q9],sb("Y","29"),true],["J",[0,-q9],sb("Y","19"),true]]},
+ q4:{iso:["2"],arrows:[["A",[r,0],sb("X","12"),true],["A",[0,2/3],sb("Y","12"),false],["H",[0,-q9],sb("Y","92"),false],["D",[-r,0],sb("X","42"),true],["D",[0,1],sb("Y","42"),false]],
+     dims:[["L",[0,28],[L,28],"L = 15 cm",[0,2]],["d",[0,10],[d,10],"d = 25 cm",[0,-4]]]},
+ q5:{iso:null,arrows:[["L",[0,1],sb("F","06"),true],["A",[r,0],sb("X","12"),true],["A",[0,2/3],sb("Y","12"),false],["B",[-r,0],sb("X","13"),false],["J",[0,-q9],"1→9",true]]},
+ q6:{iso:null,load:true,move:true,arrows:[["L",[0,1],sb("F","06"),true],["H",[0,-q9],sb("Y","92"),false]]},
+};
+
+function render(now){
+  const sc=SC[scene], el=(now-t0)/1000;
+  // load: some scenes ramp the mass from 0 to the slider value
+  let m=mass;
+  if(sc.load){const f=Math.min(1,Math.max(0,(el-.3)/2.4)); m=mass*(1-Math.pow(1-f,3))}
+  const s=sReal(m), K=kin(sc.move?s*AMP:0), pts={A:A0,B:B0,C:K.T3(C0),D:K.T2(D0),H:K.T2(H0),J:J0,L:K.T4(L0),E:K.T4(E0)};
+  const T4=K.T4;
+  // parts
+  $("g1").innerHTML=ground(A0,false)+ground(B0,false)+ground(J0,true)+tag([-12,8],1);
+  $("g2").innerHTML=line(pts.A,pts.D,"var(--cA)")+line(K.T2([L,16]),pts.H,"var(--cA)",6)+tag(K.T2([8,22]),2)+pivot(pts.A)+pivot(pts.D)+pivot(pts.H);
+  $("g3").innerHTML=line(pts.B,pts.C,"var(--cB)")+tag(K.T3([22,-4]),3)+pivot(pts.B)+pivot(pts.C);
+  const ex=[T4([35.6,2.6]),T4([38.4,2.6]),T4([38.4,7.4]),T4([35.6,7.4]),T4([35.6,2.6])];
+  $("g4").innerHTML=poly([pts.D,T4(K0),pts.C],"var(--cC)")+line(T4([33,5]),T4([35.6,5]),"var(--cC)",6)+poly(ex,"var(--cC)",4,"var(--sheet)")+tag(T4([28,6]),4)+pivot(pts.D)+pivot(pts.C);
+  const blk=(x0,y0,x1,y1)=>poly([[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]].map(T4),"var(--cD)",4,"var(--tD)");
+  $("g6").innerHTML=blk(37,19,47,31)+blk(37,-18,47,-6)+line(T4([42,-6]),T4([42,19]),"var(--cD)",6)+line(T4([34.6,5]),T4(W0),"var(--cD)",5)+
+    line(T4([35,3.4]),T4([35,6.6]),"var(--cD)",3)+line(T4([39,3.4]),T4([39,6.6]),"var(--cD)",3)+tag(T4([50,26]),6)+
+    `<circle cx="${P(pts.L)[0]}" cy="${P(pts.L)[1]}" r="5" fill="var(--ink)"/>`;
+  $("g9").innerHTML=spring(pts.H,J0)+tag([L+5,30],9)+pivot(pts.H)+pivot(J0);
+  // labels
+  const off={A:[-3.2,1.2],B:[-3.2,1.2],C:[2.8,-2.6],D:[1.5,2.6],H:[-3,1.6],J:[-3.2,0],L:[-3.2,-1],E:[1.4,3.6]};
+  $("labels").innerHTML=Object.entries(off).map(([n,o])=>txt(add(pts[n],o),n)).join("");
+  $("axes").innerHTML=line([-12,-22],[-5,-22],"var(--muted)",2.5)+line([-12,-22],[-12,-15],"var(--muted)",2.5)+txt([-3.5,-23],"x","dlab")+txt([-12,-13],"y","dlab");
+  // isolation
+  ["1","2","3","4","6","9"].forEach(id=>$("g"+id).classList.toggle("dim",!!sc.iso&&!sc.iso.includes(id)));
+  // forces: grow one after another, scaled with the load
+  const p=m/2200;
+  let fh="";
+  sc.arrows.forEach(([pt,v,lab,ha],i)=>{
+    const f=sc.load?1:Math.min(1,Math.max(0,(el-.4-i*.55)/.6));
+    fh+=arrow(pts[pt],[v[0]*p,v[1]*p],lab,ha,f>0?1-Math.pow(1-f,3):0);
+  });
+  if(scene==="q1") fh+=q1Arrows(pts,el,p);
+  $("forces").innerHTML=fh;
+  // dimensions (lever arms)
+  let dh="";
+  const dt=.4+sc.arrows.length*.55+.3;
+  if(sc.dims&&el>dt){
+    for(const [id,p1,p2,lab,o] of sc.dims){
+      if(id==="ce") dh+=dim(add(pts.D,[0,4]),[pts.L[0],pts.D[1]+4],lab,o);
+      else if(id==="aa") dh+=dim([pts.D[0]-3,pts.D[1]],[pts.D[0]-3,pts.C[1]],lab,[-5,0]);
+      else dh+=dim(p1,p2,lab,o);
+    }
+  }
+  $("dims").innerHTML=dh;
+  $("dims").style.opacity=sc.dims&&el>dt?Math.min(1,(el-dt)/.5):0;
+  // gauge
+  $("sOut").textContent=fmt(s)+" cm"; $("fOut").textContent=fmt(m*g/4,0)+" N";
+  const fill=$("sFill"); fill.style.width=Math.min(100,s/15*100)+"%"; fill.classList.toggle("over",s>LIMIT);
+  // panel steps appear in sync
+  document.querySelectorAll("#panel .step").forEach(st=>st.classList.toggle("on",el>=+st.dataset.t));
+  const busy=el<9||sc.load&&el<3;
+  raf=busy?requestAnimationFrame(render):0;
+}
+
+// Q1: show why the action at C cannot be tilted: a tilted force has a moment about B, then it swings back onto BC
+function q1Arrows(pts,el,p){
+  const f=Math.min(1,Math.max(0,(el-.4)/.6)), sw=Math.min(1,Math.max(0,(el-2.2)/1.6));
+  const th=(1-(1-Math.pow(1-sw,3)))*35*Math.PI/180, n=r*p;
+  const vC=[n*Math.cos(th),n*Math.sin(th)], g=f>0?1-Math.pow(1-f,3):0;
+  let s=arrow(pts.C,vC,th>.02?"4→3":sb("X","43"),false,g)+arrow(pts.B,[-vC[0],-vC[1]],th>.02?"1→3":sb("X","13"),false,g);
+  if(th>.02&&el>1.2){
+    // curved hint: the bar would turn about B
+    const R=20, a0=-.25, a1=.25;
+    const arc=`M${XY([R*Math.cos(a0),R*Math.sin(a0)])} A${R*S},${R*S} 0 0 0 ${XY([R*Math.cos(a1),R*Math.sin(a1)])}`;
+    s+=`<path d="${arc}" fill="none" stroke="var(--cB)" stroke-width="3" stroke-dasharray="6 5" opacity="${Math.min(1,th*3)}"/>`+txt([R+2,6],"?","flab","start");
+  }
+  return s;
+}
+
+// ---------- panel text ----------
+const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+const N=x=>fmt(x,1)+" N";
+const v={X43:r*F0,Y12:2/3*F0,Y92:q9*F0,F06:F0};
+const PANEL={
+ sys:`<h2>Le système</h2>
+  <p>Vue de face de la suspension avant gauche. Le châssis <b>1</b> est fixe dans ce repère. Les bras <b>2</b> et <b>3</b> tournent autour de A et B ; le porte-moyeu <b>4</b> les relie en D et C et porte la roue <b>6</b>. Le ressort <b>9</b> est pris entre le bras 2 (en H) et le châssis (en J).</p>
+  ${St(.3,`<p>La route <b>0</b> pousse la roue vers le haut avec <span class="f">F<sub>06</sub></span> = un quart du poids de la voiture. Bouge la masse : la roue remonte par rapport au châssis, le bras 2 tourne autour de A et écrase le ressort.</p>`)}
+  ${St(.6,`<div class="key"><p><b>Hypothèses.</b> Problème plan (x, y) : chaque action a seulement X, Y et un moment N autour de z. Pesanteur négligée pour les pièces. Liaisons parfaites : un pivot ne transmet aucun moment.</p></div>`)}
+  ${St(.9,`<p class="note">Sur le dessin, les déplacements sont réduits (×0,3) pour garder le schéma lisible ; la jauge donne la vraie valeur. Les calculs des questions 1, 2, 4 et 5 se font dans la position de référence (petits déplacements) : le mécanisme y est dessiné au repos, seules les flèches suivent la masse.</p>`)}`,
+ q1:`<p class="q">Q1. Montrer que Y<sub>43</sub> = 0.</p>
+  ${St(.2,`<p><b>On isole le bras 3.</b> Il ne reçoit que deux actions : le pivot en B (1→3) et le pivot en C (4→3). Pas de poids (pesanteur négligée).</p>`)}
+  ${St(1.2,`<p>Si l'action en C était inclinée (avec une composante Y<sub>43</sub>), elle ferait tourner le bras autour de B. Le pivot en B ne peut pas l'en empêcher : il ne transmet aucun moment.</p>`)}
+  ${St(2.2,`<p><b>PFS, moments en B :</b></p><div class="eq"><span>M<sub>B</sub>(4→3) = BC ∧ (X<sub>43</sub>·x + Y<sub>43</sub>·y)</span><span>= b·x ∧ (X<sub>43</sub>·x + Y<sub>43</sub>·y) = b·Y<sub>43</sub>·z</span><span>M<sub>B</sub>(1→3) = 0 (force appliquée en B)</span><span>⇒ b·Y<sub>43</sub> = 0 ⇒ <b>Y<sub>43</sub> = 0</b></span></div>`)}
+  ${St(3.8,`<div class="key good"><p><b>À retenir :</b> un solide soumis à deux actions seulement est en équilibre si les deux forces sont <b>opposées et portées par la droite qui joint les deux points</b>, ici BC, donc selon x. Et X<sub>13</sub> = −X<sub>43</sub>.</p></div>`)}`,
+ q2:`<p class="q">Q2. Équations du PFS appliqué à {4+6} au point D.</p>
+  ${St(.2,`<p><b>Bilan des actions extérieures sur {4+6}</b> (la liaison E entre 4 et 6 est intérieure, on ne la compte pas) :</p>
+   <div class="tzs">${T("0→6","L",[["0","0"],["F<sub>06</sub>","0"],["0","0"]])}${T("3→4","C",[["X<sub>34</sub>","0"],["0","0"],["0","0"]])}${T("2→4","D",[["X<sub>24</sub>","0"],["Y<sub>24</sub>","0"],["0","0"]])}</div>
+   <p class="note">Y<sub>34</sub> = −Y<sub>43</sub> = 0 grâce à Q1. Les pivots en C et D ne transmettent pas de moment.</p>`)}
+  ${St(2.5,`<p><b>Moments en D (BABAR) :</b></p><div class="eq">
+   <span>DL = DC + CL = (c+e)·x − (a+μ)·y</span>
+   <span>M<sub>D</sub>(0→6) = DL ∧ F<sub>06</sub>·y = (c+e)·F<sub>06</sub>·z</span>
+   <span>M<sub>D</sub>(3→4) = DC ∧ X<sub>34</sub>·x = (c·x − a·y) ∧ X<sub>34</sub>·x = a·X<sub>34</sub>·z</span></div>
+   <p class="note">Bras de levier en pointillés : pour la force verticale, seule la distance horizontale c + e compte ; pour la force horizontale, seule la hauteur a compte.</p>`)}
+  ${St(3.4,`<p><b>PFS en D :</b></p><div class="eq">
+   <span>x : X<sub>24</sub> + X<sub>34</sub> = 0</span>
+   <span>y : Y<sub>24</sub> + F<sub>06</sub> = 0</span>
+   <span>z (moment) : a·X<sub>34</sub> + (c+e)·F<sub>06</sub> = 0</span></div>
+   <div class="key"><p>D'où X<sub>34</sub> = −(c+e)/a · F<sub>06</sub> = −17/16 · F<sub>06</sub>, X<sub>24</sub> = 17/16 · F<sub>06</sub>, Y<sub>24</sub> = −F<sub>06</sub>.</p></div>`)}`,
+ q3:`<p class="q">Q3. Montrer que X<sub>92</sub> = 0.</p>
+  ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée, liaisons en H (avec 2) et en J (avec 1). Il ne reçoit que <b>deux</b> actions, comme le bras 3 en Q1.</p>`)}
+  ${St(1.4,`<p>Donc les deux forces sont opposées et portées par la droite HJ. Or HJ est toujours parallèle à y :</p><div class="eq"><span>X<sub>29</sub> = 0 ⇒ X<sub>92</sub> = −X<sub>29</sub> = <b>0</b></span></div>`)}
+  ${St(2.6,`<div class="key good"><p>Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b>. Il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p></div>`)}`,
+ q4:`<p class="q">Q4. Équations du PFS appliqué au solide 2 au point A.</p>
+  ${St(.2,`<p><b>Bilan sur le bras 2 :</b></p>
+   <div class="tzs">${T("1→2","A",[["X<sub>12</sub>","0"],["Y<sub>12</sub>","0"],["0","0"]])}${T("9→2","H",[["0","0"],["Y<sub>92</sub>","0"],["0","0"]])}${T("4→2","D",[["X<sub>42</sub>","0"],["Y<sub>42</sub>","0"],["0","0"]])}</div>
+   <p class="note">X<sub>92</sub> = 0 (Q3). Action réciproque : X<sub>42</sub> = −X<sub>24</sub> = −17/16·F<sub>06</sub> et Y<sub>42</sub> = −Y<sub>24</sub> = +F<sub>06</sub>.</p>`)}
+  ${St(3.2,`<p><b>Moments en A :</b></p><div class="eq">
+   <span>M<sub>A</sub>(9→2) = AH ∧ Y<sub>92</sub>·y = (L·x + h·y) ∧ Y<sub>92</sub>·y = L·Y<sub>92</sub>·z</span>
+   <span>M<sub>A</sub>(4→2) = AD ∧ (X<sub>42</sub>·x + Y<sub>42</sub>·y) = d·Y<sub>42</sub>·z</span></div>
+   <p class="note">h ne compte pas : il est parallèle à la force. X<sub>42</sub> passe par A (AD est selon x) : moment nul.</p>`)}
+  ${St(4,`<p><b>PFS en A :</b></p><div class="eq">
+   <span>x : X<sub>12</sub> + X<sub>42</sub> = 0</span>
+   <span>y : Y<sub>12</sub> + Y<sub>92</sub> + Y<sub>42</sub> = 0</span>
+   <span>z (moment) : L·Y<sub>92</sub> + d·Y<sub>42</sub> = 0</span></div>
+   <div class="key"><p>C'est un <b>levier</b> : F<sub>06</sub> pousse en D, à 25 cm de A ; le ressort retient en H, à 15 cm seulement. Il doit donc forcer 25/15 = 5/3 fois plus.</p></div>`)}`,
+ q5:`<p class="q">Q5. Toutes les inconnues en fonction de F<sub>06</sub>.</p>
+  ${St(.2,`<div class="tablewrap"><table><thead><tr><th>Inconnue</th><th>En fonction de F<sub>06</sub></th><th>Valeur (m = 2200 kg)</th></tr></thead><tbody>
+   <tr><td>F<sub>06</sub></td><td>m·g / 4</td><td class="n">${N(F0)}</td></tr>
+   <tr><td>Y<sub>43</sub>, Y<sub>13</sub>, X<sub>92</sub></td><td>0</td><td class="n">0</td></tr>
+   <tr><td>X<sub>43</sub> = −X<sub>13</sub></td><td>(c+e)/a · F<sub>06</sub> = 17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td>X<sub>24</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td>Y<sub>24</sub></td><td>−F<sub>06</sub></td><td class="n">${N(-F0)}</td></tr>
+   <tr><td>X<sub>12</sub></td><td>17/16 · F<sub>06</sub></td><td class="n">${N(v.X43)}</td></tr>
+   <tr><td>Y<sub>92</sub></td><td>−d/L · F<sub>06</sub> = −5/3 · F<sub>06</sub></td><td class="n">${N(-v.Y92)}</td></tr>
+   <tr><td>Y<sub>12</sub></td><td>(d/L − 1) · F<sub>06</sub> = 2/3 · F<sub>06</sub></td><td class="n">${N(v.Y12)}</td></tr>
+   </tbody></table></div>
+   <p class="note">F<sub>06</sub> = 2200 × 9,81 / 4. Signes : X<sub>13</sub> &lt; 0 et X<sub>43</sub> &gt; 0, donc le bras 3 est tiré par ses deux bouts : il travaille en traction.</p>`)}
+  ${St(1.2,`<p><b>Vérification sur toute la suspension</b> {2, 3, 4, 6, 9} : les seules actions extérieures sont celles du châssis (A, B, J) et de la route (L), dessinées ci-contre.</p><div class="eq">
+   <span>x : 17/16 − 17/16 = 0 ✓</span>
+   <span>y : 2/3 − 5/3 + 1 = 0 ✓</span>
+   <span>moment en A : −16·(17/16) − 15·(5/3) + 42·1 = −17 − 25 + 42 = 0 ✓</span></div>`)}`,
+ q6:`<p class="q">Q6. La suspension satisfait-elle l'exigence d'affaissement statique ?</p>
+  ${St(.2,`<p>Effort dans le ressort : |Y<sub>92</sub>| = 5/3 · F<sub>06</sub> = 5/3 × ${fmt(F0)} = <b>${N(v.Y92)}</b>.</p>`)}
+  ${St(1.4,`<div class="eq"><span>F = k·Δx ⇒ Δx = F / k = ${fmt(v.Y92)} / 100 000</span><span>Δx = ${fmt(v.Y92/k,3)} m ≈ <b>${fmt(v.Y92/k*100)} cm</b></span></div>`)}
+  ${St(2.8,`<div class="key good"><p><b>${fmt(v.Y92/k*100)} cm &lt; 12 cm : l'exigence 1.4 est satisfaite</b>, avec environ 3 cm de marge.</p></div>`)}
+  ${St(3.6,`<p class="note">Pour aller plus loin, pousse le curseur de masse : la limite de 12 cm correspond à un effort de k × 0,12 = 12 000 N dans le ressort, soit F<sub>06</sub> = 3/5 × 12 000 = 7200 N, donc une masse de 4 × 7200 / 9,81 ≈ ${fmt(4*7200/g,0)} kg. La voiture peut encore porter environ ${fmt(4*7200/g-2200,0)} kg de passagers et bagages.</p>`)}`,
+};
+
+function setScene(s){
+  scene=s; t0=performance.now();
+  document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s));
+  $("panel").innerHTML=PANEL[s];
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(render);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
+$("replay").addEventListener("click",()=>setScene(scene));
+$("mass").addEventListener("input",ev=>{
+  mass=+ev.target.value; $("massOut").textContent=mass+" kg";
+  if(SC[scene].load) t0=performance.now()-10000;   // skip the ramp while dragging
+  if(!raf) raf=requestAnimationFrame(render);
+});
+setScene("sys");
+})();
+</script>
