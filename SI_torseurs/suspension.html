@@ -416,16 +416,16 @@ const PANEL={
   ${St(5.2,`<p class="note">Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b> ; il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p>`)}`,
  q4:`<p class="q">Q4. Équations du PFS appliqué au solide 2 au point A.</p>
   ${St(.2,`<p><b>Bilan sur le bras 2 :</b></p>
-   <div class="tzs">${T("T<sub>1→2</sub>","A",[["A<sub>x</sub>","0"],["A<sub>y</sub>","0"],["0","0"]])}${T("T<sub>9→2</sub>","H",[["0","0"],["H<sub>y</sub>","0"],["0","0"]])}${T("T<sub>4→2</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["0","0"]])}</div>
-   <p class="note">Ici H<sub>y</sub> = Y<sub>92</sub>, et H<sub>x</sub> = X<sub>92</sub> = 0 d'après Q3. En D, c'est l'action de <b>4 sur 2</b> : l'opposé de Q2, donc D<sub>x</sub> = −17/16·F<sub>06</sub> et D<sub>y</sub> = +F<sub>06</sub> (la roue pousse le bras vers le haut).</p>`)}
+   <div class="tzs">${T("T<sub>1→2</sub>","A",[["A<sub>x</sub>","0"],["A<sub>y</sub>","0"],["0","0"]])}${T("T<sub>9→2</sub>","H",[["H<sub>x</sub>","0"],["H<sub>y</sub>","0"],["0","0"]])}${T("T<sub>4→2</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["0","0"]])}</div>
+   <p class="note">Ici H<sub>x</sub> = X<sub>92</sub> et H<sub>y</sub> = Y<sub>92</sub>. <b>Q3 a montré que H<sub>x</sub> = 0</b> : on le garde dans le torseur, puis on le remplace par 0 dans les équations. En D, c'est l'action de <b>4 sur 2</b> : l'opposé de Q2, donc D<sub>x</sub> = −17/16·F<sub>06</sub> et D<sub>y</sub> = +F<sub>06</sub> (la roue pousse le bras vers le haut).</p>`)}
   ${St(3.2,`<p><b>BABAR : tout en A.</b></p>
    <p>Pour H, AH = L·x + h·y :</p>
-   <p>${Vc(["L","h","0"],"∧",["0","H<sub>y</sub>","0"],"=",["0","0","L·H<sub>y</sub>"])}</p>
+   <p>${Vc(["L","h","0"],"∧",["H<sub>x</sub>","H<sub>y</sub>","0"],"=",["0","0","L·H<sub>y</sub> − h·H<sub>x</sub>"],"=",["0","0","L·H<sub>y</sub>"])}</p><p class="note">Le dernier pas utilise H<sub>x</sub> = 0 (Q3).</p>
    <p>Pour D, AD = d·x :</p>
    <p>${Vc(["d","0","0"],"∧",["D<sub>x</sub>","D<sub>y</sub>","0"],"=",["0","0","d·D<sub>y</sub>"])}</p>
-   <p class="note">h disparaît : il est parallèle à H<sub>y</sub>. D<sub>x</sub> disparaît : il vise A (AD est selon x).</p>`)}
+   <p class="note">h disparaît car H<sub>x</sub> = 0 et h est parallèle à H<sub>y</sub>. D<sub>x</sub> disparaît : il vise A (AD est selon x).</p>`)}
   ${St(4,`<p><b>PFS en A :</b></p><div class="eq">
-   <span>TRS x : A<sub>x</sub> + D<sub>x</sub> = 0</span>
+   <span>TRS x : A<sub>x</sub> + H<sub>x</sub> + D<sub>x</sub> = 0, avec H<sub>x</sub> = 0 ⇒ A<sub>x</sub> + D<sub>x</sub> = 0</span>
    <span>TRS y : A<sub>y</sub> + H<sub>y</sub> + D<sub>y</sub> = 0</span>
    <span>TMS z : L·H<sub>y</sub> + d·D<sub>y</sub> = 0</span></div>
    <div class="key"><p>C'est un <b>levier</b> autour de A : la roue pousse en D, à 25 cm de A ; le ressort retient en H, à 15 cm seulement. Il doit donc forcer 25/15 = 5/3 fois plus : H<sub>y</sub> = −5/3·F<sub>06</sub>.</p></div>`)}`,
