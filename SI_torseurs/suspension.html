@@ -365,9 +365,20 @@ const PANEL={
    <span>z (moment) : a·X<sub>34</sub> + (c+e)·F<sub>06</sub> = 0</span></div>
    <div class="key"><p>D'où X<sub>34</sub> = −(c+e)/a · F<sub>06</sub> = −17/16 · F<sub>06</sub>, X<sub>24</sub> = 17/16 · F<sub>06</sub>, Y<sub>24</sub> = −F<sub>06</sub>.</p></div>`)}`,
  q3:`<p class="q">Q3. Montrer que X<sub>92</sub> = 0.</p>
-  ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée, liaisons en H (avec 2) et en J (avec 1). Il ne reçoit que <b>deux</b> actions, comme le bras 3 en Q1.</p>`)}
-  ${St(1.4,`<p>Donc les deux forces sont opposées et portées par la droite HJ. Or HJ est toujours parallèle à y :</p><div class="eq"><span>X<sub>29</sub> = 0 ⇒ X<sub>92</sub> = −X<sub>29</sub> = <b>0</b></span></div>`)}
-  ${St(2.6,`<div class="key good"><p>Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b>. Il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p></div>`)}`,
+  ${St(.2,`<p><b>On isole le ressort 9.</b> Masse négligée. Deux actions extérieures, par les liaisons en H (avec 2) et en J (avec 1), sans moment à leur propre point :</p>
+   <div class="tzs">${T("2→9","H",[["X<sub>29</sub>","0"],["Y<sub>29</sub>","0"],["0","0"]])}${T("1→9","J",[["X<sub>19</sub>","0"],["Y<sub>19</sub>","0"],["0","0"]])}</div>`)}
+  ${St(1.2,`<p><b>BABAR : on déplace {1→9} en H.</b> HJ est parallèle à y : HJ = ℓ·y (ℓ = longueur du ressort).</p><div class="eq">
+   <span>M<sub>H</sub>(1→9) = M<sub>J</sub>(1→9) + HJ ∧ (X<sub>19</sub>·x + Y<sub>19</sub>·y)</span>
+   <span>= 0 + ℓ·y ∧ X<sub>19</sub>·x = −ℓ·X<sub>19</sub>·z</span></div>
+   <p class="note">y ∧ x = −z et y ∧ y = 0 : Y<sub>19</sub> est parallèle à HJ, il ne donne pas de moment.</p>`)}
+  ${St(2.4,`<p><b>PFS en H :</b></p><div class="eq">
+   <span>x : X<sub>29</sub> + X<sub>19</sub> = 0</span>
+   <span>y : Y<sub>29</sub> + Y<sub>19</sub> = 0</span>
+   <span>z (moment) : −ℓ·X<sub>19</sub> = 0</span>
+   <span>⇒ X<sub>19</sub> = 0 ⇒ X<sub>29</sub> = 0 ⇒ <b>X<sub>92</sub> = −X<sub>29</sub> = 0</b></span></div>
+   <p class="note">On n'a pas besoin de la valeur de ℓ : il suffit qu'elle ne soit pas nulle.</p>`)}
+  ${St(3.4,`<div class="key good"><p><b>À retenir (raccourci) :</b> un solide soumis à deux actions seulement, sans moment, a ses deux forces opposées et portées par la droite qui joint les deux points, ici HJ ∥ y. C'est exactement ce que le PFS vient de montrer, comme pour le bras 3 en Q1.</p></div>`)}
+  ${St(4.4,`<p class="note">Regarde l'animation : quand la charge monte, le bras 2 pousse le ressort vers le haut en H et le châssis le retient en J. Le ressort est <b>comprimé</b> ; il repousse donc le bras 2 vers le bas : Y<sub>92</sub> &lt; 0.</p>`)}`,
  q4:`<p class="q">Q4. Équations du PFS appliqué au solide 2 au point A.</p>
   ${St(.2,`<p><b>Bilan sur le bras 2 :</b></p>
    <div class="tzs">${T("1→2","A",[["X<sub>12</sub>","0"],["Y<sub>12</sub>","0"],["0","0"]])}${T("9→2","H",[["0","0"],["Y<sub>92</sub>","0"],["0","0"]])}${T("4→2","D",[["X<sub>42</sub>","0"],["Y<sub>42</sub>","0"],["0","0"]])}</div>
