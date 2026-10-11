@@ -323,13 +323,13 @@ const SOL={
    <p>B<sub>y</sub> est l'action de 2 sur 3 : Y<sub>23</sub> = 0, donc <b>Y<sub>32</sub> = −Y<sub>23</sub> = 0</b>. ✓</p>
    <div class="key good"><p>Deux actions seulement ⇒ forces opposées, portées par BC (horizontale). Ici la bielle est <b>comprimée</b> : elle est poussée par ses deux bouts.</p></div>`)}`,
  q2:`${St(.2,`<p><b>Étape 1 · On isole la pédale 2.</b> Trois actions : le pied en P, le bâti 1 en A (pivot), la bielle 3 en B.</p>
-   <div class="tzs">${T("T<sub>pied→2</sub>","P",t2("F","0"))}${T("T<sub>1→2</sub>","A",t2("A<sub>x</sub>","A<sub>y</sub>"))}${T("T<sub>3→2</sub>","B",t2("B<sub>x</sub>","0"))}</div>
-   <p class="note">En B : B<sub>x</sub> = X<sub>32</sub>, et B<sub>y</sub> = Y<sub>32</sub> = 0 d'après Q1.</p>`)}
+   <div class="tzs">${T("T<sub>pied→2</sub>","P",t2("F","0"))}${T("T<sub>1→2</sub>","A",t2("A<sub>x</sub>","A<sub>y</sub>"))}${T("T<sub>3→2</sub>","B",t2("B<sub>x</sub>","B<sub>y</sub>"))}</div>
+   <p class="note">En B : B<sub>x</sub> = X<sub>32</sub> et B<sub>y</sub> = Y<sub>32</sub>. <b>Q1 a montré que B<sub>y</sub> = 0</b> : on le garde dans le torseur, puis on le remplace par 0.</p>`)}
   ${St(2.2,`<p><b>Étape 2 · BABAR en A.</b></p>
    <p>Pied : AP = (0 ; −a ; 0) : ${Vc(["0","−a","0"],"∧",["F","0","0"],"=",["(−a)·0 − 0·0","0·F − 0·0","0·0 − (−a)·F"],"=",["0","0","a·F"])}</p>
-   <p>Bielle : AB = (0 ; −b ; 0) : ${Vc(["0","−b","0"],"∧",["B<sub>x</sub>","0","0"],"=",["0","0","b·B<sub>x</sub>"])}</p>`)}
+   <p>Bielle : AB = (0 ; −b ; 0) : ${Vc(["0","−b","0"],"∧",["B<sub>x</sub>","B<sub>y</sub>","0"],"=",["(−b)·0 − 0·B<sub>y</sub>","0·B<sub>x</sub> − 0·0","0·B<sub>y</sub> − (−b)·B<sub>x</sub>"],"=",["0","0","b·B<sub>x</sub>"])}</p>`)}
   ${St(3,`<p><b>Étape 3 · PFS en A :</b></p><div class="eq">
-   <span>TRS x : F + A<sub>x</sub> + B<sub>x</sub> = 0</span><span>TRS y : A<sub>y</sub> = 0</span><span>TMS z : a·F + b·B<sub>x</sub> = 0</span></div>
+   <span>TRS x : F + A<sub>x</sub> + B<sub>x</sub> = 0</span><span>TRS y : 0 + A<sub>y</sub> + B<sub>y</sub> = 0, avec B<sub>y</sub> = 0 ⇒ A<sub>y</sub> = 0</span><span>TMS z : a·F + b·B<sub>x</sub> = 0</span></div>
    <p><b>Étape 4 · On résout :</b></p><div class="eq">
    <span>TMS z : B<sub>x</sub> = −(a/b)·F = −(300/60)·F = −5·F</span>
    <span>TRS x : A<sub>x</sub> = −F − B<sub>x</sub> = −F + 5·F = 4·F</span>
@@ -343,14 +343,18 @@ const SOL={
    <span>TRS x : D<sub>x</sub> + G<sub>x</sub> = 0</span><span>TRS y : D<sub>y</sub> + G<sub>y</sub> = 0</span><span>TMS z : g·G<sub>x</sub> = 0</span></div>
    <p><b>Étape 4 :</b> g ≠ 0 ⇒ G<sub>x</sub> = 0 ⇒ D<sub>x</sub> = 0. D<sub>x</sub> = X<sub>45</sub>, donc <b>X<sub>54</sub> = −X<sub>45</sub> = 0</b>. ✓</p>`)}`,
  q4:`${St(.2,`<p><b>Étape 1 · On isole le levier 4.</b> Trois actions : le bâti 1 en E, la bielle 3 en C, la tige 5 en D.</p>
-   <div class="tzs">${T("T<sub>1→4</sub>","E",t2("E<sub>x</sub>","E<sub>y</sub>"))}${T("T<sub>3→4</sub>","C",t2("C<sub>x</sub>","0"))}${T("T<sub>5→4</sub>","D",t2("0","D<sub>y</sub>"))}</div>
+   <div class="tzs">${T("T<sub>1→4</sub>","E",t2("E<sub>x</sub>","E<sub>y</sub>"))}${T("T<sub>3→4</sub>","C",t2("C<sub>x</sub>","C<sub>y</sub>"))}${T("T<sub>5→4</sub>","D",t2("D<sub>x</sub>","D<sub>y</sub>"))}</div>
    <p><b>Ce qu'on sait déjà :</b></p><ul>
-   <li>En D : X<sub>54</sub> = 0 (Q3).</li>
+   <li><b>En C : C<sub>y</sub> = 0 (Q1).</b> La bielle ne transmet que des forces portées par BC, horizontale : Y<sub>34</sub> = −Y<sub>43</sub> = 0.</li>
+   <li><b>En D : D<sub>x</sub> = 0 (Q3).</b> La tige ne transmet que des forces portées par DG, verticale : X<sub>54</sub> = 0.</li>
    <li>En C : on remonte la bielle. Q2 : la bielle pousse la pédale avec −5F. Donc la pédale pousse la bielle avec +5F. La bielle (Q1) a des forces opposées à ses deux bouts : le levier la pousse avec −5F. Donc elle pousse le levier avec <b>C<sub>x</sub> = +5·F</b>.</li></ul>`)}
   ${St(3,`<p><b>Étape 2 · BABAR en E.</b></p>
-   <p>Bielle : EC = (0 ; e ; 0) : ${Vc(["0","e","0"],"∧",["C<sub>x</sub>","0","0"],"=",["e·0 − 0·0","0·C<sub>x</sub> − 0·0","0·0 − e·C<sub>x</sub>"],"=",["0","0","−e·C<sub>x</sub>"])}</p>
-   <p>Tige : ED = (d ; 0 ; 0) : ${Vc(["d","0","0"],"∧",["0","D<sub>y</sub>","0"],"=",["0","0","d·D<sub>y</sub>"])}</p>`)}
+   <p>Bielle : EC = (0 ; e ; 0) : ${Vc(["0","e","0"],"∧",["C<sub>x</sub>","C<sub>y</sub>","0"],"=",["e·0 − 0·C<sub>y</sub>","0·C<sub>x</sub> − 0·0","0·C<sub>y</sub> − e·C<sub>x</sub>"],"=",["0","0","−e·C<sub>x</sub>"])}</p>
+   <p>Tige : ED = (d ; 0 ; 0) : ${Vc(["d","0","0"],"∧",["D<sub>x</sub>","D<sub>y</sub>","0"],"=",["0·0 − 0·D<sub>y</sub>","0·D<sub>x</sub> − d·0","d·D<sub>y</sub> − 0·D<sub>x</sub>"],"=",["0","0","d·D<sub>y</sub>"])}</p>
+   <p class="note">C<sub>y</sub> et D<sub>x</sub> disparaissent tout seuls des moments : ils sont parallèles à EC et à ED.</p>`)}
   ${St(3.8,`<p><b>Étape 3 · PFS en E :</b></p><div class="eq">
+   <span>TRS x : E<sub>x</sub> + C<sub>x</sub> + D<sub>x</sub> = 0</span><span>TRS y : E<sub>y</sub> + C<sub>y</sub> + D<sub>y</sub> = 0</span><span>TMS z : −e·C<sub>x</sub> + d·D<sub>y</sub> = 0</span></div>
+   <p>On remplace C<sub>y</sub> = 0 (Q1) et D<sub>x</sub> = 0 (Q3) :</p><div class="eq">
    <span>TRS x : E<sub>x</sub> + C<sub>x</sub> = 0</span><span>TRS y : E<sub>y</sub> + D<sub>y</sub> = 0</span><span>TMS z : −e·C<sub>x</sub> + d·D<sub>y</sub> = 0</span></div>
    <p><b>Étape 4 · On résout</b> (C<sub>x</sub> = 5·F) :</p><div class="eq">
    <span>TMS z : D<sub>y</sub> = (e/d)·C<sub>x</sub> = (60/40)·5·F = 7,5·F</span>
