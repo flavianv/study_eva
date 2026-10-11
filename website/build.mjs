@@ -27,7 +27,7 @@ const V = (...cols) => `<span class="vx">${cols.map(c=>typeof c==="string"?`<spa
 const table = (head, rows) => `<div class="tw"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 const sheets = (imgs) => `<details class="sheet"><summary>Voir les feuilles d'exercice</summary><div class="imgs">${imgs.map(([f,c])=>`<figure><img src="img/${f}" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join("")}</div></details>`;
 
-for (const f of ["clanta.jpeg","clanta2.jpeg","pedale.jpeg","pedale2.jpeg","suspension.jpeg"]) fs.copyFileSync(path.join(ROOT,"SI_torseurs/docs",f), path.join(OUT,"img",f));
+for (const f of ["clanta.jpeg","clanta2.jpeg","pedale.jpeg","pedale2.jpeg","suspension.jpeg","robot.jpeg"]) fs.copyFileSync(path.join(ROOT,"SI_torseurs/docs",f), path.join(OUT,"img",f));
 fs.copyFileSync(path.join(HERE,"site.css"), path.join(OUT,"site.css"));
 
 // ---------- pages ----------
@@ -36,6 +36,7 @@ const EX = [
   ["poignee.html","Poignée de porte","Pivot of axis y, moving a moment with BABAR, and a PFS that has no solution.","sol","Corrigé"],
   ["pedale.html","Pédale de commande","A see-saw in 3D: find the foot force F and the action of the pivot.","sol","Corrigé"],
   ["suspension.html","Suspension automobile","Two-force members, a PFS on {4+6} then on arm 2: does the car sag less than 12 cm? Animated on the mechanism.","play","Interactif"],
+  ["robot.html","Robot 6 axes","A PFS in 3D: the gripper, then the column on its base. Graph of joints, isolated systems and a 270 N·m tipping moment.","play","Interactif"],
   ["liaisons.html","Liaisons : la méthode","Equivalence classes, the standard joints, the graph and the kinematic diagram.","read","Fiche"],
   ["casse_ecrou.html","Casse-écrou","3 classes. Helical, pivot and slider in one small loop.","play","Interactif"],
   ["compresseur.html","Compresseur à piston","4 classes. Crank and connecting rod; a sliding pivot for the piston.","play","Interactif"],
@@ -49,8 +50,8 @@ const rows = (list,start) => list.map(([f,t,d,k,lab],i)=>`<a class="row" href="$
 const CHIM = await (await import("./chimie_pages.mjs")).default({page, table, V, T, fs, path, ROOT, HERE, OUT, SITE, rows});
 page("index.html",{home:true,
   lede:"Cours, fiches et exercices corrigés : sciences de l'ingénieur (statique, liaisons mécaniques), puis chimie (quantité de matière, dissolution et dilution, dosage par étalonnage). Les exercices interactifs se corrigent tout seuls, et chaque exercice a sa solution pas à pas.",
-  body:`<section><div class="sec-head"><h2>Statique : torseurs</h2><span class="muted">Actions mécaniques, déplacement de moments, PFS</span></div><div class="toc">${rows(EX.slice(0,4),1)}</div></section>
-<section><div class="sec-head"><h2>Modélisation : liaisons mécaniques</h2><span class="muted">Classes d'équivalence, graphe, schéma cinématique</span></div><div class="toc">${rows(EX.slice(4),5)}</div></section>
+  body:`<section><div class="sec-head"><h2>Statique : torseurs</h2><span class="muted">Actions mécaniques, déplacement de moments, PFS</span></div><div class="toc">${rows(EX.slice(0,5),1)}</div></section>
+<section><div class="sec-head"><h2>Modélisation : liaisons mécaniques</h2><span class="muted">Classes d'équivalence, graphe, schéma cinématique</span></div><div class="toc">${rows(EX.slice(5),6)}</div></section>
 ${CHIM.home}
 <section class="key"><p><b>How to use the interactive exercises.</b> Colour the parts into classes, move the slider to watch the mechanism, press <i>Vérifier</i>. The full answers sit at the bottom of each page, folded. Try first, then open them. In the chemistry trainers, every question has a hint and a step-by-step solution.</p></section>`});
 
@@ -153,7 +154,7 @@ const SYM = [
 ];
 page("liaisons.html",{title:"Liaisons : la méthode",eyebrow:"Modélisation · Fiche",
   lede:"From a technical drawing to a kinematic diagram in four steps: classes, joints, graph, schema.",
-  prev:["suspension.html","Suspension automobile"],next:["casse_ecrou.html","Casse-écrou"],
+  prev:["robot.html","Robot 6 axes"],next:["casse_ecrou.html","Casse-écrou"],
   body:`<section><h2>1 · Classes d'équivalence</h2>
 <p>An equivalence class is <b>a group of parts that never move relative to each other</b>: screwed, pinned, welded or pressed together. You treat each class as one solid.</p>
 <p><b>How to find them:</b> make the mechanism work and ask, for each pair of parts, “can one move relative to the other?” If not, same class.</p>
@@ -181,7 +182,8 @@ function inter(dir, f, next){
   src = src.replace('<div class="wrap">', nav + '\n<div class="wrap">');
   fs.writeFileSync(path.join(OUT,f), `<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head><body>\n${src}\n</body></html>`);
 }
-inter("SI_torseurs", "suspension.html", ["liaisons.html","Liaisons : la méthode"]);
-const INTER = EX.slice(5);
+inter("SI_torseurs", "suspension.html", ["robot.html","Robot 6 axes"]);
+inter("SI_torseurs", "robot.html", ["liaisons.html","Liaisons : la méthode"]);
+const INTER = EX.slice(6);
 INTER.forEach(([f],i)=>inter("SI_liaisons", f, INTER[i+1]));
 console.log(fs.readdirSync(OUT).join("\n"));

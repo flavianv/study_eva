@@ -1,0 +1,408 @@
+<title>Robot 6 axes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing (sticky on wide screens) + scene buttons and explanation panel; each question replays its own animation on the mechanism */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06; --cS:#8a4fc4;
+  --tD:rgba(224,162,27,.30); --f:#c2185b; --ok:#2f9a55; --bad:#d6453d;
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px;margin:0}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.top>*{min-width:0}
+.stick{position:sticky;top:12px}
+@media (max-width:820px){.top{grid-template-columns:1fr}.stick{position:static}}
+svg#dwg{display:block;width:100%;max-width:470px;margin:0 auto;height:auto}
+.lbl{font:600 30px var(--f-mono);fill:var(--ink)}
+.num{font:700 26px var(--f-mono);fill:var(--ink)}
+.flab{font:700 30px var(--f-mono);fill:var(--f)}
+.dlab{font:600 24px var(--f-mono);fill:var(--muted)}
+.part{transition:opacity .35s}
+.part.dim{opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent);min-width:0}
+.readout{font:600 .9rem var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gauge{display:grid;gap:4px}
+.gauge .bar{position:relative;height:14px;border-radius:7px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:visible}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--ok);transition:background .2s}
+.gauge .fill.over{background:var(--bad)}
+.gauge .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.gauge .txt{display:flex;justify-content:space-between;font:600 .85rem var(--f-mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.gauge .txt b{color:var(--ink)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+#panel{display:grid;gap:10px}
+#panel p,#panel ol,#panel ul{margin:0;max-width:75ch}
+#panel ol,#panel ul{padding-left:1.3em}
+#panel li{margin:4px 0}
+.q{font-weight:600;border-left:4px solid var(--accent);padding:2px 0 2px 10px}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.key{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px}
+.key.warn{border-left-color:var(--cD)}
+.key.good{border-left-color:var(--ok)}
+.key.bad{border-left-color:var(--bad)}
+.eq{font:600 .95rem var(--f-mono);display:grid;gap:4px;padding:8px 12px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px;overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted)}
+.f{color:var(--f);font-weight:700}
+sub{font-size:.72em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+/* torseur */
+.tzs{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
+.tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+.vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
+.vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
+details.why{border-left:4px solid var(--cD)}
+details.why summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+details.why .body{padding:10px 12px 12px;gap:8px}
+details.why ul{padding-left:1.2em}
+/* answers */
+.answers{display:grid;gap:10px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;padding:14px 16px;font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px}
+.body p,.body ul{margin:0;max-width:75ch}
+.body img{max-width:100%;height:auto;border-radius:4px;display:block}
+@media (max-width:640px){
+  body{padding:16px 16px 48px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  input[type=range]{height:36px}
+  h1{font-size:1.6rem}
+}
+</style>
+<style>
+/* robot page: 3D drawing + graph of joints side by side in the left card */
+#dwg .lbl{font:600 26px var(--f-mono);fill:var(--ink)}
+#dwg .num{font:700 24px var(--f-mono);fill:var(--ink)}
+#dwg .flab{font:700 25px var(--f-mono);fill:var(--f)}
+#dwg .dlab{font:600 21px var(--f-mono);fill:var(--muted)}
+#graph{display:block;width:100%;max-width:420px;margin:10px auto 0;height:auto}
+#graph text{font:600 13px var(--f-body);fill:var(--muted)}
+#graph .node text{font:700 18px var(--f-disp);fill:var(--ink)}
+.live{font:600 .9rem var(--f-mono);display:grid;gap:2px}
+.live b{color:var(--f)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD · Statique · PFS dans l'espace</div>
+    <h1>Robot 6 axes</h1>
+    <p>La pince du robot tient une charge de 300 N. On cherche d'abord l'action du poignet sur la pince, puis l'action du bâti sur la colonne : c'est ce que le pied du robot doit encaisser. Choisis une question : l'animation montre sur le robot et sur le graphe ce que dit le calcul.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet stick">
+      <svg id="dwg" viewBox="-240 -560 680 860" role="img" aria-label="Robot en perspective : bâti 1, colonne 2, épaule 3, poignet 4, pince 5, charge P en A">
+        <g id="scene"></g>
+        <g id="dims"></g>
+        <g id="forces"></g>
+      </svg>
+      <svg id="graph" viewBox="0 0 420 200" role="img" aria-label="Graphe des liaisons">
+        <g id="gzone"></g><g id="gedges"></g><g id="gnodes"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--ink)"></i>1 bâti</span>
+        <span><i style="background:var(--cA)"></i>2 colonne</span>
+        <span><i style="background:var(--cB)"></i>3 épaule</span>
+        <span><i style="background:var(--cC)"></i>4 poignet</span>
+        <span><i style="background:var(--cD)"></i>5 pince</span>
+        <span><i style="background:var(--f)"></i>efforts</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Étape">
+          <span>Étape</span>
+          <button data-s="sys" aria-pressed="true">Robot</button>
+          <button data-s="q1">Q1</button>
+          <button data-s="q2">Q2</button>
+          <button data-s="q3">Q3</button>
+        </div>
+        <label class="crank" for="ext">
+          <span class="group"><span>Sortie du bras</span></span>
+          <input id="ext" type="range" min="500" max="1100" step="50" value="900">
+          <span class="readout" id="extOut">900 mm</span>
+        </label>
+        <label class="crank" for="hgt">
+          <span class="group"><span>Hauteur épaule</span></span>
+          <input id="hgt" type="range" min="600" max="1300" step="50" value="1000">
+          <span class="readout" id="hgtOut">1000 mm</span>
+        </label>
+        <div class="live" aria-live="polite">
+          <span>Action du bâti en O : Z<sub>O</sub> = <b>300 N</b></span>
+          <span>Moment en O : L<sub>O</sub> = 300 × y<sub>A</sub> = <b id="lOut">270 N·m</b></span>
+        </div>
+        <p class="note">Bouge la sortie du bras : le moment change. Bouge la hauteur : rien ne change, car P est vertical. Le corrigé utilise les cotes du dessin (900 mm).</p>
+        <div class="group"><button id="replay">↻ Rejouer l'animation</button><button id="reset">Cotes du dessin</button></div>
+      </div>
+      <div class="sheet" id="panel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <details>
+      <summary>La feuille d'exercice</summary>
+      <div class="body"><img src="img/robot.jpeg" alt="Énoncé : robot 6 axes, questions 1 à 3.5" loading="lazy"></div>
+    </details>
+    <details>
+      <summary>Pièges fréquents</summary>
+      <div class="body"><ul>
+        <li><b>Pivot d'axe z :</b> seule la rotation autour de z est libre, donc seul N = 0. Les 5 autres composantes (X, Y, Z, L, M) sont des inconnues. On est en 3D : 6 équations par solide isolé.</li>
+        <li><b>Liaisons intérieures :</b> en Q3, on isole {2, 3, 4, 5}. Les glissières 2–3 et 3–4 et le pivot 4–5 sont à l'intérieur du système : on ne les écrit pas.</li>
+        <li><b>Lire les cotes :</b> le bras est décalé de 250 mm devant la colonne, puis le poignet revient de 250 mm. Donc x<sub>A</sub> = 250 − 250 = 0, et y<sub>A</sub> = 900 mm.</li>
+        <li><b>Unités :</b> les cotes sont en mm. Pour des moments en N·m, on passe en mètres : 900 mm = 0,9 m.</li>
+        <li><b>La hauteur ne compte pas :</b> P est vertical, donc la composante z de OA disparaît dans le produit vectoriel. Les 1000 mm ne servent pas.</li>
+        <li><b>Signe de P :</b> la charge tire vers le bas : P = (0 ; 0 ; −300).</li>
+      </ul></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(()=>{
+const P0=300;
+let yB=900, zC=1000, scene="sys", t0=performance.now(), raf=0;
+const $=id=>document.getElementById(id);
+const fmt=(x,n=0)=>x.toLocaleString("fr-FR",{minimumFractionDigits:n,maximumFractionDigits:n});
+
+// ---------- isometric projection (mm): x toward the viewer-left, y toward the viewer-right, z up ----------
+const K=.3, C30=Math.cos(Math.PI/6);
+const pr=([x,y,z])=>[(y-x)*C30*K,((x+y)*.5-z)*K];
+const XY=p=>{const q=pr(p);return q[0].toFixed(1)+","+q[1].toFixed(1)};
+const poly=(pts,col,fo,w=1.6)=>`<polygon points="${pts.map(XY).join(" ")}" fill="${col}" fill-opacity="${fo}" stroke="${col}" stroke-width="${w}" stroke-linejoin="round"/>`;
+function box(x0,x1,y0,y1,z0,z1,col){
+  return poly([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],col,.18)+   // top
+         poly([[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],col,.32)+   // +x face
+         poly([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],col,.45);   // +y face
+}
+const seg=(p,q,col,w=2,extra="")=>{const a=pr(p),b=pr(q);return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`};
+const txt=(p,s,cls="lbl",anchor="middle",dx=0,dy=0)=>{const a=pr(p);return `<text class="${cls}" x="${a[0]+dx}" y="${a[1]+dy}" text-anchor="${anchor}">${s}</text>`};
+const dot=(p,r=4,col="var(--ink)")=>{const a=pr(p);return `<circle cx="${a[0]}" cy="${a[1]}" r="${r}" fill="${col}"/>`};
+const pivot=p=>{const a=pr(p);return `<circle cx="${a[0]}" cy="${a[1]}" r="8" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`};
+
+// arrow in 3D (mm), drawn in screen space; frac grows it
+function arrow(p,v,lab,headAt,frac,side=[10,4]){
+  if(frac<=0) return "";
+  const vv=v.map(c=>c*frac), tail=headAt?p.map((c,i)=>c-vv[i]):p, head=headAt?p:p.map((c,i)=>c+vv[i]);
+  const a=pr(tail), b=pr(head), dx=b[0]-a[0], dy=b[1]-a[1], n=Math.hypot(dx,dy); if(n<2) return "";
+  const u=[dx/n,dy/n], w=[-u[1],u[0]], hl=Math.min(20,n*.5), base=[b[0]-u[0]*hl,b[1]-u[1]*hl];
+  const far=headAt?a:b;
+  return `<line x1="${a[0]}" y1="${a[1]}" x2="${base[0]}" y2="${base[1]}" stroke="var(--f)" stroke-width="5"/>`+
+    `<polygon points="${b[0]},${b[1]} ${base[0]+w[0]*8},${base[1]+w[1]*8} ${base[0]-w[0]*8},${base[1]-w[1]*8}" fill="var(--f)"/>`+
+    (frac>.6?`<text class="flab" x="${far[0]+side[0]}" y="${far[1]+side[1]}" opacity="${Math.min(1,(frac-.6)/.3)}">${lab}</text>`:"");
+}
+// moment arrow about +x at O: circle in the (y, z) plane, turning from y toward z
+function momentX(c,R,frac,lab){
+  if(frac<=0) return "";
+  const t0=-.9, t1=t0+frac*4.2, N=40, pts=[];
+  for(let i=0;i<=N;i++){const t=t0+(t1-t0)*i/N; pts.push([c[0],c[1]+R*Math.cos(t),c[2]+R*Math.sin(t)])}
+  const a=pr(pts[N-1]), b=pr(pts[N]), dx=b[0]-a[0], dy=b[1]-a[1], n=Math.hypot(dx,dy)||1, u=[dx/n,dy/n], w=[-u[1],u[0]];
+  return `<polyline points="${pts.map(XY).join(" ")}" fill="none" stroke="var(--f)" stroke-width="4.5"/>`+
+    `<polygon points="${b[0]+u[0]*10},${b[1]+u[1]*10} ${b[0]+w[0]*6},${b[1]+w[1]*6} ${b[0]-w[0]*6},${b[1]-w[1]*6}" fill="var(--f)"/>`+
+    (frac>.8?txt([c[0],-R*.2,c[2]+R*1.25],lab,"flab","end",-14,0):"");
+}
+const sb=(X,i)=>`${X}<tspan font-size="17" dy="7">${i}</tspan><tspan dy="-7"></tspan>`;
+
+// ---------- scenes ----------
+// iso: parts kept bright; graph: "red" ring around 5, "green" zone around 2-5
+const SC={
+ sys:{iso:null},
+ q1:{iso:["5"]},
+ q2:{iso:["5"],graph:"red"},
+ q3:{iso:["2","3","4","5"],graph:"green"},
+};
+
+function render(now){
+  const sc=SC[scene], el=(now-t0)/1000, ease=f=>1-Math.pow(1-Math.min(1,Math.max(0,f)),3);
+  const B=[0,yB,zC-35], A=[0,yB,zC-250], O=[0,0,0];
+  const op=id=>sc.iso&&!sc.iso.includes(id)?.14:1;
+  const g=(id,html)=>`<g style="opacity:${op(id)};transition:opacity .35s">${html}</g>`;
+  // parts, back to front
+  let h="";
+  h+=g("1",box(-300,300,-300,300,-100,0,"var(--ink)")+txt([300,-300,-100],"1","num","middle",-14,22));
+  h+=g("2",box(-80,80,-80,80,0,1500,"var(--cA)")+txt([80,-80,1350],"2","num","end",-8,0));
+  h+=g("3",box(-100,200,-110,110,zC-90,zC+90,"var(--cB)")+box(200,300,-650,300,zC-50,zC+50,"var(--cB)")+txt([300,-600,zC+50],"3","num","middle",0,-10));
+  h+=g("4",box(215,285,300,yB+35,zC-35,zC+35,"var(--cC)")+box(-35,215,yB-35,yB+35,zC-35,zC+35,"var(--cC)")+txt([250,yB-200,zC+35],"4","num","middle",0,-10));
+  h+=g("5",box(-30,30,yB-30,yB+30,zC-250,zC-35,"var(--cD)")+txt([30,yB+30,zC-140],"5","num","start",8,0));
+  // axes and points
+  h+=seg([0,0,0],[700,0,0],"var(--muted)",1.2,'stroke-dasharray="6 4"')+txt([760,0,0],"x","dlab")+
+     seg([0,0,0],[0,1250,0],"var(--muted)",1.2,'stroke-dasharray="6 4"')+txt([0,1320,0],"y","dlab")+
+     seg([0,0,1500],[0,0,1650],"var(--muted)",1.2,'stroke-dasharray="6 4"')+txt([0,0,1690],"z","dlab");
+  h+=pivot(O)+txt(O,"O","lbl","end",-10,-6)+pivot(B)+txt(B,"B","lbl","start",10,-4)+dot(A)+txt(A,"A","lbl","end",-10,4)+
+     dot([250,0,zC])+txt([250,0,zC],"C","lbl","end",-8,-6);
+  $("scene").innerHTML=h;
+
+  // forces, one after another
+  const grow=i=>ease((el-.4-i*.6)/.6);
+  let f="";
+  const P=arrow(A,[0,0,-P0],"P = 300 N",false,grow(0),[10,0]);
+  if(scene==="sys"||scene==="q1") f+=P;
+  if(scene==="q2") f+=P+arrow(B,[0,0,P0],sb("B","z")+" = 300 N",false,grow(1),[10,-10]);
+  if(scene==="q3"){
+    const L=P0*yB/1000;
+    f+=P+arrow(O,[0,0,P0],sb("Z","O")+" = 300 N",true,grow(1),[10,30])+momentX([0,0,0],260,grow(2),sb("L","O")+" = "+fmt(L)+" N·m");
+  }
+  $("forces").innerHTML=f;
+
+  // dimensions: where A is, seen from O
+  let d="";
+  if(scene==="q3"&&el>2.4||scene==="q1"&&el>1.2){
+    d+=seg([0,0,0],[0,yB,0],"var(--muted)",2,'stroke-dasharray="7 5"')+txt([0,yB/2,0],"y<tspan font-size='15' dy='6'>A</tspan><tspan dy='-6'> = "+yB+" mm</tspan>","dlab","start",14,16)+
+       seg(A,[0,yB,0],"var(--muted)",1.5,'stroke-dasharray="3 4"')+
+       seg([0,0,1580],[250,0,1580],"var(--muted)",2)+seg([250,0,1500],[250,0,1600],"var(--muted)",1.2)+txt([125,0,1580],"+250","dlab","end",-8,-4)+
+       seg([250,yB,zC+140],[0,yB,zC+140],"var(--muted)",2)+seg([0,yB,zC-30],[0,yB,zC+160],"var(--muted)",1.2)+txt([0,yB,zC+140],"−250","dlab","start",10,-4);
+  }
+  $("dims").innerHTML=d;
+  $("dims").style.opacity=d?1:0;
+
+  // graph of joints
+  drawGraph(sc.graph, el);
+  $("lOut").textContent=fmt(P0*yB/1000)+" N·m";
+  document.querySelectorAll("#panel .step").forEach(st=>st.classList.toggle("on",el>=+st.dataset.t));
+  raf=el<9?requestAnimationFrame(render):0;
+}
+
+const GN={1:[60,45],2:[120,160],3:[330,160],4:[370,55],5:[230,45]};
+const GE=[[1,2,"pivot axe z",[48,110]],[2,3,"glissière z",[225,195]],[3,4,"glissière y",[385,110]],[4,5,"pivot axe z",[300,25]]];
+function drawGraph(mode,el){
+  const show=el>.5;
+  let z="";
+  if(mode==="red"&&show) z=`<circle cx="230" cy="45" r="34" fill="none" stroke="var(--bad)" stroke-width="3"/>`;
+  if(mode==="green"&&show) z=`<path d="M95 175 C 70 120, 170 10, 240 10 C 330 5, 420 20, 405 90 C 395 150, 380 195, 300 195 C 200 198, 110 205, 95 175 Z" fill="color-mix(in srgb,var(--ok) 10%,transparent)" stroke="var(--ok)" stroke-width="3"/>`;
+  $("gzone").innerHTML=z;
+  $("gedges").innerHTML=GE.map(([a,b,lab,lp])=>{
+    const ext=(mode==="red"&&(a===5||b===5))||(mode==="green"&&(a===1||b===1));
+    return `<line x1="${GN[a][0]}" y1="${GN[a][1]}" x2="${GN[b][0]}" y2="${GN[b][1]}" stroke="${ext&&show?"var(--f)":"var(--ink)"}" stroke-width="${ext&&show?4:2}"/><text x="${lp[0]}" y="${lp[1]}" text-anchor="middle">${lab}</text>`;
+  }).join("")+(mode&&show?`<text x="230" y="${mode==="red"?100:120}" text-anchor="middle" style="fill:var(--f);font-weight:700">+ P en A</text>`:"");
+  $("gnodes").innerHTML=Object.entries(GN).map(([n,[x,y]])=>`<g class="node"><circle cx="${x}" cy="${y}" r="22" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text x="${x}" y="${y+6}" text-anchor="middle">${n}</text></g>`).join("");
+}
+
+// ---------- panel text ----------
+const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const Vc=(...cols)=>`<span class="vx">${cols.map(c=>typeof c==="string"?`<span>${c}</span>`:`<span class="col">${c.map(x=>`<span>${x}</span>`).join("")}</span>`).join("")}</span>`;
+const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+const Z0=["0","0","0"];
+const PANEL={
+ sys:`<h2>Le robot</h2>
+  <p>Cinq pièces, de la base à la pince :</p>
+  <ul><li><b>1</b> le bâti, fixé au sol ;</li>
+  <li><b>2</b> la colonne, qui tourne sur le bâti (pivot d'axe z en O) ;</li>
+  <li><b>3</b> l'épaule, qui monte et descend le long de la colonne (glissière d'axe z) ;</li>
+  <li><b>4</b> le poignet, qui sort de l'épaule (glissière d'axe y, en C) ;</li>
+  <li><b>5</b> la pince, qui tourne au bout du poignet (pivot d'axe z en B). Elle tient la charge P = 300 N en A.</li></ul>
+  ${St(.3,`<div class="key"><p><b>Hypothèses.</b> Poids des pièces négligé devant la charge. Liaisons parfaites. Le problème est en 3D : chaque torseur a 6 composantes, et le PFS donne 6 équations.</p></div>`)}
+  ${St(.6,`<div class="key warn"><p><b>Les cotes du dessin</b> (en mm) : le bras est décalé de <b>+250</b> devant l'axe de la colonne (selon x), il sort de <b>900</b> selon y, puis le poignet revient de <b>−250</b> selon x jusqu'à B. A est juste sous B. Donc <b>A = (0 ; 900 ; z<sub>A</sub>)</b>.</p></div>`)}`,
+ q1:`<p class="q">1. Modélisez par un torseur l'action mécanique appliquée à la pince en A.</p>
+  ${St(.3,`<p><b>Étape 1 · La force.</b> La charge pèse 300 N et tire vers le bas, c'est-à-dire selon −z :</p>
+   <p>P = (0 ; 0 ; −300) N</p>`)}
+  ${St(1,`<p><b>Étape 2 · Le moment en A.</b> La force est appliquée en A : la distance de A à A est nulle, donc le moment en A est nul.</p>`)}
+  ${St(1.6,`<p><b>Étape 3 · Le torseur, écrit en A :</b></p>
+   <div class="tzs">${T("T<sub>ext→5</sub>","A",[["0","0"],["0","0"],["−300","0"]])}</div>
+   <p class="note">Colonne de gauche : la force (N). Colonne de droite : le moment (N·m).</p>`)}`,
+ q2:`<p class="q">2. Équilibre de la pince 5.</p>
+  ${St(.3,`<p><b>2.1 · On isole la pince 5</b> (entourée en rouge sur le graphe). Sur le graphe, 5 n'est reliée qu'à 4, par un pivot d'axe z en B.</p>
+   <p><b>Bilan des actions extérieures sur 5 :</b></p>
+   <ul><li>la charge P en A ;</li><li>l'action du poignet 4 sur la pince, en B (pivot d'axe z).</li></ul>
+   <p class="note">Le poids de la pince est négligé.</p>`)}
+  ${St(1.2,`<p><b>2.2 · Les torseurs.</b></p>
+   <p>Pivot d'axe z : la seule rotation libre est autour de z, donc seul N = 0. Tout le reste est bloqué, donc inconnu.</p>
+   <div class="tzs">${T("T<sub>ext→5</sub>","A",[["0","0"],["0","0"],["−300","0"]])}${T("T<sub>4→5</sub>","B",[["B<sub>x</sub>","L<sub>B</sub>"],["B<sub>y</sub>","M<sub>B</sub>"],["B<sub>z</sub>","0"]])}</div>
+   <p><b>Inconnues :</b> B<sub>x</sub>, B<sub>y</sub>, B<sub>z</sub>, L<sub>B</sub>, M<sub>B</sub> (5 inconnues).</p>`)}
+  ${St(2.2,`<p><b>2.3 · BABAR : on écrit tout en B.</b> {T<sub>4→5</sub>} est déjà en B. On déplace {T<sub>ext→5</sub>} de A vers B.</p>
+   <p>Vecteur BA : A est juste sous B, à une distance h : BA = (0 ; 0 ; −h).</p>
+   <p>M<sub>B</sub> = M<sub>A</sub> + BA ∧ P</p>
+   <p>${Vc(Z0,"+",["0","0","−h"],"∧",["0","0","−300"],"=",["0·(−300) − (−h)·0","(−h)·0 − 0·(−300)","0·0 − 0·0"],"=",Z0)}</p>
+   <p class="note">BA est parallèle à P, donc pas de moment. On n'a pas besoin de h.</p>
+   <p><b>PFS en B :</b> {T<sub>ext→5</sub>}<sub>B</sub> + {T<sub>4→5</sub>}<sub>B</sub> = {0}</p><div class="eq">
+   <span>TRS x : 0 + B<sub>x</sub> = 0</span>
+   <span>TRS y : 0 + B<sub>y</sub> = 0</span>
+   <span>TRS z : −300 + B<sub>z</sub> = 0</span>
+   <span>TMS x : 0 + L<sub>B</sub> = 0</span>
+   <span>TMS y : 0 + M<sub>B</sub> = 0</span>
+   <span>TMS z : 0 + 0 = 0 (toujours vrai)</span></div>`)}
+  ${St(3.2,`<p><b>2.4 · On résout.</b></p><div class="eq">
+   <span>B<sub>x</sub> = 0 ; B<sub>y</sub> = 0 ; B<sub>z</sub> = 300 N</span>
+   <span>L<sub>B</sub> = 0 ; M<sub>B</sub> = 0</span></div>
+   <div class="tzs">${T("T<sub>4→5</sub>","B",[["0","0"],["0","0"],["300","0"]])}</div>
+   <div class="key good"><p><b>Tracé :</b> en B, une flèche de 300 N vers le haut, sur la même verticale que P. Le poignet porte simplement la charge.</p></div>
+   <p class="note">Si A n'était pas exactement sous B, BA aurait une partie horizontale, et L<sub>B</sub>, M<sub>B</sub> ne seraient plus nuls.</p>`)}`,
+ q3:`<p class="q">3. Actions du bâti 1 sur la colonne 2, au travers du pivot en O.</p>
+  ${St(.3,`<p><b>3.1 · Le système à isoler : {2, 3, 4, 5}</b>, tout le robot sauf le bâti.</p>
+   <p class="note">Pourquoi ? On cherche l'action de 1 sur 2, donc il faut isoler quelque chose qui la reçoit. Si on prend toute la partie mobile, la seule autre action extérieure est la charge P, qu'on connaît.</p>`)}
+  ${St(1,`<p><b>3.2 · Sur le graphe</b> (zone verte) : le seul lien qui traverse la frontière est 1–2. Bilan des actions extérieures :</p>
+   <ul><li>la charge P en A ;</li><li>l'action du bâti 1 sur la colonne 2, en O (pivot d'axe z).</li></ul>
+   <p class="note">Les glissières 2–3 et 3–4 et le pivot 4–5 sont <b>à l'intérieur</b> : on ne les compte pas.</p>`)}
+  ${St(1.8,`<p><b>3.3 · Les torseurs.</b> Pivot d'axe z en O : N<sub>O</sub> = 0, le reste inconnu.</p>
+   <div class="tzs">${T("T<sub>ext→5</sub>","A",[["0","0"],["0","0"],["−300","0"]])}${T("T<sub>1→2</sub>","O",[["X<sub>O</sub>","L<sub>O</sub>"],["Y<sub>O</sub>","M<sub>O</sub>"],["Z<sub>O</sub>","0"]])}</div>
+   <p><b>Inconnues :</b> X<sub>O</sub>, Y<sub>O</sub>, Z<sub>O</sub>, L<sub>O</sub>, M<sub>O</sub> (5 inconnues).</p>`)}
+  ${St(2.6,`<p><b>3.4 · BABAR : on écrit tout en O.</b> {T<sub>1→2</sub>} est déjà en O. On déplace {T<sub>ext→5</sub>} de A vers O.</p>
+   <p>Vecteur OA, en marchant de O à A (en mètres) :</p>
+   <ul><li>selon x : +0,25 (vers le bras), puis −0,25 (le poignet revient) = <b>0</b> ;</li>
+   <li>selon y : <b>0,9</b> ;</li>
+   <li>selon z : z<sub>A</sub> (hauteur de A, pas besoin de la valeur).</li></ul>
+   <p>M<sub>O</sub> = M<sub>A</sub> + OA ∧ P</p>
+   <p>${Vc(Z0,"+",["0","0,9","z<sub>A</sub>"],"∧",["0","0","−300"],"=",["0,9·(−300) − z<sub>A</sub>·0","z<sub>A</sub>·0 − 0·(−300)","0·0 − 0,9·0"],"=",["−270","0","0"])}</p>
+   <p class="note">z<sub>A</sub> disparaît : il est parallèle à P. C'est pour ça que la hauteur de l'épaule ne change rien (essaie le curseur).</p>
+   <p><b>PFS en O :</b> {T<sub>ext→5</sub>}<sub>O</sub> + {T<sub>1→2</sub>}<sub>O</sub> = {0}</p><div class="eq">
+   <span>TRS x : 0 + X<sub>O</sub> = 0</span>
+   <span>TRS y : 0 + Y<sub>O</sub> = 0</span>
+   <span>TRS z : −300 + Z<sub>O</sub> = 0</span>
+   <span>TMS x : −270 + L<sub>O</sub> = 0</span>
+   <span>TMS y : 0 + M<sub>O</sub> = 0</span>
+   <span>TMS z : 0 + 0 = 0 (toujours vrai)</span></div>`)}
+  ${St(3.6,`<p><b>3.5 · On résout.</b></p><div class="eq">
+   <span>X<sub>O</sub> = 0 ; Y<sub>O</sub> = 0 ; Z<sub>O</sub> = 300 N</span>
+   <span>L<sub>O</sub> = 270 N·m ; M<sub>O</sub> = 0</span></div>
+   <div class="tzs">${T("T<sub>1→2</sub>","O",[["0","270"],["0","0"],["300","0"]])}</div>
+   <div class="key good"><p><b>Tracé :</b> en O, une flèche de 300 N vers le haut (le bâti porte la charge) et un moment de 270 N·m autour de x. La charge, à 0,9 m de la colonne, veut faire basculer le robot vers l'avant ; le bâti l'en empêche.</p></div>
+   <p class="note">270 = 300 × 0,9 : la force fois le bras de levier. Sors le bras plus loin avec le curseur : le moment grandit.</p>`)}`,
+};
+
+function setScene(s){
+  scene=s; t0=performance.now();
+  document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s));
+  $("panel").innerHTML=PANEL[s];
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(render);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
+$("replay").addEventListener("click",()=>setScene(scene));
+const kick=()=>{t0=Math.min(t0,performance.now()-10000); if(!raf) raf=requestAnimationFrame(render)};
+$("ext").addEventListener("input",e=>{yB=+e.target.value;$("extOut").textContent=yB+" mm";kick()});
+$("hgt").addEventListener("input",e=>{zC=+e.target.value;$("hgtOut").textContent=zC+" mm";kick()});
+$("reset").addEventListener("click",()=>{yB=900;zC=1000;$("ext").value=900;$("hgt").value=1000;$("extOut").textContent="900 mm";$("hgtOut").textContent="1000 mm";kick()});
+setScene("sys");
+})();
+</script>
