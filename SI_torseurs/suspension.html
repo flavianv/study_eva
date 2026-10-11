@@ -82,6 +82,10 @@ td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-num
 .tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
 .vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
 .vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
+details.why{border-left:4px solid var(--cD)}
+details.why summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+details.why .body{padding:10px 12px 12px;gap:8px}
+details.why ul{padding-left:1.2em}
 /* answers */
 .answers{display:grid;gap:10px}
 details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
@@ -175,6 +179,7 @@ details[open] summary{border-bottom:1px solid var(--line)}
         <li>Un solide qui ne reçoit que <b>deux</b> actions (deux pivots, sans poids) : les deux forces sont opposées et portées par la droite qui joint les deux points. C'est le cas du bras 3 (Q1) et du ressort 9 (Q3).</li>
         <li>Dans un problème plan, un torseur n'a que 3 composantes utiles : X, Y et le moment N sur z. Le PFS donne donc <b>3 équations</b> par solide isolé, pas 6.</li>
         <li>Moment d'une force verticale F·y en un point : seule la distance <b>horizontale</b> compte (h et μ disparaissent). Pour une force horizontale, seule la distance verticale compte.</li>
+        <li>Trois « L » différents : la longueur <b>L = 15 cm</b> (AH = L·x + h·y), le <b>point L</b> (contact roue–route), et en Q3 la longueur du ressort qu'on note <b>ℓ</b> (elle n'est pas donnée, et on n'en a pas besoin).</li>
         <li>Unités : k est en N/m, donc Δx = F/k sort en <b>mètres</b>. 0,09 m = 9 cm.</li>
       </ul></div>
     </details>
@@ -373,7 +378,21 @@ const PANEL={
   ${St(1.2,`<p><b>BABAR : on déplace {T<sub>1→9</sub>} en H.</b> HJ est parallèle à y, de longueur ℓ (longueur du ressort) :</p>
    <p>M<sub>H</sub>(J) = M<sub>J</sub> + HJ ∧ J</p>
    <p>${Vc(["0","0","0"],"+",["0","ℓ","0"],"∧",["J<sub>x</sub>","J<sub>y</sub>","0"],"=",["0","0","0·J<sub>y</sub> − ℓ·J<sub>x</sub>"],"=",["0","0","−ℓ·J<sub>x</sub>"])}</p>
-   <p class="note">Le moment en H de {T<sub>2→9</sub>} est nul : la force est appliquée en H. J<sub>y</sub> ne donne pas de moment, car il est parallèle à HJ.</p>`)}
+   <p class="note">Le moment en H de {T<sub>2→9</sub>} est nul : la force est appliquée en H. J<sub>y</sub> ne donne pas de moment, car il est parallèle à HJ.</p>
+   <details class="why"><summary>Pourquoi M<sub>J</sub> = 0 ?</summary><div class="body">
+    <p>M<sub>J</sub> est le moment de l'action du châssis sur le ressort, écrit en J. Il est nul pour deux raisons :</p>
+    <ul><li><b>Problème plan</b> : la seule rotation possible est autour de z, donc le moment n'a qu'une composante N sur z (celles sur x et y sont nulles).</li>
+    <li><b>Pivot d'axe z</b> : la rotation autour de z est libre, donc le pivot ne transmet aucun moment : N = 0 (mouvement libre ⇔ 0). Comme une charnière de porte : elle tient la porte, mais ne l'empêche pas de tourner.</li></ul>
+    <p>Pareil en A, B, C, D et H : tous les torseurs de liaison ont une colonne moment pleine de zéros <b>à leur propre point</b>.</p></div></details>
+   <details class="why"><summary>Pourquoi ℓ n'apparaît pas dans le torseur en J ?</summary><div class="body">
+    <p>Un moment, c'est une force multipliée par une distance : la distance entre le point où on écrit le moment et le point où la force s'applique.</p>
+    <ul><li><b>En J</b> : le châssis pousse le ressort <b>en J</b>. Distance de J à J = 0, donc moment = 0. Pas de ℓ.</li>
+    <li><b>En H</b> : la force (toujours appliquée en J) est maintenant à une distance ℓ. C'est le terme HJ ∧ J de BABAR qui ajoute ce moment : −ℓ·J<sub>x</sub>.</li></ul>
+    <p>Comme une clé plate : pousser sur l'écrou lui-même ne le fait pas tourner (distance 0) ; pousser au bout de la clé, à ℓ de l'écrou, le fait tourner. Le moment dépend du point où on l'écrit.</p></div></details>
+   <details class="why"><summary>D'où vient ℓ ? Ce n'est pas le L de l'énoncé</summary><div class="body">
+    <p>ℓ (l minuscule) est la longueur du ressort, de H à J. L'énoncé ne la donne pas : il dit seulement que HJ est parallèle à y. On lui donne donc un nom pour pouvoir écrire HJ = (0 ; ℓ ; 0).</p>
+    <p>On n'a jamais besoin de sa valeur : l'équation finale est −ℓ·J<sub>x</sub> = 0, et il suffit que ℓ ne soit pas nul (un ressort a une longueur).</p>
+    <p><b>Attention</b>, ne pas confondre avec le <b>L majuscule</b> de l'énoncé, qui désigne deux autres choses : la longueur L = 15 cm (AH = L·x + h·y) et le point L, contact entre la roue et la route.</p></div></details>`)}
   ${St(2.4,`<p><b>PFS en H :</b></p><div class="eq">
    <span>TRS x : H<sub>x</sub> + J<sub>x</sub> = 0</span>
    <span>TRS y : H<sub>y</sub> + J<sub>y</sub> = 0</span>
