@@ -9,6 +9,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 | Suspension automobile (car suspension) | `docs/suspension.jpeg` | [suspension.html](suspension.html) (interactive, animated) |
 | Robot 6 axes (6-axis robot) | `docs/robot.jpeg` | [robot.html](robot.html) (interactive, animated) |
 | Pédale de frein (brake pedal, practice exercise) | — | [pedale_frein.html](pedale_frein.html) (statement, hints, hidden corrections) |
+| Console portante de bateau (boat crane) | `docs/console.jpeg` | [console_bateau.html](console_bateau.html) (interactive, animated) |
 
 ## Key ideas
 
