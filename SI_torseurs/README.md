@@ -11,6 +11,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 | Pédale de frein (brake pedal, practice exercise) | — | [pedale_frein.html](pedale_frein.html) (statement, hints, hidden corrections) |
 | Console portante de bateau (boat crane) | `docs/console.jpeg` | [console_bateau.html](console_bateau.html) (interactive, animated) |
 | Portail battant motorisé (gate, practice exercise) | — | [portail.html](portail.html) (statement, hints, hidden corrections) |
+| Bouche de climatisation (air-vent damper, TD 22) | `docs/clim.jpeg` | [clim.html](clim.html) (interactive, animated) |
 
 ## Key ideas
 

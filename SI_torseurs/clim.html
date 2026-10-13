@@ -1,0 +1,361 @@
+<title>Bouche de climatisation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing (sticky on wide screens) + scene buttons and explanation panel; each question replays its own animation on the mechanism */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06; --cS:#8a4fc4;
+  --tD:rgba(224,162,27,.30); --f:#c2185b; --ok:#2f9a55; --bad:#d6453d;
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px;margin:0}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.top>*{min-width:0}
+.stick{position:sticky;top:12px}
+@media (max-width:820px){.top{grid-template-columns:1fr}.stick{position:static}}
+svg#dwg{display:block;width:100%;max-width:470px;margin:0 auto;height:auto}
+.lbl{font:600 30px var(--f-mono);fill:var(--ink)}
+.num{font:700 26px var(--f-mono);fill:var(--ink)}
+.flab{font:700 30px var(--f-mono);fill:var(--f)}
+.dlab{font:600 24px var(--f-mono);fill:var(--muted)}
+.part{transition:opacity .35s}
+.part.dim{opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent);min-width:0}
+.readout{font:600 .9rem var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gauge{display:grid;gap:4px}
+.gauge .bar{position:relative;height:14px;border-radius:7px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:visible}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--ok);transition:background .2s}
+.gauge .fill.over{background:var(--bad)}
+.gauge .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.gauge .txt{display:flex;justify-content:space-between;font:600 .85rem var(--f-mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.gauge .txt b{color:var(--ink)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+#panel{display:grid;gap:10px}
+#panel p,#panel ol,#panel ul{margin:0;max-width:75ch}
+#panel ol,#panel ul{padding-left:1.3em}
+#panel li{margin:4px 0}
+.q{font-weight:600;border-left:4px solid var(--accent);padding:2px 0 2px 10px}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.key{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px}
+.key.warn{border-left-color:var(--cD)}
+.key.good{border-left-color:var(--ok)}
+.key.bad{border-left-color:var(--bad)}
+.eq{font:600 .95rem var(--f-mono);display:grid;gap:4px;padding:8px 12px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px;overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted)}
+.f{color:var(--f);font-weight:700}
+sub{font-size:.72em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+/* torseur */
+.tzs{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
+.tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+.vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
+.vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
+details.why{border-left:4px solid var(--cD)}
+details.why summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+details.why .body{padding:10px 12px 12px;gap:8px}
+details.why ul{padding-left:1.2em}
+/* answers */
+.answers{display:grid;gap:10px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;padding:14px 16px;font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px}
+.body p,.body ul{margin:0;max-width:75ch}
+.body img{max-width:100%;height:auto;border-radius:4px;display:block}
+@media (max-width:640px){
+  body{padding:16px 16px 48px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  input[type=range]{height:36px}
+  h1{font-size:1.6rem}
+}
+</style>
+<style>
+/* air-vent damper: 3D drawing in the sheet's perspective, step-by-step corrections */
+#dwg .lbl{font:600 17px var(--f-mono);fill:var(--ink)}
+#dwg .num{font:700 15px var(--f-mono);fill:var(--ink)}
+#dwg .flab{font:700 16px var(--f-mono);fill:var(--f)}
+#dwg .dlab{font:600 13px var(--f-mono);fill:var(--muted)}
+#dwg .free{font:600 13px var(--f-body);fill:var(--ok)}
+.live{font:600 .9rem var(--f-mono);display:grid;gap:2px}
+.live b{color:var(--f)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD 22 · Statique · PFS dans l'espace</div>
+    <h1>Bouche de climatisation</h1>
+    <p>Le clapet 1 tourne autour de l'axe (O, y) : une rotule en A et une linéaire annulaire en O le tiennent au mur. L'air le pousse, et un vérin (tige 2, corps 3) le retient. On cherche la pression dans le vérin. Choisis une question : l'animation montre sur le clapet ce que dit le calcul.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet stick">
+      <svg id="dwg" viewBox="-170 -150 740 560" role="img" aria-label="Clapet en perspective : mur 0, clapet 1, tige 2, corps de vérin 3">
+        <defs>
+          <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1.2"/></pattern>
+        </defs>
+        <g id="scene"></g>
+        <g id="dims"></g>
+        <g id="forces"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--ink)"></i>0 mur</span>
+        <span><i style="background:var(--cB)"></i>1 clapet</span>
+        <span><i style="background:var(--cC)"></i>2 tige</span>
+        <span><i style="background:var(--cA)"></i>3 corps du vérin</span>
+        <span><i style="background:var(--f)"></i>efforts</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Étape">
+          <span>Étape</span>
+          <button data-s="sys" aria-pressed="true">Système</button>
+          <button data-s="q1">Q1</button>
+          <button data-s="q2">Q2</button>
+          <button data-s="q3">Q3</button>
+          <button data-s="q4">Q4</button>
+          <button data-s="q5">Q5</button>
+        </div>
+        <label class="crank" for="air">
+          <span class="group"><span>Poussée de l'air</span></span>
+          <input id="air" type="range" min="0" max="200" step="5" value="150">
+          <span class="readout" id="airOut">150 N</span>
+        </label>
+        <div class="gauge" aria-live="polite">
+          <div class="txt"><span>Pression dans le vérin : <b id="pOut"></b></span><span>p·S = <b id="fOut"></b></span></div>
+          <div class="bar"><div class="fill" id="pFill"></div><div class="lim" style="left:66.7%" title="maximum 2 bar"></div></div>
+          <div class="txt"><span>0</span><span>maximum 2 bar</span><span>3 bar</span></div>
+        </div>
+        <div class="group"><button id="replay">↻ Rejouer l'animation</button></div>
+      </div>
+      <div class="sheet" id="panel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <details>
+      <summary>La feuille d'exercice</summary>
+      <div class="body"><img src="img/clim.jpeg" alt="Énoncé : bouche de climatisation, questions Q1 à Q5" loading="lazy"></div>
+    </details>
+    <details>
+      <summary>Pièges fréquents</summary>
+      <div class="body"><ul>
+        <li><b>Linéaire annulaire d'axe (O, y) :</b> cette fois l'axe est y, pas z. La translation selon y est libre, donc il n'y a <b>pas de O<sub>y</sub></b> : les inconnues sont O<sub>x</sub> et O<sub>z</sub>.</li>
+        <li><b>Le vérin {2+3} :</b> deux rotules, et rien d'autre (poids négligé). C'est une pièce à deux actions : la force est portée par la droite BD, c'est-à-dire par x<sub>2</sub>. Le PFS en D le démontre.</li>
+        <li><b>x<sub>2</sub> n'est pas x :</b> x<sub>2</sub> = (e·x + d·z) / √(e² + d²). Pour les moments, il faut projeter dans la base 0.</li>
+        <li><b>Q4, la bonne équation :</b> le moment autour de l'axe de rotation (O, y). A est sur cet axe, O aussi : ni la rotule ni la linéaire annulaire n'y apparaissent. Le poids non plus.</li>
+        <li><b>Unités :</b> les longueurs peuvent rester en cm (elles se simplifient), mais S doit être en m² : 20 cm² = 20 × 10⁻⁴ m².</li>
+      </ul></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(()=>{
+// ---------- data (cm, N) ----------
+const a=50,h=50,l=40,c=15,d=20,e=30,S_m2=20e-4,PMAX=2;
+const Lb=Math.hypot(e,d), K2=l*Lb/(d*e);     // p·S = K2 · F_air
+let Fa=150, scene="sys", t0=performance.now(), raf=0;
+const $=id=>document.getElementById(id);
+const fmt=(x,n=0)=>x.toLocaleString("fr-FR",{minimumFractionDigits:n,maximumFractionDigits:n});
+
+// ---------- projection as on the sheet: x to the left, y to the lower right, z up ----------
+const K=3.1;
+const pr=([x,y,z])=>[(-.95*x+.9*y)*K,(.3*x+.38*y-z)*K];
+const XY=p=>{const q=pr(p);return q[0].toFixed(1)+","+q[1].toFixed(1)};
+const seg=(p,q,col,w=2,extra="")=>{const A=pr(p),B=pr(q);return `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`};
+const pl=(pts,col,w=2,fill="none",fo=1)=>`<polygon points="${pts.map(XY).join(" ")}" fill="${fill}" fill-opacity="${fo}" stroke="${col}" stroke-width="${w}" stroke-linejoin="round"/>`;
+const txt=(p,s,cls="lbl",anchor="middle",dx=0,dy=0)=>{const A=pr(p);return `<text class="${cls}" x="${A[0]+dx}" y="${A[1]+dy}" text-anchor="${anchor}">${s}</text>`};
+const tag=(p,n,col)=>{const A=pr(p);return `<circle cx="${A[0]}" cy="${A[1]}" r="11" fill="var(--sheet)" stroke="${col}" stroke-width="2.5"/><text class="num" x="${A[0]}" y="${A[1]+5}" text-anchor="middle">${n}</text>`};
+const dot=(p,r=4)=>{const A=pr(p);return `<circle cx="${A[0]}" cy="${A[1]}" r="${r}" fill="var(--ink)"/>`};
+const ball=p=>{const A=pr(p);return `<circle cx="${A[0]}" cy="${A[1]}" r="9" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/><circle cx="${A[0]}" cy="${A[1]}" r="4" fill="var(--ink)"/>`};
+const sb=(X,i)=>`${X}<tspan font-size="11" dy="4">${i}</tspan><tspan dy="-4"></tspan>`;
+// wall mount under a joint (a small plate with hatching)
+const mount=p=>{const q=[p[0],p[1],p[2]-9];return seg(p,q,"var(--ink)",2.5)+pl([[q[0]+8,q[1]-8,q[2]],[q[0]+8,q[1]+8,q[2]],[q[0]-8,q[1]+8,q[2]],[q[0]-8,q[1]-8,q[2]]],"var(--ink)",2,"url(#hatch)",.7)};
+const NPC=8;      // 8 N drawn 1 cm long
+function arrow(p,v,lab,headAt,frac,side=[8,4]){
+  if(frac<=0) return "";
+  const vv=v.map(c=>c/NPC*frac), tail=headAt?p.map((c,i)=>c-vv[i]):p, head=headAt?p:p.map((c,i)=>c+vv[i]);
+  const A=pr(tail), B=pr(head), dx=B[0]-A[0], dy=B[1]-A[1], n=Math.hypot(dx,dy); if(n<2) return "";
+  const u=[dx/n,dy/n], w=[-u[1],u[0]], hl=Math.min(13,n*.5), base=[B[0]-u[0]*hl,B[1]-u[1]*hl], far=headAt?A:B;
+  return `<line x1="${A[0]}" y1="${A[1]}" x2="${base[0]}" y2="${base[1]}" stroke="var(--f)" stroke-width="3.5"/>`+
+    `<polygon points="${B[0]},${B[1]} ${base[0]+w[0]*6},${base[1]+w[1]*6} ${base[0]-w[0]*6},${base[1]-w[1]*6}" fill="var(--f)"/>`+
+    (frac>.6?`<text class="flab" x="${far[0]+side[0]}" y="${far[1]+side[1]}" opacity="${Math.min(1,(frac-.6)/.3)}">${lab}</text>`:"");
+}
+
+const SC={sys:{iso:null},q1:{iso:["0","1"]},q2:{iso:["0","1"]},q3:{iso:["2","3"]},q4:{iso:["1"]},q5:{iso:["2","3"]}};
+
+function render(now){
+  const sc=SC[scene], el=(now-t0)/1000, ease=f=>1-Math.pow(1-Math.min(1,Math.max(0,f)),3), grow=i=>ease((el-.4-i*.55)/.6);
+  const O=[0,0,0], A=[0,2*a,0], Cc=[0,2*a+c,0], B=[0,2*a+c,d], D=[-e,2*a+c,0], G=[0,a,-h], M=[0,a,-l];
+  const op=id=>sc.iso&&!sc.iso.includes(id)?.15:1, g=(id,html)=>`<g style="opacity:${op(id)};transition:opacity .35s">${html}</g>`;
+  let s="";
+  // wall 0: mounts under O, A and D, and the air duct (dotted)
+  s+=g("0",mount(O)+mount(A)+mount(D)+tag([12,-6,-12],0,"var(--ink)")+
+    `<path d="M${XY([0,25,30])} C ${XY([-10,60,45])} ${XY([-25,95,40])} ${XY([-40,130,30])}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 4"/>`+
+    `<path d="M${XY([0,8,-20])} C ${XY([-10,50,-10])} ${XY([-30,95,-15])} ${XY([-50,135,-25])}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 4"/>`+
+    txt([-15,70,48],"arrivée d'air","dlab"));
+  // damper 1: shaft along y, arm up to B, plate around G
+  const c1="var(--cB)";
+  s+=g("1",seg(O,Cc,c1,5)+seg(Cc,B,c1,5)+seg([0,8,0],[0,8,-2*h+10],c1,4)+
+    pl([[0,8,-10],[0,2*a-8,-10],[0,2*a-8,-2*h+10],[0,8,-2*h+10]],c1,3.5,c1,.1)+tag([0,10,-2*h+2],1,c1));
+  // cylinder: rod 2 from B, body 3 to D
+  const u=[-e/Lb,0,-d/Lb], P1=B.map((v,i)=>v+u[i]*12), P2=B.map((v,i)=>v+u[i]*Lb*.95);
+  s+=g("2",seg(B,P1.map((v,i)=>v+u[i]*4),"var(--cC)",4)+tag(B.map((v,i)=>v+u[i]*6+[0,0,8][i]),2,"var(--cC)"));
+  s+=g("3",seg(P1,P2,"var(--cA)",11)+tag(P1.map((v,i)=>v+u[i]*16+[0,0,10][i]),3,"var(--cA)"));
+  // joints
+  const o=pr(O);
+  s+=ball(A)+ball(B)+ball(D)+`<circle cx="${o[0]}" cy="${o[1]}" r="9" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`+
+    seg([0,-7,4],[0,7,4],"var(--ink)",2.5)+seg([0,-7,-4],[0,7,-4],"var(--ink)",2.5);
+  // axes and points
+  s+=seg(O,[22,0,0],"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([26,0,0],"x","dlab")+seg(Cc,[0,2*a+c+28,0],"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,2*a+c+33,0],"y","dlab")+
+     seg(O,[0,0,32],"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,0,36],"z","dlab")+
+     txt(O,"O","lbl","start",8,-12)+txt(A,"A","lbl","start",10,-10)+txt(Cc,"C","lbl","start",8,16)+txt(B,"B","lbl","end",-10,-8)+txt(D,"D","lbl","start",10,-6)+
+     dot(G)+txt(G,"G","lbl","end",-8,4)+dot(M)+txt(M,"M","lbl","end",-8,4);
+  $("scene").innerHTML=s;
+
+  // forces
+  const pS=K2*Fa, x2=[e/Lb,0,d/Lb];
+  let f="", dm="";
+  if(scene==="sys") f+=arrow(M,[Fa,0,0],sb("F","air"),false,1,[-8,-8]);
+  if(scene==="q1"){
+    f+=arrow(A,[80,0,0],sb("A","x"),false,grow(0),[-6,-8])+arrow(A,[0,80,0],sb("A","y"),false,grow(1),[6,14])+arrow(A,[0,0,80],sb("A","z"),false,grow(2),[8,0]);
+    if(el>2.3) f+=txt([0,2*a,-22],"3 rotations libres ⇒ aucun moment","free","middle",0,0);
+  }
+  if(scene==="q2"){
+    f+=arrow(O,[80,0,0],sb("O","x"),false,grow(0),[-6,-8])+arrow(O,[0,0,80],sb("O","z"),false,grow(1),[8,0]);
+    if(el>1.6){const p=pr([0,14,6]),q=pr([0,40,6]);f+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="var(--ok)" stroke-width="3.5"/><polygon points="${q[0]+11},${q[1]+4} ${q[0]-2},${q[1]-6} ${q[0]-4},${q[1]+7}" fill="var(--ok)"/>`+txt([0,40,6],"translation y libre ⇒ pas de O<tspan font-size='10' dy='4'>y</tspan>","free","start",12,-4)}
+  }
+  if(scene==="q3"||scene==="q5"){
+    f+=arrow(B,x2.map(v=>-v*pS),"1→2",true,scene==="q5"?1:grow(0),[-30,-10])+arrow(D,x2.map(v=>v*pS),"0→3",true,scene==="q5"?1:grow(1),[8,16]);
+    if(scene==="q3"&&el>1.8) dm+=seg(D,[0,2*a+c,0],"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([-e/2,2*a+c,0],"e","dlab","middle",0,16)+
+      seg([0,2*a+c,0],B,"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,2*a+c,d/2],"d","dlab","start",8,0)+
+      txt(B,"x<tspan font-size='10' dy='4'>2</tspan><tspan dy='-4'> ∥ DB</tspan>","dlab","end",-24,-28);
+  }
+  if(scene==="q4"){
+    f+=arrow(M,[Fa,0,0],sb("F","air"),false,grow(0),[-8,-8])+arrow(B,x2.map(v=>v*pS),sb("F","2→1"),false,grow(1),[-10,-6]);
+    if(el>1.8){
+      // x and z components of the cylinder force at B
+      f+=arrow(B,[pS*e/Lb,0,0],"p·S·e/L",false,ease((el-1.8)/.6),[-6,22]).replace(/var\(--f\)/g,"var(--accent)");
+      dm+=seg([0,0,-6],[0,2*a+c,-6],"var(--ok)",4,'stroke-dasharray="10 6"')+txt([0,2*a+c+10,-14],"axe (O, y)","free","start",0,0)+
+        seg([0,a,0],M,"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,a,-l/2],"l","dlab","start",8,0)+
+        txt([0,2*a+c,d/2],"d","dlab","start",8,0);
+    }
+  }
+  $("forces").innerHTML=f; $("dims").innerHTML=dm;
+  const p=pS/S_m2/1e5;
+  $("fOut").textContent=fmt(pS,1)+" N"; $("pOut").textContent=fmt(p,2)+" bar";
+  const fill=$("pFill"); fill.style.width=Math.min(100,p/3*100)+"%"; fill.classList.toggle("over",p>PMAX);
+  document.querySelectorAll("#panel .step").forEach(st=>st.classList.toggle("on",el>=+st.dataset.t));
+  raf=el<9?requestAnimationFrame(render):0;
+}
+
+// ---------- panel ----------
+const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const Vc=(...cols)=>`<span class="vx">${cols.map(c=>typeof c==="string"?`<span>${c}</span>`:`<span class="col">${c.map(x=>`<span>${x}</span>`).join("")}</span>`).join("")}</span>`;
+const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+const tb=rows=>`<div class="tablewrap"><table><thead><tr><th>Mouvement</th><th>Libre ?</th><th>Dans le torseur</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+const pS0=K2*150, p0=pS0/S_m2;
+const PANEL={
+ sys:`<h2>Le système</h2>
+  <ul><li><b>0</b> le mur (fixe) ;</li>
+  <li><b>1</b> le clapet : un axe selon y, une plaque qui ferme la bouche, et un bras qui monte jusqu'à B ;</li>
+  <li><b>2</b> la tige du vérin, <b>3</b> le corps du vérin.</li></ul>
+  ${St(.3,`<p>Le clapet tient au mur par une <b>rotule en A</b> et une <b>linéaire annulaire d'axe (O, y)</b> : il tourne autour de l'axe (O, y). L'air le pousse en M selon x ; le vérin le retient en B.</p>`)}
+  ${St(.6,`<div class="key"><p><b>Points :</b> O (0 ; 0 ; 0), A (0 ; 2a ; 0), G (0 ; a ; −h), M (0 ; a ; −l), B (0 ; 2a+c ; d), D (−e ; 2a+c ; 0).<br><b>Données :</b> a = 50 cm, h = 50 cm, l = 40 cm, c = 15 cm, d = 20 cm, e = 30 cm, S = 20 cm², F<sub>air max</sub> = 150 N.<br><b>Exigence 1.4.1 :</b> pression maximale du vérin inférieure à 2 bar.</p></div>`)}
+  ${St(.9,`<p class="note">Notation comme dans le cahier : les inconnues portent le nom du point (A<sub>x</sub>, O<sub>z</sub>, B<sub>x</sub>…).</p>`)}`,
+ q1:`<p class="q">Q1. Forme du torseur transmissible de la liaison 0 sur 1 en A.</p>
+  ${St(.2,`<p><b>Étape 1 · Quelle liaison ?</b> Une rotule de centre A.</p>`)}
+  ${St(.8,`${tb([["Translation x","non","A<sub>x</sub>"],["Translation y","non","A<sub>y</sub>"],["Translation z","non","A<sub>z</sub>"],["Rotation x","oui","0"],["Rotation y","oui","0"],["Rotation z","oui","0"]])}`)}
+  ${St(2.4,`<div class="tzs">${T("T<sub>0→1</sub>","A",[["A<sub>x</sub>","0"],["A<sub>y</sub>","0"],["A<sub>z</sub>","0"]])}</div><p class="note">3 inconnues, aucun moment en A.</p>`)}`,
+ q2:`<p class="q">Q2. Forme du torseur transmissible de la liaison 0 sur 1 en O.</p>
+  ${St(.2,`<p><b>Étape 1 · Quelle liaison ?</b> Une linéaire annulaire de centre O et d'<b>axe (O, y)</b> : une boule qui tourne et glisse dans un tube horizontal, selon y.</p>`)}
+  ${St(.8,`${tb([["Translation x","non","O<sub>x</sub>"],["Translation y","<b>oui</b> (le long de l'axe)","0"],["Translation z","non","O<sub>z</sub>"],["Rotation x","oui","0"],["Rotation y","oui","0"],["Rotation z","oui","0"]])}`)}
+  ${St(2.4,`<div class="tzs">${T("T<sub>0→1</sub>","O",[["O<sub>x</sub>","0"],["0","0"],["O<sub>z</sub>","0"]])}</div>
+   <div class="key warn"><p>Attention : l'axe est <b>y</b> ici. C'est O<sub>y</sub> qui manque, pas O<sub>z</sub>.</p></div>`)}`,
+ q3:`<p class="q">Q3. Isoler {2+3}, puis donner les torseurs de 1 sur 2 en B et de 0 sur 3 en D, dans la base 2 et dans la base 0.</p>
+  ${St(.2,`<p><b>Étape 1 · Bilan sur {2+3}.</b> Deux actions extérieures seulement : le clapet 1 sur la tige 2 en B (rotule), le mur 0 sur le corps 3 en D (rotule). La liaison entre 2 et 3 et la pression sont intérieures. Poids du vérin négligé.</p>
+   <div class="tzs">${T("T<sub>1→2</sub>","B",[["B<sub>x</sub>","0"],["B<sub>y</sub>","0"],["B<sub>z</sub>","0"]])}${T("T<sub>0→3</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["D<sub>z</sub>","0"]])}</div>`)}
+  ${St(1.4,`<p><b>Étape 2 · BABAR : tout en D.</b> DB = B − D = (0 − (−e) ; (2a+c) − (2a+c) ; d − 0) = (e ; 0 ; d).</p>
+   <p>${Vc(["e","0","d"],"∧",["B<sub>x</sub>","B<sub>y</sub>","B<sub>z</sub>"],"=",["0·B<sub>z</sub> − d·B<sub>y</sub>","d·B<sub>x</sub> − e·B<sub>z</sub>","e·B<sub>y</sub> − 0·B<sub>x</sub>"],"=",["−d·B<sub>y</sub>","d·B<sub>x</sub> − e·B<sub>z</sub>","e·B<sub>y</sub>"])}</p>`)}
+  ${St(2.2,`<p><b>Étape 3 · PFS en D :</b></p><div class="eq">
+   <span>TRS : B<sub>x</sub> + D<sub>x</sub> = 0 ; B<sub>y</sub> + D<sub>y</sub> = 0 ; B<sub>z</sub> + D<sub>z</sub> = 0</span>
+   <span>TMS x : −d·B<sub>y</sub> = 0 ⇒ B<sub>y</sub> = 0</span>
+   <span>TMS y : d·B<sub>x</sub> − e·B<sub>z</sub> = 0 ⇒ B<sub>z</sub> = (d/e)·B<sub>x</sub></span>
+   <span>TMS z : e·B<sub>y</sub> = 0 (déjà vu)</span></div>
+   <p>Donc la force en B vaut (B<sub>x</sub> ; 0 ; (d/e)·B<sub>x</sub>) = (B<sub>x</sub>/e)·(e ; 0 ; d) : elle est <b>parallèle à DB</b>, c'est-à-dire à x<sub>2</sub>.</p>`)}
+  ${St(3.2,`<p><b>Étape 4 · Les torseurs.</b> On pose x<sub>2</sub> = (e·x + d·z) / L, avec L = √(e² + d²), et X<sub>12</sub> la force de 1 sur 2 selon x<sub>2</sub>.</p>
+   <p>Dans la base 2 :</p><div class="tzs">${T("T<sub>1→2</sub>","B",[["X<sub>12</sub>","0"],["0","0"],["0","0"]])}${T("T<sub>0→3</sub>","D",[["−X<sub>12</sub>","0"],["0","0"],["0","0"]])}</div>
+   <p>Dans la base 0 :</p><div class="tzs">${T("T<sub>1→2</sub>","B",[["X<sub>12</sub>·e/L","0"],["0","0"],["X<sub>12</sub>·d/L","0"]])}${T("T<sub>0→3</sub>","D",[["−X<sub>12</sub>·e/L","0"],["0","0"],["−X<sub>12</sub>·d/L","0"]])}</div>
+   <div class="key good"><p>{2+3} n'a que deux actions : elles sont opposées et portées par BD. Lien avec l'énoncé : F<sub>2→1</sub> = −F<sub>1→2</sub> = p·S·x<sub>2</sub>, donc X<sub>12</sub> = −p·S (le vérin est comprimé).</p></div>`)}`,
+ q4:`<p class="q">Q4. À l'aide d'une seule équation scalaire du PFS, trouver la relation entre p et F<sub>air→1</sub>.</p>
+  ${St(.2,`<p><b>Étape 1 · On isole le clapet 1.</b> Actions : poids en G, air en M, mur en A (rotule), mur en O (linéaire annulaire), vérin en B : F<sub>2→1</sub> = p·S·x<sub>2</sub> = (p·S·e/L ; 0 ; p·S·d/L).</p>`)}
+  ${St(1.2,`<p><b>Étape 2 · Quelle équation ?</b> Le clapet tourne autour de (O, y) : on prend le <b>moment autour de y, en O</b>.</p><ul>
+   <li>O : linéaire annulaire, aucun moment en O.</li>
+   <li>A : OA = (0 ; 2a ; 0) : ${Vc(["0","2a","0"],"∧",["A<sub>x</sub>","A<sub>y</sub>","A<sub>z</sub>"],"=",["2a·A<sub>z</sub> − 0·A<sub>y</sub>","0·A<sub>x</sub> − 0·A<sub>z</sub>","0·A<sub>y</sub> − 2a·A<sub>x</sub>"],"=",["2a·A<sub>z</sub>","<b>0</b>","−2a·A<sub>x</sub>"])}</li>
+   <li>Poids : OG = (0 ; a ; −h) : ${Vc(["0","a","−h"],"∧",["0","0","−m·g"],"=",["a·(−m·g) − (−h)·0","(−h)·0 − 0·(−m·g)","0·0 − a·0"],"=",["−a·m·g","<b>0</b>","0"])}</li></ul>
+   <p class="note">A et O sont sur l'axe, et le poids est vertical dans le plan de l'axe : aucun ne compte autour de y. Il ne reste que l'air et le vérin.</p>`)}
+  ${St(2.6,`<p><b>Étape 3 · BABAR en O</b> pour l'air et le vérin.</p>
+   <p>Air : OM = (0 ; a ; −l) : ${Vc(["0","a","−l"],"∧",["F<sub>air</sub>","0","0"],"=",["a·0 − (−l)·0","(−l)·F<sub>air</sub> − 0·0","0·0 − a·F<sub>air</sub>"],"=",["0","−l·F<sub>air</sub>","−a·F<sub>air</sub>"])}</p>
+   <p>Vérin : OB = (0 ; 2a+c ; d) : ${Vc(["0","2a+c","d"],"∧",["p·S·e/L","0","p·S·d/L"],"=",["(2a+c)·p·S·d/L − d·0","d·p·S·e/L − 0·p·S·d/L","0·0 − (2a+c)·p·S·e/L"],"=",["…","d·e·p·S/L","…"])}</p>`)}
+  ${St(3.6,`<p><b>Étape 4 · TMS y en O :</b></p><div class="eq">
+   <span>−l·F<sub>air</sub> + (d·e / L)·p·S = 0</span>
+   <span>⇒ <b>p = l·L·F<sub>air</sub> / (d·e·S)</b>, avec L = √(e² + d²)</span></div>
+   <div class="key"><p>Seule la composante <b>selon x</b> du vérin (p·S·e/L, en bleu) fait tourner le clapet, avec le bras de levier d. L'air pousse avec le bras de levier l.</p></div>`)}`,
+ q5:`<p class="q">Q5. Application numérique et conclusion vis-à-vis du cahier des charges.</p>
+  ${St(.2,`<p><b>Étape 1 · L :</b> L = √(30² + 20²) = √1 300 ≈ ${fmt(Lb,2)} cm.</p>`)}
+  ${St(.9,`<p><b>Étape 2 · p·S :</b> les longueurs se simplifient, on peut rester en cm.</p><div class="eq">
+   <span>p·S = l·L·F<sub>air</sub> / (d·e) = 40 × ${fmt(Lb,2)} × 150 / (20 × 30) ≈ ${fmt(pS0,1)} N</span></div>`)}
+  ${St(1.7,`<p><b>Étape 3 · Pression.</b> S = 20 cm² = 20 × 10⁻⁴ m² :</p><div class="eq">
+   <span>p = ${fmt(pS0,1)} / (20 × 10⁻⁴) ≈ ${fmt(p0,0)} Pa</span>
+   <span>p ≈ ${fmt(p0,0)} / 100 000 ≈ <b>${fmt(p0/1e5,2)} bar</b></span></div>`)}
+  ${St(2.5,`<div class="key good"><p><b>${fmt(p0/1e5,2)} bar &lt; 2 bar : l'exigence 1.4.1 est satisfaite</b>, mais de peu (0,2 bar de marge).</p></div>
+   <p class="note">Pour aller plus loin : 2 bar sont atteints pour F<sub>air</sub> = 2 × 10⁵ × 20 × 10⁻⁴ × (20 × 30) / (40 × ${fmt(Lb,2)}) ≈ ${fmt(2e5*S_m2*d*e/(l*Lb),0)} N. Pousse le curseur pour voir la jauge passer au rouge.</p>`)}`,
+};
+
+function setScene(s){
+  scene=s; t0=performance.now();
+  document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s));
+  $("panel").innerHTML=PANEL[s];
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(render);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
+$("replay").addEventListener("click",()=>setScene(scene));
+$("air").addEventListener("input",ev=>{Fa=+ev.target.value; $("airOut").textContent=Fa+" N"; t0=Math.min(t0,performance.now()-10000); if(!raf) raf=requestAnimationFrame(render)});
+setScene("sys");
+})();
+</script>
