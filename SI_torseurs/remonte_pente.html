@@ -1,0 +1,364 @@
+<title>Remonte-pente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: drawing (sticky on wide screens) + scene buttons and explanation panel; each question replays its own animation on the mechanism */
+:root{
+  --paper:#f6f7f4; --sheet:#ffffff; --ink:#23262b; --muted:#6b7078; --line:#c9ccd0; --accent:#2c5d8a;
+  --cA:#d6453d; --cB:#2f6fd0; --cC:#2f9a55; --cD:#c98a06; --cS:#8a4fc4;
+  --tD:rgba(224,162,27,.30); --f:#c2185b; --ok:#2f9a55; --bad:#d6453d;
+  --f-disp:"Barlow Semi Condensed",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --sheet:#1d2126; --ink:#e4e6e9; --muted:#9aa0a8; --line:#3a4048; --accent:#7fb0e0;
+  --cA:#ec6a61; --cB:#6aa0f0; --cC:#52c27d; --cD:#f0bb44; --cS:#b88cf0; --tD:rgba(240,185,60,.30); --f:#ff6fa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);padding:24px 16px 48px;margin:0}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+header h1{font:700 2rem/1.1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase;text-wrap:balance}
+header .eyebrow{font:600 .8rem var(--f-disp);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header p{margin:6px 0 0;max-width:70ch;color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:14px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.top>*{min-width:0}
+.stick{position:sticky;top:12px}
+@media (max-width:820px){.top{grid-template-columns:1fr}.stick{position:static}}
+svg#dwg{display:block;width:100%;max-width:470px;margin:0 auto;height:auto}
+.lbl{font:600 30px var(--f-mono);fill:var(--ink)}
+.num{font:700 26px var(--f-mono);fill:var(--ink)}
+.flab{font:700 30px var(--f-mono);fill:var(--f)}
+.dlab{font:600 24px var(--f-mono);fill:var(--muted)}
+.part{transition:opacity .35s}
+.part.dim{opacity:.14}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.controls{display:grid;gap:14px}
+.group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.group>span{font:600 .8rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button{font:600 .95rem var(--f-disp);letter-spacing:.04em;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crank{display:flex;align-items:center;gap:12px}
+.crank input{flex:1;accent-color:var(--accent);min-width:0}
+.readout{font:600 .9rem var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gauge{display:grid;gap:4px}
+.gauge .bar{position:relative;height:14px;border-radius:7px;background:color-mix(in srgb,var(--line) 60%,transparent);overflow:visible}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--ok);transition:background .2s}
+.gauge .fill.over{background:var(--bad)}
+.gauge .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.gauge .txt{display:flex;justify-content:space-between;font:600 .85rem var(--f-mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.gauge .txt b{color:var(--ink)}
+h2{font:700 1.15rem var(--f-disp);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+#panel{display:grid;gap:10px}
+#panel p,#panel ol,#panel ul{margin:0;max-width:75ch}
+#panel ol,#panel ul{padding-left:1.3em}
+#panel li{margin:4px 0}
+.q{font-weight:600;border-left:4px solid var(--accent);padding:2px 0 2px 10px}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.key{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:4px;padding:10px 14px}
+.key.warn{border-left-color:var(--cD)}
+.key.good{border-left-color:var(--ok)}
+.key.bad{border-left-color:var(--bad)}
+.eq{font:600 .95rem var(--f-mono);display:grid;gap:4px;padding:8px 12px;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:4px;overflow-x:auto}
+.note{font-size:.88rem;color:var(--muted)}
+.f{color:var(--f);font-weight:700}
+sub{font-size:.72em}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+td.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+/* torseur */
+.tzs{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tz{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.tz .mat{display:grid;grid-template-columns:auto auto;column-gap:1.1em;row-gap:1px;padding:3px 10px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:12px;text-align:right}
+.tz .pt{align-self:flex-end;font-weight:600;color:var(--accent)}
+.vx{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.9rem;flex-wrap:wrap}
+.vx .col{display:grid;gap:1px;padding:2px 8px;border-left:2px solid var(--ink);text-align:right}
+details.why{border-left:4px solid var(--cD)}
+details.why summary{font:600 .95rem var(--f-body);letter-spacing:0;text-transform:none;padding:9px 12px}
+details.why .body{padding:10px 12px 12px;gap:8px}
+details.why ul{padding-left:1.2em}
+/* answers */
+.answers{display:grid;gap:10px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:6px}
+summary{cursor:pointer;padding:14px 16px;font:700 1.05rem var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+details[open] summary{border-bottom:1px solid var(--line)}
+.body{padding:14px 16px 18px;display:grid;gap:10px}
+.body p,.body ul{margin:0;max-width:75ch}
+.body img{max-width:100%;height:auto;border-radius:4px;display:block}
+@media (max-width:640px){
+  body{padding:16px 16px 48px}
+  .sheet{padding:10px}
+  button{min-height:44px}
+  input[type=range]{height:36px}
+  h1{font-size:1.6rem}
+}
+</style>
+<style>
+/* ski-lift gantry: plane statics, the teacher's corrected method, animated */
+#dwg .lbl{font:600 15px var(--f-mono);fill:var(--ink)}
+#dwg .num{font:700 13px var(--f-mono);fill:var(--ink)}
+#dwg .flab{font:700 14px var(--f-mono);fill:var(--f)}
+#dwg .dlab{font:600 12px var(--f-mono);fill:var(--muted)}
+#dwg .state{font:700 13px var(--f-body)}
+.live{font:600 .9rem var(--f-mono);display:grid;gap:2px}
+.live b{color:var(--f)}
+.eqn{display:flex;justify-content:space-between;gap:12px}
+.eqn i{font-style:normal;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TD 22 · Statique · PFS dans le plan</div>
+    <h1>Remonte-pente</h1>
+    <p>Le portique du haut d'un remonte-pente tend le câble principal grâce à un massif de béton suspendu. Deux poulies divisent et renvoient les efforts, puis on cherche si les deux barres du portique sont tendues ou comprimées. Corrigé selon la méthode du prof, équations numérotées comme dans son corrigé.</p>
+  </header>
+
+  <div class="top">
+    <div class="sheet stick">
+      <svg id="dwg" viewBox="-120 -90 520 430" role="img" aria-label="Portique de remonte-pente : sol 0, barres 1 et 2, axe 3, poulies 4 et 7, câbles 5 et 6, massif 8">
+        <defs>
+          <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="currentColor" stroke-width="1.2"/></pattern>
+        </defs>
+        <g id="scene"></g>
+        <g id="dims"></g>
+        <g id="forces"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--cC)"></i>1 barre</span>
+        <span><i style="background:var(--cD)"></i>2 barre</span>
+        <span><i style="background:var(--ink)"></i>3 axe · 5 câble · 8 massif</span>
+        <span><i style="background:var(--cB)"></i>4 poulie</span>
+        <span><i style="background:var(--muted)"></i>6 câble</span>
+        <span><i style="background:var(--cA)"></i>7 poulie</span>
+        <span><i style="background:var(--f)"></i>efforts</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="sheet controls">
+        <div class="group" role="group" aria-label="Question">
+          <span>Étape</span>
+          <button data-s="sys" aria-pressed="true">Système</button>
+          <button data-s="q1">Q1</button><button data-s="q2">Q2</button><button data-s="q3">Q3</button>
+          <button data-s="q4">Q4</button><button data-s="q5">Q5</button><button data-s="q6">Q6</button>
+          <button data-s="q7">Q7</button><button data-s="q8">Q8</button><button data-s="q9">Q9</button>
+          <button data-s="q10">Q10</button><button data-s="q11">Q11</button><button data-s="q12">Q12</button>
+        </div>
+        <label class="crank" for="alpha">
+          <span class="group"><span>Angle α</span></span>
+          <input id="alpha" type="range" min="20" max="45" step="1" value="30">
+          <span class="readout" id="aOut">30°</span>
+        </label>
+        <div class="live" aria-live="polite">
+          <span>Barre 1 : R<sub>B</sub> = <b id="rbOut"></b> → <b id="b1Out"></b></span>
+          <span>Barre 2 : R<sub>C</sub> = <b id="rcOut"></b> → <b id="b2Out"></b></span>
+        </div>
+        <p class="note">Le corrigé est fait pour α = 30°. Bouge α : au-delà d'environ 36°, la barre 1 passe de tendue à comprimée.</p>
+        <div class="group"><button id="replay">↻ Rejouer l'animation</button></div>
+      </div>
+      <div class="sheet" id="panel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="answers">
+    <details>
+      <summary>La feuille d'exercice</summary>
+      <div class="body"><img src="img/remonte_pente.jpeg" alt="Énoncé : étude statique d'un remonte-pente, questions Q1 à Q12" loading="lazy"></div>
+    </details>
+    <details>
+      <summary>Pièges fréquents</summary>
+      <div class="body"><ul>
+        <li><b>Un câble tire toujours</b>, le long du câble, avec sa tension. Il ne pousse jamais.</li>
+        <li><b>Poulie sans frottement :</b> la tension est la même des deux côtés d'un brin qui passe sur la poulie (c'est ce que donnent les équations de moment (2) et (7)).</li>
+        <li><b>Moment d'un brin sur une poulie :</b> le brin est tangent, donc le bras de levier est le rayon (r pour 7, 2r pour 4).</li>
+        <li><b>Glisseur :</b> un torseur dont le moment est nul en un point de sa droite support. Une barre avec deux pivots et sans poids reçoit deux glisseurs opposés, portés par la barre.</li>
+        <li><b>Signe de R :</b> R est compté vers l'intérieur de la barre (de B vers O, de C vers O). R &gt; 0 : le sol pousse, la barre est comprimée. R &lt; 0 : le sol tire, la barre est tendue.</li>
+        <li><b>Q11 :</b> en isolant E, le câble 6 et tous les pivots en O sont intérieurs. Il ne reste que 4 actions : R<sub>B</sub>, R<sub>C</sub>, F et M·g.</li>
+      </ul></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(()=>{
+// ---------- data (drawing units) ----------
+const L=5, r=.4, Dist=4, U=55, FS=1.7;      // FS: 1 × F drawn 1.7 units long
+let al=30, scene="sys", t0=performance.now(), raf=0;
+const $=id=>document.getElementById(id);
+const fmt=(x,n=2)=>x.toLocaleString("fr-FR",{minimumFractionDigits:n,maximumFractionDigits:n});
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]], mul=(p,k)=>[p[0]*k,p[1]*k];
+const P=p=>[p[0]*U,-p[1]*U], XY=p=>{const q=P(p);return q[0].toFixed(1)+","+q[1].toFixed(1)};
+const line=(p,q,col,w=5,extra="")=>`<line x1="${P(p)[0]}" y1="${P(p)[1]}" x2="${P(q)[0]}" y2="${P(q)[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const txt=(p,s,cls="lbl",anchor="middle",dx=0,dy=0)=>`<text class="${cls}" x="${P(p)[0]+dx}" y="${P(p)[1]+dy}" text-anchor="${anchor}">${s}</text>`;
+const tag=(p,n,col="var(--ink)")=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="10" fill="var(--sheet)" stroke="${col}" stroke-width="2"/><text class="num" x="${P(p)[0]}" y="${P(p)[1]+5}" text-anchor="middle">${n}</text>`;
+const pivot=p=>`<circle cx="${P(p)[0]}" cy="${P(p)[1]}" r="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`;
+const sb=(X,i)=>`${X}<tspan font-size="10" dy="4">${i}</tspan><tspan dy="-4"></tspan>`;
+function ground(p){const q=add(p,[0,-.3]);return line(p,q,"var(--ink)",2.5)+line(add(q,[-.35,0]),add(q,[.35,0]),"var(--ink)",2.5)+`<rect x="${P(q)[0]-20}" y="${P(q)[1]}" width="40" height="9" fill="url(#hatch)"/>`+pivot(p)}
+function arc(c,R,a0,a1,col,w){const pts=[];for(let i=0;i<=24;i++){const t=a0+(a1-a0)*i/24;pts.push(add(c,[R*Math.cos(t),R*Math.sin(t)]))}return `<polyline points="${pts.map(XY).join(" ")}" fill="none" stroke="${col}" stroke-width="${w}"/>`}
+function arrow(p,v,lab,headAt,frac,side=null){
+  const vv=mul(v,FS*frac), n=Math.hypot(vv[0],vv[1]); if(n<.05) return "";
+  const tail=headAt?add(p,mul(vv,-1)):p, head=headAt?p:add(p,vv), a=P(tail), b=P(head), dx=b[0]-a[0], dy=b[1]-a[1], m=Math.hypot(dx,dy);
+  const u=[dx/m,dy/m], w=[-u[1],u[0]], hl=Math.min(12,m*.5), base=[b[0]-u[0]*hl,b[1]-u[1]*hl], far=headAt?a:b;
+  const o=side||[u[0]*10+(Math.abs(u[0])>Math.abs(u[1])?0:8),u[1]*10+(Math.abs(u[0])>Math.abs(u[1])?-6:4)];
+  return `<line x1="${a[0]}" y1="${a[1]}" x2="${base[0]}" y2="${base[1]}" stroke="var(--f)" stroke-width="3.5"/><polygon points="${b[0]},${b[1]} ${base[0]+w[0]*6},${base[1]+w[1]*6} ${base[0]-w[0]*6},${base[1]-w[1]*6}" fill="var(--f)"/>`+
+    (frac>.6?`<text class="flab" x="${far[0]+o[0]}" y="${far[1]+o[1]}" text-anchor="${Math.abs(u[0])>Math.abs(u[1])?(u[0]*(headAt?-1:1)>0?"start":"end"):"middle"}" opacity="${Math.min(1,(frac-.6)/.3)}">${lab}</text>`:"");
+}
+
+// ---------- scenes: which parts stay bright ----------
+const SC={sys:null,q1:["0","1","2","3","4"],q2:["6","7"],q3:["6","7"],q4:["4","6"],q5:["8"],q6:["1"],q7:["1"],q8:["2"],q9:["2"],q10:["1","2","3","4","6","7","8"],q11:["1","2","3","4","6","7","8"],q12:["1","2","3","4","6","7","8"]};
+const RB=(s,c)=>s-c*c/s+.5, RC=(s,c)=>c/s;
+
+function render(now){
+  const el=(now-t0)/1000, ease=f=>1-Math.pow(1-Math.min(1,Math.max(0,f)),3), grow=i=>ease((el-.4-i*.5)/.6);
+  const a=al*Math.PI/180, s=Math.sin(a), c=Math.cos(a), x5=[c,-s], n=[s,c], y2=[-s,c];
+  const O=[0,0], B=[0,-L], C=[L*s/c,-L], A=add(mul(x5,Dist),mul(n,r)), up0=mul(n,2*r), up1=add(A,mul(n,r)), lo1=mul(x5,Dist);
+  const left=[-2*r,0], mTop=[-2*r,-2.2], G=[-2*r,-2.85], end5=add(A,mul(x5,2.6));
+  const iso=SC[scene], op=id=>iso&&!iso.includes(id)?.14:1, g=(id,h)=>`<g style="opacity:${op(id)};transition:opacity .35s">${h}</g>`;
+  let h="";
+  h+=g("0",ground(B)+ground(C)+tag([1.2*L*s/c/2+.2,-L-.7],0));
+  h+=g("1",line(B,O,"var(--cC)",6)+tag([.35,-L*.6],1,"var(--cC)"));
+  h+=g("2",line(C,O,"var(--cD)",6)+tag(add(mul(C,.55),[.35,.1]),2,"var(--cD)"));
+  h+=g("5",line(A,end5,"var(--ink)",3)+txt(end5,"5","num","start",6,4));
+  h+=g("6",line(O,lo1,"var(--muted)",2)+line(up0,up1,"var(--muted)",2)+arc(O,2*r,Math.atan2(n[1],n[0]),Math.PI,"var(--muted)",2)+arc(A,r,Math.atan2(-n[1],-n[0]),Math.atan2(-n[1],-n[0])+Math.PI,"var(--muted)",2)+
+    line(left,mTop,"var(--muted)",2)+txt(add(mul(x5,2.2),mul(n,-.25)),"6","dlab")+txt(add(mul(x5,2.2),mul(n,2*r+.25)),"6′","dlab")+txt([-2*r-.3,-1.2],"6″","dlab","end"));
+  h+=g("4",`<circle cx="0" cy="0" r="${2*r*U}" fill="none" stroke="var(--cB)" stroke-width="4"/>`+tag([.95,.8],4,"var(--cB)"));
+  h+=g("7",`<circle cx="${P(A)[0]}" cy="${P(A)[1]}" r="${r*U}" fill="none" stroke="var(--cA)" stroke-width="3.5"/><circle cx="${P(A)[0]}" cy="${P(A)[1]}" r="4" fill="var(--cA)"/>`+tag(add(A,[.25,-.75]),7,"var(--cA)"));
+  h+=g("8",`<rect x="${P(G)[0]-30}" y="${P(G)[1]-28}" width="60" height="56" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>`+txt(G,"G","lbl","middle",0,5)+tag([-2*r-.95,-2.4],8));
+  h+=g("3",`<circle cx="0" cy="0" r="7" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/><circle cx="0" cy="0" r="3" fill="var(--ink)"/>`+tag([-.45,-.55],3));
+  h+=txt(O,"O","lbl","start",10,-12)+txt(B,"B","lbl","end",-10,4)+txt(C,"C","lbl","start",10,4)+txt(A,"A","lbl","end",-6,-12);
+  // axes and the angle α
+  h+=line([-1.9,-4.6],[-1.3,-4.6],"var(--muted)",1.5)+line([-1.9,-4.6],[-1.9,-4],"var(--muted)",1.5)+txt([-1.2,-4.65],"x","dlab","start")+txt([-1.9,-3.9],"y","dlab");
+  h+=line(O,[2.2,0],"var(--muted)",1,'stroke-dasharray="4 3"')+arc(O,1.6,-a,0,"var(--muted)",1.5)+txt([1.75,-.32],"α","dlab","start");
+  h+=line(C,add(C,[0,1.6]),"var(--muted)",1,'stroke-dasharray="4 3"')+arc(C,1.2,Math.PI/2,Math.PI/2+a,"var(--muted)",1.5)+txt(add(C,[-.32,1.35]),"α","dlab");
+  $("scene").innerHTML=h;
+
+  // forces (in units of F)
+  const rb=RB(s,c), rc=RC(s,c);
+  let f="";
+  if(scene==="q2"||scene==="q3"){
+    f+=arrow(A,x5,sb("F","5→7"),false,grow(0))+arrow(lo1,mul(x5,-.5),"T",false,grow(1))+arrow(up1,mul(x5,-.5),"T′",false,grow(2));
+  }
+  if(scene==="q4"){
+    f+=arrow(up0,mul(x5,.5),"T′",false,grow(0))+arrow(left,[0,-.5],"T″",false,grow(1),[-12,8])+arrow(O,[-.5*c,0],sb("X","34"),false,grow(2),[-4,-10])+arrow(O,[0,.5*(1+s)],sb("Y","34"),false,grow(3),[10,0]);
+  }
+  if(scene==="q5") f+=arrow(mTop,[0,.5],"T″",false,grow(0),[10,0])+arrow(G,[0,-.5],"M·g",false,grow(1),[10,10]);
+  if(scene==="q6"||scene==="q7") f+=arrow(B,[0,rb],scene==="q7"?sb("R","B"):sb("Y","01"),false,grow(0),[10,0])+arrow(O,[0,-rb],sb("Y","31"),false,grow(1),[10,0]);
+  if(scene==="q8"||scene==="q9") f+=arrow(C,mul(y2,rc*.6),scene==="q9"?sb("R","C"):sb("F","0→2"),false,grow(0),[10,0])+arrow(O,mul(y2,-rc*.6),sb("F","3→2"),false,grow(1),[10,4]);
+  if(["q10","q11","q12"].includes(scene)){
+    f+=arrow(B,[0,rb],sb("R","B"),false,grow(0),[-12,0])+arrow(C,mul(y2,rc*.6),sb("R","C"),false,grow(1),[10,0])+arrow(A,x5,"F",false,grow(2))+arrow(G,[0,-.5],"M·g",false,grow(3),[10,14]);
+    if(scene==="q12"&&el>2.6){
+      const t1=rb<0?"tendue":"comprimée", t2=rc<0?"tendue":"comprimée";
+      f+=`<text class="state" x="${P([.18,-3.7])[0]}" y="${P([.18,-3.7])[1]}" text-anchor="start" style="fill:${rb<0?"var(--accent)":"var(--bad)"}">1 : ${t1}</text>`+
+         `<text class="state" x="${P(add(mul(C,.45),[.4,0]))[0]}" y="${P(add(mul(C,.45),[.4,0]))[1]}" style="fill:${rc<0?"var(--accent)":"var(--bad)"}">2 : ${t2}</text>`;
+    }
+  }
+  $("forces").innerHTML=f;
+  $("aOut").textContent=al+"°";
+  $("rbOut").textContent=fmt(rb)+"·F"; $("b1Out").textContent=rb<0?"tendue":"comprimée";
+  $("rcOut").textContent=fmt(rc)+"·F"; $("b2Out").textContent=rc<0?"tendue":"comprimée";
+  document.querySelectorAll("#panel .step").forEach(st=>st.classList.toggle("on",el>=+st.dataset.t));
+  raf=el<9?requestAnimationFrame(render):0;
+}
+
+// ---------- panel ----------
+const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+const E=(...rows)=>`<div class="eq">${rows.map(([e,n])=>`<span class="eqn"><span>${e}</span><i>${n||""}</i></span>`).join("")}</div>`;
+const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+const graph=`<svg viewBox="0 0 420 170" style="width:100%;max-width:420px;display:block" role="img" aria-label="Graphe de structure : 0, 1, 2, 3, 4">
+  ${[[60,90,"0"],[180,35,"1"],[180,145,"2"],[290,90,"3"],[385,90,"4"]].map(([x,y,t])=>`<circle cx="${x}" cy="${y}" r="20" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font:700 17px var(--f-disp);fill:var(--ink)">${t}</text>`).join("")}
+  ${[[60,90,180,35,"Pivot (B, z)",95,48],[60,90,180,145,"Pivot (C, z)",95,140],[180,35,290,90,"Pivot (O, z)",250,48],[180,145,290,90,"Pivot (O, z)",250,140],[290,90,385,90,"Pivot (O, z)",337,75]].map(([x1,y1,x2,y2,l,tx,ty])=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="2"/><text x="${tx}" y="${ty}" text-anchor="middle" style="font:600 12px var(--f-body);fill:var(--muted)">${l}</text>`).join("")}
+  <line x1="40" y1="118" x2="80" y2="118" stroke="var(--ink)" stroke-width="2"/></svg>`;
+const PANEL={
+ sys:`<h2>Le système</h2>
+  <ul><li><b>0</b> le sol ; <b>1</b> barre verticale de longueur L (pivot en B) ; <b>2</b> barre inclinée de α par rapport à la verticale (pivot en C) ;</li>
+  <li><b>3</b> l'axe fixe en O, relié aux deux barres par des pivots ; <b>4</b> poulie de rayon 2r, en pivot sur l'axe 3 ;</li>
+  <li><b>5</b> le câble principal, de tension F, qui tire la poulie <b>7</b> (rayon r) en A selon x<sub>5</sub> ;</li>
+  <li><b>6</b> le câble secondaire : fixé en O, il passe sur la poulie 7 puis sur la poulie 4, et tient le massif de béton <b>8</b> (masse M).</li></ul>
+  ${St(.3,`<div class="key"><p><b>Hypothèses :</b> problème plan, masses négligées sauf celle du massif 8, liaisons parfaites. Les tensions dans le câble 6 sont T, T′ et T″.</p></div>`)}
+  ${St(.6,`<p class="note">Notation du prof : X<sub>34</sub> = action de 3 sur 4 selon x. Les équations sont numérotées (1) à (16) comme dans son corrigé.</p>`)}`,
+ q1:`<p class="q">Q1. Graphe de structure partiel avec les solides 0, 1, 2, 3 et 4.</p>
+  ${St(.2,`<p>Un rond par solide, un trait par liaison, avec son nom et son axe :</p>${graph}`)}
+  ${St(.8,`<ul><li>0–1 : pivot d'axe (B, z) ; 0–2 : pivot d'axe (C, z) ;</li><li>1–3 et 2–3 : pivots d'axe (O, z) ; 3–4 : pivot d'axe (O, z).</li></ul>
+   <p class="note">La boucle 0–1–3–2–0 forme le portique. La poulie 4 est une branche ouverte accrochée à l'axe 3.</p>`)}`,
+ q2:`<p class="q">Q2. Trois équations du PFS appliqué en A à E<sub>1</sub> = {portion de câble 6 + 7}.</p>
+  ${St(.2,`<p><b>B.A.M.E. sur E<sub>1</sub> :</b></p><ul>
+   <li>câble 5 sur 7, en A : F<sub>5→7</sub> = F·x<sub>5</sub> ;</li>
+   <li>brin 6 (tension T) : il tire vers O, selon −x<sub>5</sub>, à la distance r <b>sous</b> A ;</li>
+   <li>brin 6′ (tension T′) : il tire aussi selon −x<sub>5</sub>, à la distance r <b>au-dessus</b> de A.</li></ul>`)}
+  ${St(1.8,`<p><b>PFS en A, dans la base 5 :</b></p>
+   ${E(["Théorème de la résultante sur x<sub>5</sub> : −T − T′ + F = 0","(1)"],["Théorème de la résultante sur y<sub>5</sub> : 0 = 0",""],["Théorème du moment en A sur z : −r·T + r·T′ = 0","(2)"])}
+   <p class="note">Moments en A : F passe par A, moment nul. Chaque brin est tangent à la poulie, donc son bras de levier est le rayon r. Les deux brins sont de part et d'autre de A : ils font tourner en sens contraires.</p>`)}`,
+ q3:`<p class="q">Q3. En déduire T et T′ en fonction de F.</p>
+  ${St(.2,`${E(["(2) ⇒ T = T′","(3)"],["(1) + (3) ⇒ 2T = F ⇒ T = T′ = F/2","(4)"])}`)}
+  ${St(1,`<div class="key good"><p>C'est un <b>moufle</b> : le câble 6 fait un aller-retour autour de la poulie 7. Chaque brin ne porte que la moitié de F.</p></div>`)}`,
+ q4:`<p class="q">Q4. On isole E<sub>2</sub> = {4 + portion de câble 6}. PFS en O : T″ et le torseur {F<sub>3→4</sub>} en fonction de F.</p>
+  ${St(.2,`<p><b>B.A.M.E. sur E<sub>2</sub> :</b></p><ul>
+   <li>brin 6′ : il tire vers la poulie 7, T′·x<sub>5</sub> = T′·cos α·x − T′·sin α·y, tangent à la poulie 4 (bras de levier 2r) ;</li>
+   <li>brin 6″ : il tire vers le massif, −T″·y, tangent à gauche de la poulie (bras de levier 2r) ;</li>
+   <li>axe 3 sur 4, pivot d'axe (O, z) : X<sub>34</sub>·x + Y<sub>34</sub>·y, moment nul en O.</li></ul>`)}
+  ${St(2.4,`<p><b>PFS en O, dans la base 0 :</b></p>
+   ${E(["Résultante sur x : T′·cos α + X<sub>34</sub> = 0","(5)"],["Résultante sur y : −T″ − T′·sin α + Y<sub>34</sub> = 0","(6)"],["Moment en O sur z : 2r·T″ − 2r·T′ = 0","(7)"])}`)}
+  ${St(3.2,`<p><b>On résout :</b></p>
+   ${E(["(7) + (4) ⇒ T″ = T = T′ = F/2","(8)"],["(5) + (4) ⇒ X<sub>34</sub> = −(F/2)·cos α","(9)"],["(6) + (8) ⇒ Y<sub>34</sub> = (F/2)·(1 + sin α)","(10)"])}
+   <div class="tzs">${T("F<sub>3→4</sub>","O",[["−(F/2)·cos α","0"],["(F/2)·(1 + sin α)","0"],["0","0"]])}</div>`)}`,
+ q5:`<p class="q">Q5. Masse M du massif 8 qui donne la tension F.</p>
+  ${St(.2,`<p><b>On isole 8 :</b> le brin 6″ le tient vers le haut (T″), son poids M·g tire vers le bas.</p>
+   ${E(["Résultante sur y : T″ − M·g = 0","(11)"],["(11) + (8) ⇒ M = F / (2g)","(12)"])}`)}
+  ${St(1.2,`<p class="note">Le massif ne pèse que la moitié de la tension F voulue : c'est le moufle de la poulie 7 qui double l'effort.</p>`)}`,
+ q6:`<p class="q">Q6. Isoler la barre 1. Montrer que {F<sub>0→1</sub>} et {F<sub>3→1</sub>} sont des glisseurs, et donner leur support.</p>
+  ${St(.2,`<p><b>B.A.M.E. :</b> pivot en B (sol 0) et pivot en O (axe 3). Masse négligée : la barre est un <b>solide soumis à 2 forces</b>.</p>`)}
+  ${St(1,`<p>Les deux forces sont opposées et portées par la même droite, BO, qui est verticale. Chaque torseur est un <b>glisseur</b> (moment nul sur sa droite support) :</p>
+   <div class="tzs">${T("F<sub>0→1</sub>","B",[["0","0"],["Y<sub>01</sub>","0"],["0","0"]])}${T("F<sub>3→1</sub>","O",[["0","0"],["Y<sub>31</sub>","0"],["0","0"]])}</div>
+   <p>Droite support : <b>(B, y)</b>, et Y<sub>31</sub> = −Y<sub>01</sub>.</p>`)}`,
+ q7:`<p class="q">Q7. Avec R<sub>B</sub>, la valeur algébrique de l'action de 0 sur 1 : exprimer {F<sub>0→1</sub>}.</p>
+  ${St(.2,`<div class="tzs">${T("F<sub>0→1</sub>","B",[["0","0"],["R<sub>B</sub>","0"],["0","0"]])}</div><p>soit F<sub>0→1</sub> = R<sub>B</sub>·y, avec une seule inconnue.</p>`)}`,
+ q8:`<p class="q">Q8. Isoler la barre 2. Montrer que {F<sub>0→2</sub>} et {F<sub>3→2</sub>} sont des glisseurs, et donner leur support.</p>
+  ${St(.2,`<p><b>B.A.M.E. :</b> pivot en C et pivot en O, masse négligée : <b>solide soumis à 2 forces</b>.</p>`)}
+  ${St(1,`<div class="tzs">${T("F<sub>0→2</sub>","C",[["X<sub>02</sub>","0"],["Y<sub>02</sub>","0"],["0","0"]])}${T("F<sub>3→2</sub>","O",[["X<sub>32</sub>","0"],["Y<sub>32</sub>","0"],["0","0"]])}</div>
+   <p>Ce sont deux glisseurs opposés de droite support <b>(CO)</b>, la direction de la barre 2.</p>`)}`,
+ q9:`<p class="q">Q9. Avec R<sub>C</sub> : exprimer {F<sub>0→2</sub>} dans la base 0 en fonction de R<sub>C</sub> et α.</p>
+  ${St(.2,`<p>On note y<sub>2</sub> la direction de la barre, de C vers O. La barre est inclinée de α par rapport à la verticale, et monte vers la gauche :</p>
+   ${E(["y<sub>2</sub> = −sin α·x + cos α·y",""],["F<sub>0→2</sub> = R<sub>C</sub>·y<sub>2</sub>",""])}`)}
+  ${St(1,`<div class="tzs">${T("F<sub>0→2</sub>","C",[["−R<sub>C</sub>·sin α","0"],["R<sub>C</sub>·cos α","0"],["0","0"]])}</div>
+   <p class="note">Le sin va sur x (côté opposé à α, qui est mesuré depuis la verticale), le cos sur y (côté adjacent).</p>`)}`,
+ q10:`<p class="q">Q10. On isole E = {1, 2, 3, 4, 6, 7, 8}. Bilan des actions mécaniques extérieures.</p>
+  ${St(.2,`<ul><li>Pivot d'axe (B, z), 0 → 1 : F<sub>0→1</sub> = R<sub>B</sub>·y ;</li>
+   <li>Pivot d'axe (C, z), 0 → 2 : F<sub>0→2</sub> = −R<sub>C</sub>·sin α·x + R<sub>C</sub>·cos α·y ;</li>
+   <li>Câble 5 sur 7 : F<sub>5→7</sub> = F·x<sub>5</sub> = F·cos α·x − F·sin α·y ;</li>
+   <li>Pesanteur sur 8 : −M·g·y.</li></ul>`)}
+  ${St(1.4,`<p class="note">Tout le reste est intérieur à E : les pivots en O, les poulies, le câble 6. C'est l'intérêt d'isoler un grand ensemble : il ne reste que 2 inconnues, R<sub>B</sub> et R<sub>C</sub>.</p>`)}`,
+ q11:`<p class="q">Q11. PFS sur E, puis R<sub>B</sub> et R<sub>C</sub>.</p>
+  ${St(.2,`<p><b>PFS sur E au point C :</b></p>
+   ${E(["Résultante sur x : F·cos α − R<sub>C</sub>·sin α = 0","(13)"],["Résultante sur y : −F·sin α + R<sub>C</sub>·cos α − M·g + R<sub>B</sub> = 0","(14)"],["Moment sur z : équation inutile",""])}
+   <p class="note">Deux inconnues, deux équations de résultante : l'équation de moment n'est pas nécessaire (elle demanderait des longueurs que l'énoncé ne donne pas).</p>`)}
+  ${St(1.4,`<p><b>On résout :</b></p>
+   ${E(["(13) ⇒ R<sub>C</sub> = F·cos α / sin α","(15)"],["(14) + (15) + (12) ⇒ R<sub>B</sub> = F·sin α − F·(cos α / sin α)·cos α + F/2","(16)"])}
+   <p class="note">Dans (14), on remplace R<sub>C</sub> par (15) et M·g par F/2, d'après (12).</p>`)}`,
+ q12:`<p class="q">Q12. Pour α = 30°, chaque barre est-elle tendue ou comprimée ?</p>
+  ${St(.2,`<p><b>Barre 2 :</b></p>${E(["R<sub>C</sub> = F·cos 30 / sin 30 = √3·F ≈ 1,73·F",""])}<p>R<sub>C</sub> &gt; 0 : le sol <b>pousse</b> la barre vers O. <b>Barre 2 comprimée.</b></p>`)}
+  ${St(1.2,`<p><b>Barre 1 :</b></p>${E(["R<sub>B</sub> = F·sin 30 − F·(cos 30 / sin 30)·cos 30 + F/2",""],["R<sub>B</sub> = F/2 − F·3/2 + F/2 = −F/2",""])}<p>R<sub>B</sub> &lt; 0 : le sol <b>tire</b> la barre vers le bas. <b>Barre 1 tendue.</b></p>`)}
+  ${St(2.2,`<div class="key"><p><b>Lire le signe :</b> R<sub>B</sub> et R<sub>C</sub> sont comptés de l'appui vers O, vers l'intérieur de la barre. Positif : poussée, la barre est comprimée. Négatif : traction, la barre est tendue.</p></div>
+   <p class="note">Bouge le curseur α : à partir d'environ 36°, R<sub>B</sub> devient positif et la barre 1 passe en compression.</p>`)}`,
+};
+
+function setScene(s){
+  scene=s; t0=performance.now();
+  document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s));
+  $("panel").innerHTML=PANEL[s];
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(render);
+}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
+$("replay").addEventListener("click",()=>setScene(scene));
+$("alpha").addEventListener("input",ev=>{al=+ev.target.value; t0=Math.min(t0,performance.now()-10000); if(!raf) raf=requestAnimationFrame(render)});
+setScene("sys");
+})();
+</script>
