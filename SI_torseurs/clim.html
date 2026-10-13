@@ -175,9 +175,9 @@ details[open] summary{border-bottom:1px solid var(--line)}
       <summary>Pièges fréquents</summary>
       <div class="body"><ul>
         <li><b>Linéaire annulaire d'axe (O, y) :</b> cette fois l'axe est y, pas z. La translation selon y est libre, donc il n'y a <b>pas de O<sub>y</sub></b> : les inconnues sont O<sub>x</sub> et O<sub>z</sub>.</li>
-        <li><b>Le vérin {2+3} :</b> deux rotules, et rien d'autre (poids négligé). C'est une pièce à deux actions : la force est portée par la droite BD, c'est-à-dire par x<sub>2</sub>. Le PFS en D le démontre.</li>
-        <li><b>x<sub>2</sub> n'est pas x :</b> x<sub>2</sub> = (e·x + d·z) / √(e² + d²). Pour les moments, il faut projeter dans la base 0.</li>
-        <li><b>Q4, la bonne équation :</b> le moment autour de l'axe de rotation (O, y). A est sur cet axe, O aussi : ni la rotule ni la linéaire annulaire n'y apparaissent. Le poids non plus.</li>
+        <li><b>Le vérin {2+3} :</b> deux rotules, et rien d'autre (poids négligé). Il est soumis à 2 forces : même norme, directement opposées, portées par la droite BD, c'est-à-dire par x<sub>2</sub>.</li>
+        <li><b>x<sub>2</sub> n'est pas x :</b> x<sub>2</sub> = cos α·x + sin α·z, avec tan α = d / e. Pour les moments, il faut projeter dans la base 0.</li>
+        <li><b>Q4, la bonne équation :</b> le moment statique projeté sur l'axe de rotation (O, y). A et O sont sur l'axe, le poids coupe l'axe : aucun n'y apparaît. Pour le vérin, seule la composante horizontale X<sub>2→1</sub> compte, avec le bras de levier d.</li>
         <li><b>Unités :</b> les longueurs peuvent rester en cm (elles se simplifient), mais S doit être en m² : 20 cm² = 20 × 10⁻⁴ m².</li>
       </ul></div>
     </details>
@@ -265,12 +265,19 @@ function render(now){
     if(scene==="q3"&&el>1.8) dm+=seg(D,[0,2*a+c,0],"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([-e/2,2*a+c,0],"e","dlab","middle",0,16)+
       seg([0,2*a+c,0],B,"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,2*a+c,d/2],"d","dlab","start",8,0)+
       txt(B,"x<tspan font-size='10' dy='4'>2</tspan><tspan dy='-4'> ∥ DB</tspan>","dlab","end",-24,-28);
+    if(scene==="q3"&&el>2.6){
+      // angle α at D, between the horizontal D→C and the cylinder D→B
+      const R=11, pts=[];
+      for(let i=0;i<=16;i++){const t=Math.atan2(d,e)*i/16; pts.push([-e+R*Math.cos(t),2*a+c,R*Math.sin(t)])}
+      dm+=`<polyline points="${pts.map(XY).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>`+txt([-e+R+4,2*a+c,4],"α","flab","start",2,0).replace("var(--f)","var(--accent)");
+    }
   }
   if(scene==="q4"){
     f+=arrow(M,[Fa,0,0],sb("F","air"),false,grow(0),[-8,-8])+arrow(B,x2.map(v=>v*pS),sb("F","2→1"),false,grow(1),[-10,-6]);
     if(el>1.8){
       // x and z components of the cylinder force at B
-      f+=arrow(B,[pS*e/Lb,0,0],"p·S·e/L",false,ease((el-1.8)/.6),[-6,22]).replace(/var\(--f\)/g,"var(--accent)");
+      f+=arrow(B,[pS*e/Lb,0,0],"X₂→₁ = p·S·cos α",false,ease((el-1.8)/.6),[-6,22]).replace(/var\(--f\)/g,"var(--accent)")+
+        arrow(B,[0,0,pS*d/Lb],"Z₂→₁",false,ease((el-2.3)/.6),[8,0]).replace(/var\(--f\)/g,"var(--muted)");
       dm+=seg([0,0,-6],[0,2*a+c,-6],"var(--ok)",4,'stroke-dasharray="10 6"')+txt([0,2*a+c+10,-14],"axe (O, y)","free","start",0,0)+
         seg([0,a,0],M,"var(--muted)",1.5,'stroke-dasharray="5 4"')+txt([0,a,-l/2],"l","dlab","start",8,0)+
         txt([0,2*a+c,d/2],"d","dlab","start",8,0);
@@ -288,6 +295,30 @@ function render(now){
 const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
 const Vc=(...cols)=>`<span class="vx">${cols.map(c=>typeof c==="string"?`<span>${c}</span>`:`<span class="col">${c.map(x=>`<span>${x}</span>`).join("")}</span>`).join("")}</span>`;
 const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
+// side view in the plane (x, z), x drawn to the LEFT as in the teacher's figures
+const sideTri=`<svg viewBox="0 0 360 170" style="width:100%;max-width:360px;display:block" role="img" aria-label="Triangle : d vertical, e horizontal, angle α en D">
+  <line x1="80" y1="130" x2="320" y2="130" stroke="var(--muted)" stroke-dasharray="5 4"/><line x1="80" y1="130" x2="80" y2="30" stroke="var(--muted)" stroke-dasharray="5 4"/>
+  <line x1="80" y1="30" x2="300" y2="122" stroke="var(--cA)" stroke-width="8"/><line x1="80" y1="30" x2="140" y2="55" stroke="var(--cC)" stroke-width="4"/>
+  <circle cx="80" cy="30" r="7" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/><circle cx="305" cy="124" r="7" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.5"/>
+  <line x1="80" y1="30" x2="22" y2="6" stroke="var(--f)" stroke-width="3"/><polygon points="16,3 30,4 25,13" fill="var(--f)"/>
+  <path d="M265 130 A40 40 0 0 0 268 108" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+  <text x="244" y="122" style="font:700 16px var(--f-mono);fill:var(--accent)">α</text>
+  <text x="66" y="84" text-anchor="end" style="font:600 15px var(--f-mono);fill:var(--muted)">d</text><text x="200" y="150" text-anchor="middle" style="font:600 15px var(--f-mono);fill:var(--muted)">e</text>
+  <text x="66" y="26" text-anchor="end" style="font:600 15px var(--f-mono);fill:var(--ink)">B</text><text x="318" y="122" style="font:600 15px var(--f-mono);fill:var(--ink)">D</text>
+  <text x="28" y="26" style="font:700 14px var(--f-mono);fill:var(--f)">x₂</text>
+  <text x="340" y="134" style="font:600 13px var(--f-mono);fill:var(--muted)">←x</text></svg>`;
+const sideLever=`<svg viewBox="0 0 300 250" style="width:100%;max-width:300px;display:block" role="img" aria-label="Vue de côté : l'air pousse en M à l sous O, le vérin pousse en B à d au-dessus de O">
+  <line x1="170" y1="10" x2="170" y2="240" stroke="var(--cB)" stroke-width="4"/>
+  <circle cx="170" cy="90" r="9" fill="var(--sheet)" stroke="var(--ok)" stroke-width="3"/><circle cx="170" cy="90" r="3" fill="var(--ok)"/>
+  <text x="186" y="95" style="font:600 14px var(--f-mono);fill:var(--ok)">O, axe y ⊙</text>
+  <circle cx="170" cy="40" r="5" fill="var(--ink)"/><text x="184" y="44" style="font:600 14px var(--f-mono);fill:var(--ink)">B</text>
+  <circle cx="170" cy="170" r="5" fill="var(--ink)"/><text x="184" y="174" style="font:600 14px var(--f-mono);fill:var(--ink)">M</text>
+  <line x1="170" y1="40" x2="88" y2="40" stroke="var(--accent)" stroke-width="3.5"/><polygon points="80,40 92,34 92,46" fill="var(--accent)"/><text x="40" y="34" style="font:700 13px var(--f-mono);fill:var(--accent)">X₂→₁</text>
+  <line x1="170" y1="40" x2="170" y2="12" stroke="var(--muted)" stroke-width="3"/><polygon points="170,4 164,16 176,16" fill="var(--muted)"/><text x="178" y="18" style="font:600 12px var(--f-mono);fill:var(--muted)">Z₂→₁</text>
+  <line x1="170" y1="170" x2="98" y2="170" stroke="var(--f)" stroke-width="3.5"/><polygon points="90,170 102,164 102,176" fill="var(--f)"/><text x="40" y="164" style="font:700 13px var(--f-mono);fill:var(--f)">F<tspan font-size="10" dy="3">air</tspan></text>
+  <line x1="150" y1="40" x2="150" y2="90" stroke="var(--muted)" stroke-dasharray="4 3"/><text x="140" y="70" text-anchor="end" style="font:600 14px var(--f-mono);fill:var(--muted)">d</text>
+  <line x1="150" y1="90" x2="150" y2="170" stroke="var(--muted)" stroke-dasharray="4 3"/><text x="140" y="134" text-anchor="end" style="font:600 14px var(--f-mono);fill:var(--muted)">l</text>
+  <text x="20" y="235" style="font:600 13px var(--f-mono);fill:var(--muted)">←x   ↑z</text></svg>`;
 const tb=rows=>`<div class="tablewrap"><table><thead><tr><th>Mouvement</th><th>Libre ?</th><th>Dans le torseur</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 const pS0=K2*150, p0=pS0/S_m2;
 const PANEL={
@@ -308,43 +339,52 @@ const PANEL={
   ${St(2.4,`<div class="tzs">${T("T<sub>0→1</sub>","O",[["O<sub>x</sub>","0"],["0","0"],["O<sub>z</sub>","0"]])}</div>
    <div class="key warn"><p>Attention : l'axe est <b>y</b> ici. C'est O<sub>y</sub> qui manque, pas O<sub>z</sub>.</p></div>`)}`,
  q3:`<p class="q">Q3. Isoler {2+3}, puis donner les torseurs de 1 sur 2 en B et de 0 sur 3 en D, dans la base 2 et dans la base 0.</p>
-  ${St(.2,`<p><b>Étape 1 · Bilan sur {2+3}.</b> Deux actions extérieures seulement : le clapet 1 sur la tige 2 en B (rotule), le mur 0 sur le corps 3 en D (rotule). La liaison entre 2 et 3 et la pression sont intérieures. Poids du vérin négligé.</p>
-   <div class="tzs">${T("T<sub>1→2</sub>","B",[["B<sub>x</sub>","0"],["B<sub>y</sub>","0"],["B<sub>z</sub>","0"]])}${T("T<sub>0→3</sub>","D",[["D<sub>x</sub>","0"],["D<sub>y</sub>","0"],["D<sub>z</sub>","0"]])}</div>`)}
-  ${St(1.4,`<p><b>Étape 2 · BABAR : tout en D.</b> DB = B − D = (0 − (−e) ; (2a+c) − (2a+c) ; d − 0) = (e ; 0 ; d).</p>
-   <p>${Vc(["e","0","d"],"∧",["B<sub>x</sub>","B<sub>y</sub>","B<sub>z</sub>"],"=",["0·B<sub>z</sub> − d·B<sub>y</sub>","d·B<sub>x</sub> − e·B<sub>z</sub>","e·B<sub>y</sub> − 0·B<sub>x</sub>"],"=",["−d·B<sub>y</sub>","d·B<sub>x</sub> − e·B<sub>z</sub>","e·B<sub>y</sub>"])}</p>`)}
-  ${St(2.2,`<p><b>Étape 3 · PFS en D :</b></p><div class="eq">
-   <span>TRS : B<sub>x</sub> + D<sub>x</sub> = 0 ; B<sub>y</sub> + D<sub>y</sub> = 0 ; B<sub>z</sub> + D<sub>z</sub> = 0</span>
-   <span>TMS x : −d·B<sub>y</sub> = 0 ⇒ B<sub>y</sub> = 0</span>
-   <span>TMS y : d·B<sub>x</sub> − e·B<sub>z</sub> = 0 ⇒ B<sub>z</sub> = (d/e)·B<sub>x</sub></span>
-   <span>TMS z : e·B<sub>y</sub> = 0 (déjà vu)</span></div>
-   <p>Donc la force en B vaut (B<sub>x</sub> ; 0 ; (d/e)·B<sub>x</sub>) = (B<sub>x</sub>/e)·(e ; 0 ; d) : elle est <b>parallèle à DB</b>, c'est-à-dire à x<sub>2</sub>.</p>`)}
-  ${St(3.2,`<p><b>Étape 4 · Les torseurs.</b> On pose x<sub>2</sub> = (e·x + d·z) / L, avec L = √(e² + d²), et X<sub>12</sub> la force de 1 sur 2 selon x<sub>2</sub>.</p>
-   <p>Dans la base 2 :</p><div class="tzs">${T("T<sub>1→2</sub>","B",[["X<sub>12</sub>","0"],["0","0"],["0","0"]])}${T("T<sub>0→3</sub>","D",[["−X<sub>12</sub>","0"],["0","0"],["0","0"]])}</div>
-   <p>Dans la base 0 :</p><div class="tzs">${T("T<sub>1→2</sub>","B",[["X<sub>12</sub>·e/L","0"],["0","0"],["X<sub>12</sub>·d/L","0"]])}${T("T<sub>0→3</sub>","D",[["−X<sub>12</sub>·e/L","0"],["0","0"],["−X<sub>12</sub>·d/L","0"]])}</div>
-   <div class="key good"><p>{2+3} n'a que deux actions : elles sont opposées et portées par BD. Lien avec l'énoncé : F<sub>2→1</sub> = −F<sub>1→2</sub> = p·S·x<sub>2</sub>, donc X<sub>12</sub> = −p·S (le vérin est comprimé).</p></div>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E.</b> (bilan des actions mécaniques extérieures) sur {2+3} :</p><ul>
+   <li>Action de 1 sur 2, rotule de centre B : F<sub>1→2</sub> = −p·S·x<sub>2</sub>. C'est l'opposé de la donnée F<sub>2→1</sub> = p·S·x<sub>2</sub> (action réciproque).</li>
+   <li>Action de 0 sur 3, rotule de centre D : {F<sub>0→3</sub>} = (X<sub>0→3</sub> ; Y<sub>0→3</sub> ; Z<sub>0→3</sub>), sans moment en D.</li></ul>
+   <p class="note">La liaison entre la tige 2 et le corps 3, et la pression dans le vérin, sont intérieures. Poids du vérin négligé.</p>`)}
+  ${St(1.2,`<p><b>Étape 2 · L'argument :</b> l'ensemble {2+3} est soumis à <b>2 forces</b> seulement. Elles ont donc <b>même norme</b> et sont <b>directement opposées</b>, portées par la droite BD :</p>
+   <div class="eq"><span>F<sub>0→3</sub> = −F<sub>1→2</sub> = +p·S·x<sub>2</sub></span></div>`)}
+  ${St(2.2,`<p><b>Étape 3 · L'angle α.</b> Vu de côté, la tige fait un angle α avec l'horizontale. Le côté vertical du triangle vaut d, le côté horizontal vaut e :</p>
+   ${sideTri}
+   <div class="eq"><span>tan α = d / e = 20 / 30 ⇒ α = arctan(20/30) ≈ 33,7°</span><span>x<sub>2</sub> = cos α·x + sin α·z</span></div>`)}
+  ${St(3.2,`<p><b>Étape 4 · Projection.</b></p>
+   <p>Dans la base 2 :</p><div class="tzs">${T("F<sub>1→2</sub>","B",[["−p·S","0"],["0","0"],["0","0"]])}${T("F<sub>0→3</sub>","D",[["p·S","0"],["0","0"],["0","0"]])}</div>
+   <p>Dans la base 0 :</p><div class="tzs">${T("F<sub>1→2</sub>","B",[["X<sub>1→2</sub>","0"],["0","0"],["Z<sub>1→2</sub>","0"]])}${T("F<sub>0→3</sub>","D",[["X<sub>0→3</sub>","0"],["0","0"],["Z<sub>0→3</sub>","0"]])}</div>
+   <div class="eq"><span>X<sub>1→2</sub> = −p·S·cos α ; Z<sub>1→2</sub> = −p·S·sin α</span><span>X<sub>0→3</sub> = p·S·cos α ; Z<sub>0→3</sub> = p·S·sin α</span></div>`)}`,
  q4:`<p class="q">Q4. À l'aide d'une seule équation scalaire du PFS, trouver la relation entre p et F<sub>air→1</sub>.</p>
-  ${St(.2,`<p><b>Étape 1 · On isole le clapet 1.</b> Actions : poids en G, air en M, mur en A (rotule), mur en O (linéaire annulaire), vérin en B : F<sub>2→1</sub> = p·S·x<sub>2</sub> = (p·S·e/L ; 0 ; p·S·d/L).</p>`)}
-  ${St(1.2,`<p><b>Étape 2 · Quelle équation ?</b> Le clapet tourne autour de (O, y) : on prend le <b>moment autour de y, en O</b>.</p><ul>
-   <li>O : linéaire annulaire, aucun moment en O.</li>
-   <li>A : OA = (0 ; 2a ; 0) : ${Vc(["0","2a","0"],"∧",["A<sub>x</sub>","A<sub>y</sub>","A<sub>z</sub>"],"=",["2a·A<sub>z</sub> − 0·A<sub>y</sub>","0·A<sub>x</sub> − 0·A<sub>z</sub>","0·A<sub>y</sub> − 2a·A<sub>x</sub>"],"=",["2a·A<sub>z</sub>","<b>0</b>","−2a·A<sub>x</sub>"])}</li>
-   <li>Poids : OG = (0 ; a ; −h) : ${Vc(["0","a","−h"],"∧",["0","0","−m·g"],"=",["a·(−m·g) − (−h)·0","(−h)·0 − 0·(−m·g)","0·0 − a·0"],"=",["−a·m·g","<b>0</b>","0"])}</li></ul>
-   <p class="note">A et O sont sur l'axe, et le poids est vertical dans le plan de l'axe : aucun ne compte autour de y. Il ne reste que l'air et le vérin.</p>`)}
-  ${St(2.6,`<p><b>Étape 3 · BABAR en O</b> pour l'air et le vérin.</p>
-   <p>Air : OM = (0 ; a ; −l) : ${Vc(["0","a","−l"],"∧",["F<sub>air</sub>","0","0"],"=",["a·0 − (−l)·0","(−l)·F<sub>air</sub> − 0·0","0·0 − a·F<sub>air</sub>"],"=",["0","−l·F<sub>air</sub>","−a·F<sub>air</sub>"])}</p>
-   <p>Vérin : OB = (0 ; 2a+c ; d) : ${Vc(["0","2a+c","d"],"∧",["p·S·e/L","0","p·S·d/L"],"=",["(2a+c)·p·S·d/L − d·0","d·p·S·e/L − 0·p·S·d/L","0·0 − (2a+c)·p·S·e/L"],"=",["…","d·e·p·S/L","…"])}</p>`)}
-  ${St(3.6,`<p><b>Étape 4 · TMS y en O :</b></p><div class="eq">
-   <span>−l·F<sub>air</sub> + (d·e / L)·p·S = 0</span>
-   <span>⇒ <b>p = l·L·F<sub>air</sub> / (d·e·S)</b>, avec L = √(e² + d²)</span></div>
-   <div class="key"><p>Seule la composante <b>selon x</b> du vérin (p·S·e/L, en bleu) fait tourner le clapet, avec le bras de levier d. L'air pousse avec le bras de levier l.</p></div>`)}`,
- q5:`<p class="q">Q5. Application numérique et conclusion vis-à-vis du cahier des charges.</p>
-  ${St(.2,`<p><b>Étape 1 · L :</b> L = √(30² + 20²) = √1 300 ≈ ${fmt(Lb,2)} cm.</p>`)}
-  ${St(.9,`<p><b>Étape 2 · p·S :</b> les longueurs se simplifient, on peut rester en cm.</p><div class="eq">
-   <span>p·S = l·L·F<sub>air</sub> / (d·e) = 40 × ${fmt(Lb,2)} × 150 / (20 × 30) ≈ ${fmt(pS0,1)} N</span></div>`)}
-  ${St(1.7,`<p><b>Étape 3 · Pression.</b> S = 20 cm² = 20 × 10⁻⁴ m² :</p><div class="eq">
-   <span>p = ${fmt(pS0,1)} / (20 × 10⁻⁴) ≈ ${fmt(p0,0)} Pa</span>
-   <span>p ≈ ${fmt(p0,0)} / 100 000 ≈ <b>${fmt(p0/1e5,2)} bar</b></span></div>`)}
-  ${St(2.5,`<div class="key good"><p><b>${fmt(p0/1e5,2)} bar &lt; 2 bar : l'exigence 1.4.1 est satisfaite</b>, mais de peu (0,2 bar de marge).</p></div>
-   <p class="note">Pour aller plus loin : 2 bar sont atteints pour F<sub>air</sub> = 2 × 10⁵ × 20 × 10⁻⁴ × (20 × 30) / (40 × ${fmt(Lb,2)}) ≈ ${fmt(2e5*S_m2*d*e/(l*Lb),0)} N. Pousse le curseur pour voir la jauge passer au rouge.</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E. sur le clapet 1 :</b></p><ul>
+   <li>Action de 2 sur 1, rotule de centre B : F<sub>2→1</sub> = p·S·x<sub>2</sub>, soit X<sub>2→1</sub> = p·S·cos α et Z<sub>2→1</sub> = p·S·sin α.</li>
+   <li>Action de 0 sur 1 : rotule en A.</li>
+   <li>Action de 0 sur 1 : linéaire annulaire d'axe (O, y).</li>
+   <li>Action de l'air en M : F<sub>air→1</sub> = F<sub>air→1</sub>·x.</li>
+   <li>Poids m·g en G.</li></ul>`)}
+  ${St(1.2,`<p><b>Étape 2 · L'équation :</b> on applique le PFS en O et on utilise le <b>théorème du moment statique projeté sur l'axe y</b>, l'axe autour duquel le clapet tourne.</p>
+   <div class="eq"><span>( M<sub>O</sub>(F<sub>air→1</sub>) + M<sub>O</sub>(F<sub>rotule A</sub>) + M<sub>O</sub>(F<sub>LA O</sub>) + M<sub>O</sub>(m·g) + M<sub>O</sub>(F<sub>2→1</sub>) ) · y = 0</span></div>
+   <p><b>Ce qui disparaît :</b></p><ul>
+   <li><b>La linéaire annulaire en O :</b> aucun moment en son centre O.</li>
+   <li><b>La rotule en A :</b> A est sur l'axe y. Une force qui passe par l'axe ne fait pas tourner autour de lui.</li>
+   <li><b>Le poids :</b> il est vertical, et G est dans le plan vertical de l'axe. Sa droite d'action coupe l'axe : rien autour de y.</li></ul>
+   <div class="eq"><span>( OM ∧ F<sub>air→1</sub> + OB ∧ F<sub>2→1</sub> ) · y = 0</span></div>`)}
+  ${St(2.4,`<p><b>Étape 3 · Les bras de levier, vus de côté</b> (l'axe y sort de la feuille en O) :</p>
+   ${sideLever}
+   <ul><li><b>L'air</b> pousse selon x en M, à une distance <b>l sous</b> l'axe : moment <b>−l·F<sub>air→1</sub></b>.</li>
+   <li><b>X<sub>2→1</sub></b> pousse selon x en B, à une hauteur <b>d au-dessus</b> de l'axe : moment <b>+d·X<sub>2→1</sub> = d·p·S·cos α</b>.</li>
+   <li><b>Z<sub>2→1</sub></b> est vertical et B est juste au-dessus de l'axe : sa droite d'action coupe l'axe, <b>moment nul</b>.</li></ul>
+   <p class="note">Les deux forces vont dans le même sens (+x), mais de part et d'autre de l'axe : elles font tourner le clapet en sens contraires. D'où les signes opposés. Règle : une force F<sub>x</sub>·x appliquée à la hauteur z donne autour de y le moment z·F<sub>x</sub>.</p>`)}
+  ${St(3.6,`<p><b>Étape 4 · On résout :</b></p><div class="eq">
+   <span>−l·F<sub>air→1</sub> + d·p·S·cos α = 0</span>
+   <span>⇒ <b>p·S = l·F<sub>air→1</sub> / (d·cos α)</b></span></div>`)}`,
+ q5:`<p class="q">Q5. Déterminer la pression p, faire l'application numérique et conclure.</p>
+  ${St(.2,`<p><b>Étape 1 · La formule :</b> on divise p·S = l·F<sub>air→1</sub> / (d·cos α) par S :</p>
+   <div class="eq"><span><b>p = l·F<sub>air→1</sub> / (S·d·cos α)</b></span></div>`)}
+  ${St(1,`<p><b>Étape 2 · cos α :</b></p><div class="eq"><span>α = arctan(20/30) ≈ 33,7° ⇒ cos α ≈ ${fmt(e/Lb,3)}</span></div>`)}
+  ${St(1.8,`<p><b>Étape 3 · Application numérique.</b> S = 20 cm² = 20 × 10⁻⁴ m². l et d peuvent rester en cm : ils se simplifient (l en haut, d en bas).</p><div class="eq">
+   <span>p = 40 × 150 / (20 × 10⁻⁴ × 20 × cos(arctan(20/30)))</span>
+   <span>p = 6 000 / (20 × 10⁻⁴ × 20 × ${fmt(e/Lb,3)}) ≈ ${fmt(p0,0)} Pa</span>
+   <span>p ≈ 0,18 MPa ≈ <b>${fmt(p0/1e5,1)} bar</b></span></div>`)}
+  ${St(2.6,`<div class="key good"><p><b>${fmt(p0/1e5,1)} bar &lt; 2 bar : l'exigence 1.4.1 du cahier des charges est satisfaite</b>, avec 0,2 bar de marge.</p></div>
+   <p class="note">Le corrigé du prof conclut « 1,8 bar ≪ 10 bars » : il a sans doute été écrit pour une ancienne version de l'énoncé. Sur la feuille d'Eva, la limite est <b>2 bar</b>. La conclusion reste « exigence satisfaite », mais de justesse.</p>`)}`,
 };
 
 function setScene(s){
