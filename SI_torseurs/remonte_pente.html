@@ -113,6 +113,10 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .live b{color:var(--f)}
 .eqn{display:flex;justify-content:space-between;gap:12px}
 .eqn i{font-style:normal;color:var(--muted)}
+table.bb td,table.bb th{white-space:nowrap;padding:4px 6px}
+table.bb td{font:600 .85rem var(--f-mono);font-variant-numeric:tabular-nums}
+table.bb td.op{color:var(--muted);text-align:center;padding:4px 2px}
+.tz .mat{border-radius:16px}
 </style>
 
 <div class="wrap">
@@ -173,6 +177,10 @@ details[open] summary{border-bottom:1px solid var(--line)}
     <details>
       <summary>La feuille d'exercice</summary>
       <div class="body"><img src="img/remonte_pente.jpeg" alt="Énoncé : étude statique d'un remonte-pente, questions Q1 à Q12" loading="lazy"></div>
+    </details>
+    <details>
+      <summary>Notations</summary>
+      <div class="body" id="gloss"></div>
     </details>
     <details>
       <summary>Pièges fréquents</summary>
@@ -273,6 +281,40 @@ function render(now){
 const St=(t,html)=>`<div class="step" data-t="${t}">${html}</div>`;
 const E=(...rows)=>`<div class="eq">${rows.map(([e,n])=>`<span class="eqn"><span>${e}</span><i>${n||""}</i></span>`).join("")}</div>`;
 const T=(name,pt,rows)=>`<span class="tz"><span>{${name}} =</span><span class="mat">${rows.map(([f,m])=>`<span>${f}</span><span>${m}</span>`).join("")}</span><span class="pt">${pt}</span></span>`;
+// BABAR table: rows x/y/z, columns M_P + OP ∧ R = calcul = M_new
+const BB=(ax,h,Mp,OP,R,calc,res)=>`<div class="tablewrap"><table class="bb"><thead><tr><th></th><th>${h[0]}</th><th></th><th>${h[1]}</th><th></th><th>${h[2]}</th><th></th><th>calcul</th><th></th><th>${h[3]}</th></tr></thead><tbody>${[0,1,2].map(i=>`<tr><td>${ax[i]}</td><td>${Mp[i]}</td><td class="op">${i?"":"+"}</td><td>${OP[i]}</td><td class="op">${i?"":"∧"}</td><td>${R[i]}</td><td class="op">${i?"":"="}</td><td>${calc[i]}</td><td class="op">${i?"":"="}</td><td><b>${res[i]}</b></td></tr>`).join("")}</tbody></table></div>`;
+const Z3=["0","0","0"], B0=["x","y","z"], B5=["x<sub>5</sub>","y<sub>5</sub>","z"];
+const t3=(f,m=Z3)=>f.map((v,i)=>[v,m[i]]);
+const GLOSS=`<div class="tablewrap"><table><thead><tr><th>Symbole</th><th>Signification</th></tr></thead><tbody>
+<tr><td colspan="2"><b>Points</b></td></tr>
+<tr><td>O</td><td>centre de l'axe fixe 3 et de la poulie 4 ; les barres 1 et 2 y sont articulées</td></tr>
+<tr><td>A</td><td>centre de la poulie 7, là où le câble principal 5 tire</td></tr>
+<tr><td>B, C</td><td>pieds des barres 1 et 2, en pivot sur le sol 0</td></tr>
+<tr><td>G</td><td>centre de gravité du massif 8</td></tr>
+<tr><td>P, Q</td><td>points où les brins 6 (sous A) et 6′ (au-dessus de A) quittent la poulie 7 (points de tangence)</td></tr>
+<tr><td>U, V</td><td>points où les brins 6′ (en haut) et 6″ (à gauche) quittent la poulie 4</td></tr>
+<tr><td colspan="2"><b>Axes et bases</b></td></tr>
+<tr><td>x, y, z</td><td>base 0 : x horizontal vers la droite, y vertical vers le haut, z hors de la feuille</td></tr>
+<tr><td>x<sub>5</sub>, y<sub>5</sub></td><td>base 5 : x<sub>5</sub> le long du câble 5 (penché de α sous x), x<sub>5</sub> = (cos α ; −sin α) ; y<sub>5</sub> perpendiculaire, y<sub>5</sub> = (sin α ; cos α)</td></tr>
+<tr><td>y<sub>2</sub></td><td>vecteur unitaire le long de la barre 2, de C vers O : y<sub>2</sub> = (−sin α ; cos α)</td></tr>
+<tr><td colspan="2"><b>Longueurs et angle</b></td></tr>
+<tr><td>α</td><td>angle de la barre 2 avec la verticale, égal à l'angle du câble 5 sous l'horizontale</td></tr>
+<tr><td>L</td><td>longueur de la barre 1 (de B à O)</td></tr>
+<tr><td>r ; 2r</td><td>rayon de la poulie 7 ; rayon de la poulie 4</td></tr>
+<tr><td colspan="2"><b>Efforts</b></td></tr>
+<tr><td>F</td><td>tension du câble principal 5, qui tire la poulie 7 en A selon x<sub>5</sub></td></tr>
+<tr><td>T, T′, T″</td><td>tensions des brins 6 (de O à la poulie 7), 6′ (de la poulie 7 à la poulie 4) et 6″ (de la poulie 4 au massif)</td></tr>
+<tr><td>M ; g</td><td>masse du massif 8 ; pesanteur (9,81 m/s²)</td></tr>
+<tr><td>X<sub>ij</sub>, Y<sub>ij</sub></td><td>composantes sur x et y de l'action du solide i sur le solide j (ex. X<sub>34</sub> : action de l'axe 3 sur la poulie 4)</td></tr>
+<tr><td>R<sub>B</sub>, R<sub>C</sub></td><td>valeur algébrique de l'action du sol sur les barres 1 et 2, comptée de l'appui vers O : positive = poussée (barre comprimée), négative = traction (barre tendue)</td></tr>
+<tr><td colspan="2"><b>Torseurs et calculs</b></td></tr>
+<tr><td>{T<sub>i→j</sub>}<sub>P</sub></td><td>torseur de l'action de i sur j, écrit au point P : colonne de gauche = résultante (force sur x, y, z), colonne de droite = moment (autour de x, y, z)</td></tr>
+<tr><td>M<sub>P</sub></td><td>moment écrit au point P</td></tr>
+<tr><td>AP</td><td>vecteur qui va de A vers P (arrivée − départ)</td></tr>
+<tr><td>∧</td><td>produit vectoriel : (a ; b ; c) ∧ (d ; e ; f) = (b·f − c·e ; c·d − a·f ; a·e − b·d)</td></tr>
+<tr><td>E<sub>1</sub>, E<sub>2</sub>, E</td><td>ensembles isolés : E<sub>1</sub> = {câble 6 + poulie 7}, E<sub>2</sub> = {poulie 4 + câble 6}, E = {1, 2, 3, 4, 6, 7, 8}</td></tr>
+<tr><td>(1) … (16)</td><td>numéros des équations, comme dans le corrigé du prof ; « (1) + (3) » veut dire « en utilisant (1) et (3) »</td></tr>
+</tbody></table></div>`;
 const graph=`<svg viewBox="0 0 420 170" style="width:100%;max-width:420px;display:block" role="img" aria-label="Graphe de structure : 0, 1, 2, 3, 4">
   ${[[60,90,"0"],[180,35,"1"],[180,145,"2"],[290,90,"3"],[385,90,"4"]].map(([x,y,t])=>`<circle cx="${x}" cy="${y}" r="20" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font:700 17px var(--f-disp);fill:var(--ink)">${t}</text>`).join("")}
   ${[[60,90,180,35,"Pivot (B, z)",95,48],[60,90,180,145,"Pivot (C, z)",95,140],[180,35,290,90,"Pivot (O, z)",250,48],[180,145,290,90,"Pivot (O, z)",250,140],[290,90,385,90,"Pivot (O, z)",337,75]].map(([x1,y1,x2,y2,l,tx,ty])=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="2"/><text x="${tx}" y="${ty}" text-anchor="middle" style="font:600 12px var(--f-body);fill:var(--muted)">${l}</text>`).join("")}
@@ -284,69 +326,111 @@ const PANEL={
   <li><b>5</b> le câble principal, de tension F, qui tire la poulie <b>7</b> (rayon r) en A selon x<sub>5</sub> ;</li>
   <li><b>6</b> le câble secondaire : fixé en O, il passe sur la poulie 7 puis sur la poulie 4, et tient le massif de béton <b>8</b> (masse M).</li></ul>
   ${St(.3,`<div class="key"><p><b>Hypothèses :</b> problème plan, masses négligées sauf celle du massif 8, liaisons parfaites. Les tensions dans le câble 6 sont T, T′ et T″.</p></div>`)}
-  ${St(.6,`<p class="note">Notation du prof : X<sub>34</sub> = action de 3 sur 4 selon x. Les équations sont numérotées (1) à (16) comme dans son corrigé.</p>`)}`,
+  ${St(.6,`<h2 style="margin-top:6px">Notations</h2>${GLOSS}`)}`,
  q1:`<p class="q">Q1. Graphe de structure partiel avec les solides 0, 1, 2, 3 et 4.</p>
   ${St(.2,`<p>Un rond par solide, un trait par liaison, avec son nom et son axe :</p>${graph}`)}
   ${St(.8,`<ul><li>0–1 : pivot d'axe (B, z) ; 0–2 : pivot d'axe (C, z) ;</li><li>1–3 et 2–3 : pivots d'axe (O, z) ; 3–4 : pivot d'axe (O, z).</li></ul>
    <p class="note">La boucle 0–1–3–2–0 forme le portique. La poulie 4 est une branche ouverte accrochée à l'axe 3.</p>`)}`,
  q2:`<p class="q">Q2. Trois équations du PFS appliqué en A à E<sub>1</sub> = {portion de câble 6 + 7}.</p>
-  ${St(.2,`<p><b>B.A.M.E. sur E<sub>1</sub> :</b></p><ul>
-   <li>câble 5 sur 7, en A : F<sub>5→7</sub> = F·x<sub>5</sub> ;</li>
-   <li>brin 6 (tension T) : il tire vers O, selon −x<sub>5</sub>, à la distance r <b>sous</b> A ;</li>
-   <li>brin 6′ (tension T′) : il tire aussi selon −x<sub>5</sub>, à la distance r <b>au-dessus</b> de A.</li></ul>`)}
-  ${St(1.8,`<p><b>PFS en A, dans la base 5 :</b></p>
-   ${E(["Théorème de la résultante sur x<sub>5</sub> : −T − T′ + F = 0","(1)"],["Théorème de la résultante sur y<sub>5</sub> : 0 = 0",""],["Théorème du moment en A sur z : −r·T + r·T′ = 0","(2)"])}
-   <p class="note">Moments en A : F passe par A, moment nul. Chaque brin est tangent à la poulie, donc son bras de levier est le rayon r. Les deux brins sont de part et d'autre de A : ils font tourner en sens contraires.</p>`)}`,
- q3:`<p class="q">Q3. En déduire T et T′ en fonction de F.</p>
-  ${St(.2,`${E(["(2) ⇒ T = T′","(3)"],["(1) + (3) ⇒ 2T = F ⇒ T = T′ = F/2","(4)"])}`)}
-  ${St(1,`<div class="key good"><p>C'est un <b>moufle</b> : le câble 6 fait un aller-retour autour de la poulie 7. Chaque brin ne porte que la moitié de F.</p></div>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E. sur E<sub>1</sub>.</b> On travaille dans la <b>base 5</b> (x<sub>5</sub> le long des brins, y<sub>5</sub> perpendiculaire, z hors de la feuille) : toutes les forces sont selon x<sub>5</sub>.</p><ul>
+   <li><b>Câble 5 sur 7</b>, en A : il tire selon +x<sub>5</sub> avec F.</li>
+   <li><b>Brin 6</b> (tension T) : il part de la poulie vers O, donc il tire selon <b>−x<sub>5</sub></b>. Il quitte la poulie au point de tangence <b>P</b>, sous A : AP = (0 ; −r ; 0).</li>
+   <li><b>Brin 6′</b> (tension T′) : il part aussi vers O, selon <b>−x<sub>5</sub></b>. Il quitte la poulie en <b>Q</b>, au-dessus de A : AQ = (0 ; r ; 0).</li></ul>
+   <p class="note">T et T′ ont deux noms : on ne sait pas encore qu'ils sont égaux, c'est le PFS qui va le montrer. P et Q sont des noms qu'on se donne pour faire BABAR. Un brin est tangent, donc le rayon AP (ou AQ) est perpendiculaire au brin.</p>`)}
+  ${St(1,`<p><b>Étape 2 · Les torseurs, chacun à son point</b> (base 5) :</p>
+   <div class="tzs">${T("T<sub>5→7</sub>","A",t3(["F","0","0"]))}${T("T<sub>6→E1</sub>","P",t3(["−T","0","0"]))}${T("T<sub>6′→E1</sub>","Q",t3(["−T′","0","0"]))}</div>`)}
+  ${St(1.8,`<p><b>Étape 3 · BABAR vers A.</b> {T<sub>5→7</sub>} est déjà en A.</p>
+   <p>Brin 6 : M<sub>A</sub> = M<sub>P</sub> + AP ∧ R<sub>6</sub></p>
+   ${BB(B5,["M<sub>P</sub>","AP","R<sub>6</sub>","M<sub>A</sub>"],Z3,["0","−r","0"],["−T","0","0"],["(−r)·0 − 0·0","0·(−T) − 0·0","0·0 − (−r)·(−T)"],["0","0","−r·T"])}
+   <p>Brin 6′ : M<sub>A</sub> = M<sub>Q</sub> + AQ ∧ R<sub>6′</sub></p>
+   ${BB(B5,["M<sub>Q</sub>","AQ","R<sub>6′</sub>","M<sub>A</sub>"],Z3,["0","r","0"],["−T′","0","0"],["r·0 − 0·0","0·(−T′) − 0·0","0·0 − r·(−T′)"],["0","0","+r·T′"])}`)}
+  ${St(2.6,`<p><b>Étape 4 · Les trois torseurs en A :</b></p>
+   <div class="tzs">${T("T<sub>5→7</sub>","A",t3(["F","0","0"]))}${T("T<sub>6→E1</sub>","A",t3(["−T","0","0"],["0","0","−r·T"]))}${T("T<sub>6′→E1</sub>","A",t3(["−T′","0","0"],["0","0","+r·T′"]))}</div>
+   <p><b>Étape 5 · PFS en A :</b> on additionne ligne par ligne.</p>
+   ${E(["Résultante sur x<sub>5</sub> : F + (−T) + (−T′) = 0, soit −T − T′ + F = 0","(1)"],["Résultante sur y<sub>5</sub> : 0 + 0 + 0 = 0",""],["Moment en A sur z : 0 + (−r·T) + r·T′ = 0, soit −r·T + r·T′ = 0","(2)"])}
+   <details class="hint"><summary>Et si on travaillait dans la base 0 ?</summary><div class="body"><p>Les brins tirent selon −x<sub>5</sub> = (−cos α ; sin α), et AP = (−r·sin α ; −r·cos α). On trouve x : cos α·(F − T − T′) = 0, y : −sin α·(F − T − T′) = 0, z : −r·T·(sin²α + cos²α) + r·T′·(sin²α + cos²α) = 0. Les cos et sin se mettent en facteur : on retrouve (1) et (2). La base 5 évite seulement ces calculs.</p></div></details>`)}`,
+ q3:`<p class="q">Q3. En déduire les tensions T et T′ en fonction de F.</p>
+  ${St(.2,`<p><b>Étape 1 · Avec (2) :</b></p>${E(["−r·T + r·T′ = 0",""],["r·T′ = r·T",""],["on divise par r (r ≠ 0) : T′ = T","(3)"])}`)}
+  ${St(1,`<p><b>Étape 2 · Avec (1) et (3)</b> : dans (1), on remplace T′ par T.</p>${E(["−T − T′ + F = 0",""],["−T − T + F = 0",""],["F = 2·T ⇒ T = F/2, et T′ = T = F/2","(4)"])}
+   <p class="note">« (1) + (3) » veut dire « en utilisant (1) et (3) », pas « additionner ».</p>`)}
+  ${St(1.8,`<p><b>Les torseurs en A, avec les valeurs</b> (base 5) :</p>
+   <div class="tzs">${T("T<sub>6→E1</sub>","A",t3(["−F/2","0","0"],["0","0","−r·F/2"]))}${T("T<sub>6′→E1</sub>","A",t3(["−F/2","0","0"],["0","0","+r·F/2"]))}</div>
+   <div class="key good"><p>C'est un <b>moufle</b> : le câble 6 fait un aller-retour autour de la poulie 7, chaque brin ne porte que la moitié de F.</p></div>`)}`,
  q4:`<p class="q">Q4. On isole E<sub>2</sub> = {4 + portion de câble 6}. PFS en O : T″ et le torseur {F<sub>3→4</sub>} en fonction de F.</p>
-  ${St(.2,`<p><b>B.A.M.E. sur E<sub>2</sub> :</b></p><ul>
-   <li>brin 6′ : il tire vers la poulie 7, T′·x<sub>5</sub> = T′·cos α·x − T′·sin α·y, tangent à la poulie 4 (bras de levier 2r) ;</li>
-   <li>brin 6″ : il tire vers le massif, −T″·y, tangent à gauche de la poulie (bras de levier 2r) ;</li>
-   <li>axe 3 sur 4, pivot d'axe (O, z) : X<sub>34</sub>·x + Y<sub>34</sub>·y, moment nul en O.</li></ul>`)}
-  ${St(2.4,`<p><b>PFS en O, dans la base 0 :</b></p>
-   ${E(["Résultante sur x : T′·cos α + X<sub>34</sub> = 0","(5)"],["Résultante sur y : −T″ − T′·sin α + Y<sub>34</sub> = 0","(6)"],["Moment en O sur z : 2r·T″ − 2r·T′ = 0","(7)"])}`)}
-  ${St(3.2,`<p><b>On résout :</b></p>
-   ${E(["(7) + (4) ⇒ T″ = T = T′ = F/2","(8)"],["(5) + (4) ⇒ X<sub>34</sub> = −(F/2)·cos α","(9)"],["(6) + (8) ⇒ Y<sub>34</sub> = (F/2)·(1 + sin α)","(10)"])}
-   <div class="tzs">${T("F<sub>3→4</sub>","O",[["−(F/2)·cos α","0"],["(F/2)·(1 + sin α)","0"],["0","0"]])}</div>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E. sur E<sub>2</sub></b> (base 0, imposée à partir de Q4) :</p><ul>
+   <li><b>Axe 3 sur 4</b>, pivot d'axe (O, z) : X<sub>34</sub>, Y<sub>34</sub>, pas de moment en O.</li>
+   <li><b>Brin 6′</b> : il part de la poulie 4 vers la poulie 7, donc il tire selon <b>+x<sub>5</sub></b> = (cos α ; −sin α). Force : (T′·cos α ; −T′·sin α).</li>
+   <li><b>Brin 6″</b> : il part vers le massif, vers le bas. Force : (0 ; −T″).</li></ul>
+   <p><b>Points de tangence</b> (le rayon 2r est perpendiculaire au brin) :</p><ul>
+   <li><b>U</b>, où part le brin 6′ : le rayon est penché de α par rapport à la verticale, donc OU = (2r·sin α ; 2r·cos α ; 0) (le cos va sur l'axe depuis lequel on mesure α, ici y).</li>
+   <li><b>V</b>, où part le brin 6″ : le brin est vertical, donc le rayon est horizontal, vers la gauche : OV = (−2r ; 0 ; 0).</li></ul>`)}
+  ${St(1.4,`<p><b>Étape 2 · Les torseurs, chacun à son point :</b></p>
+   <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["X<sub>34</sub>","Y<sub>34</sub>","0"]))}${T("T<sub>6′→4</sub>","U",t3(["T′·cos α","−T′·sin α","0"]))}${T("T<sub>6″→4</sub>","V",t3(["0","−T″","0"]))}</div>`)}
+  ${St(2.2,`<p><b>Étape 3 · BABAR vers O.</b> {T<sub>3→4</sub>} est déjà en O.</p>
+   <p>Brin 6′ : M<sub>O</sub> = M<sub>U</sub> + OU ∧ R<sub>6′</sub></p>
+   ${BB(B0,["M<sub>U</sub>","OU","R<sub>6′</sub>","M<sub>O</sub>"],Z3,["2r·sin α","2r·cos α","0"],["T′·cos α","−T′·sin α","0"],["2r·cos α·0 − 0·(−T′·sin α)","0·T′·cos α − 2r·sin α·0","2r·sin α·(−T′·sin α) − 2r·cos α·T′·cos α"],["0","0","−2r·T′"])}
+   <p class="note">Ligne z : −2r·T′·(sin²α + cos²α) = −2r·T′, car sin²α + cos²α = 1.</p>
+   <p>Brin 6″ : M<sub>O</sub> = M<sub>V</sub> + OV ∧ R<sub>6″</sub></p>
+   ${BB(B0,["M<sub>V</sub>","OV","R<sub>6″</sub>","M<sub>O</sub>"],Z3,["−2r","0","0"],["0","−T″","0"],["0·0 − 0·(−T″)","0·0 − (−2r)·0","(−2r)·(−T″) − 0·0"],["0","0","+2r·T″"])}`)}
+  ${St(3,`<p><b>Étape 4 · Les trois torseurs en O :</b></p>
+   <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["X<sub>34</sub>","Y<sub>34</sub>","0"]))}${T("T<sub>6′→4</sub>","O",t3(["T′·cos α","−T′·sin α","0"],["0","0","−2r·T′"]))}${T("T<sub>6″→4</sub>","O",t3(["0","−T″","0"],["0","0","+2r·T″"]))}</div>
+   <p><b>Étape 5 · PFS en O :</b></p>
+   ${E(["Résultante sur x : X<sub>34</sub> + T′·cos α + 0 = 0","(5)"],["Résultante sur y : Y<sub>34</sub> − T′·sin α − T″ = 0","(6)"],["Moment en O sur z : 0 + (−2r·T′) + 2r·T″ = 0","(7)"])}`)}
+  ${St(3.8,`<p><b>Étape 6 · On résout</b>, avec T′ = F/2 (4) :</p>
+   ${E(["(7) : 2r·T″ = 2r·T′ ⇒ T″ = T′ ⇒ T″ = F/2","(8)"],["(5) : X<sub>34</sub> = −T′·cos α = −(F/2)·cos α","(9)"],["(6) : Y<sub>34</sub> = T′·sin α + T″ = (F/2)·sin α + F/2 = (F/2)·(1 + sin α)","(10)"])}
+   <p><b>Les torseurs en O, avec les valeurs :</b></p>
+   <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["−(F/2)·cos α","(F/2)·(1 + sin α)","0"]))}${T("T<sub>6′→4</sub>","O",t3(["(F/2)·cos α","−(F/2)·sin α","0"],["0","0","−r·F"]))}${T("T<sub>6″→4</sub>","O",t3(["0","−F/2","0"],["0","0","+r·F"]))}</div>
+   <p class="note">Raccourci du prof : un brin tangent a pour bras de levier le rayon, donc ±2r × tension.</p>`)}`,
  q5:`<p class="q">Q5. Masse M du massif 8 qui donne la tension F.</p>
-  ${St(.2,`<p><b>On isole 8 :</b> le brin 6″ le tient vers le haut (T″), son poids M·g tire vers le bas.</p>
-   ${E(["Résultante sur y : T″ − M·g = 0","(11)"],["(11) + (8) ⇒ M = F / (2g)","(12)"])}`)}
-  ${St(1.2,`<p class="note">Le massif ne pèse que la moitié de la tension F voulue : c'est le moufle de la poulie 7 qui double l'effort.</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · On isole 8.</b> Deux actions : le brin 6″ part vers la poulie, <b>vers le haut</b> (+T″) ; le poids tire vers le bas. Les deux sont sur la verticale de G : on écrit tout en G, sans BABAR.</p>
+   <div class="tzs">${T("T<sub>6″→8</sub>","G",t3(["0","T″","0"]))}${T("T<sub>pes→8</sub>","G",t3(["0","−M·g","0"]))}</div>`)}
+  ${St(1,`<p><b>Étape 2 · PFS en G :</b></p>${E(["Résultante sur x : 0 + 0 = 0",""],["Résultante sur y : T″ − M·g = 0","(11)"],["Moment sur z : 0 + 0 = 0",""])}
+   <p><b>Étape 3 · On résout</b> avec T″ = F/2 (8) :</p>${E(["M·g = T″ = F/2",""],["M = F / (2g)","(12)"])}
+   <p class="note">Le massif ne pèse que la moitié de F : c'est le moufle de la poulie 7.</p>`)}`,
  q6:`<p class="q">Q6. Isoler la barre 1. Montrer que {F<sub>0→1</sub>} et {F<sub>3→1</sub>} sont des glisseurs, et donner leur support.</p>
-  ${St(.2,`<p><b>B.A.M.E. :</b> pivot en B (sol 0) et pivot en O (axe 3). Masse négligée : la barre est un <b>solide soumis à 2 forces</b>.</p>`)}
-  ${St(1,`<p>Les deux forces sont opposées et portées par la même droite, BO, qui est verticale. Chaque torseur est un <b>glisseur</b> (moment nul sur sa droite support) :</p>
-   <div class="tzs">${T("F<sub>0→1</sub>","B",[["0","0"],["Y<sub>01</sub>","0"],["0","0"]])}${T("F<sub>3→1</sub>","O",[["0","0"],["Y<sub>31</sub>","0"],["0","0"]])}</div>
-   <p>Droite support : <b>(B, y)</b>, et Y<sub>31</sub> = −Y<sub>01</sub>.</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E.</b> : pivot en B (sol 0) et pivot en O (axe 3). Masse négligée.</p>
+   <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["X<sub>01</sub>","Y<sub>01</sub>","0"]))}${T("T<sub>3→1</sub>","O",t3(["X<sub>31</sub>","Y<sub>31</sub>","0"]))}</div>`)}
+  ${St(1,`<p><b>Étape 2 · BABAR, de O vers B.</b> O est à L au-dessus de B : BO = (0 ; L ; 0).</p>
+   ${BB(B0,["M<sub>O</sub>","BO","R<sub>31</sub>","M<sub>B</sub>"],Z3,["0","L","0"],["X<sub>31</sub>","Y<sub>31</sub>","0"],["L·0 − 0·Y<sub>31</sub>","0·X<sub>31</sub> − 0·0","0·Y<sub>31</sub> − L·X<sub>31</sub>"],["0","0","−L·X<sub>31</sub>"])}`)}
+  ${St(1.8,`<p><b>Étape 3 · PFS en B :</b></p>${E(["Résultante sur x : X<sub>01</sub> + X<sub>31</sub> = 0",""],["Résultante sur y : Y<sub>01</sub> + Y<sub>31</sub> = 0",""],["Moment sur z : 0 + (−L·X<sub>31</sub>) = 0 ⇒ X<sub>31</sub> = 0 ⇒ X<sub>01</sub> = 0",""])}
+   <p><b>Résultat :</b> les deux forces n'ont qu'une composante sur y, et elles sont opposées. Ce sont des <b>glisseurs</b> (moment nul sur leur droite) de support <b>(B, y)</b> :</p>
+   <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","Y<sub>01</sub>","0"]))}${T("T<sub>3→1</sub>","O",t3(["0","−Y<sub>01</sub>","0"]))}</div>
+   <p class="note">C'est la règle « solide soumis à 2 forces » que le prof cite directement.</p>`)}`,
  q7:`<p class="q">Q7. Avec R<sub>B</sub>, la valeur algébrique de l'action de 0 sur 1 : exprimer {F<sub>0→1</sub>}.</p>
-  ${St(.2,`<div class="tzs">${T("F<sub>0→1</sub>","B",[["0","0"],["R<sub>B</sub>","0"],["0","0"]])}</div><p>soit F<sub>0→1</sub> = R<sub>B</sub>·y, avec une seule inconnue.</p>`)}`,
+  ${St(.2,`<p>On pose Y<sub>01</sub> = R<sub>B</sub> :</p><div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","R<sub>B</sub>","0"]))}</div>
+   <p class="note">R<sub>B</sub> &gt; 0 : le sol pousse la barre vers le haut (compression). R<sub>B</sub> &lt; 0 : il la tire vers le bas (traction).</p>`)}`,
  q8:`<p class="q">Q8. Isoler la barre 2. Montrer que {F<sub>0→2</sub>} et {F<sub>3→2</sub>} sont des glisseurs, et donner leur support.</p>
-  ${St(.2,`<p><b>B.A.M.E. :</b> pivot en C et pivot en O, masse négligée : <b>solide soumis à 2 forces</b>.</p>`)}
-  ${St(1,`<div class="tzs">${T("F<sub>0→2</sub>","C",[["X<sub>02</sub>","0"],["Y<sub>02</sub>","0"],["0","0"]])}${T("F<sub>3→2</sub>","O",[["X<sub>32</sub>","0"],["Y<sub>32</sub>","0"],["0","0"]])}</div>
-   <p>Ce sont deux glisseurs opposés de droite support <b>(CO)</b>, la direction de la barre 2.</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · B.A.M.E.</b> : pivot en C et pivot en O, masse négligée.</p>
+   <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["X<sub>02</sub>","Y<sub>02</sub>","0"]))}${T("T<sub>3→2</sub>","O",t3(["X<sub>32</sub>","Y<sub>32</sub>","0"]))}</div>`)}
+  ${St(1,`<p><b>Étape 2 · BABAR, de O vers C.</b> C est à L sous O et à L·tan α à droite : CO = (−L·tan α ; L ; 0).</p>
+   ${BB(B0,["M<sub>O</sub>","CO","R<sub>32</sub>","M<sub>C</sub>"],Z3,["−L·tan α","L","0"],["X<sub>32</sub>","Y<sub>32</sub>","0"],["L·0 − 0·Y<sub>32</sub>","0·X<sub>32</sub> − (−L·tan α)·0","(−L·tan α)·Y<sub>32</sub> − L·X<sub>32</sub>"],["0","0","−L·tan α·Y<sub>32</sub> − L·X<sub>32</sub>"])}`)}
+  ${St(1.8,`<p><b>Étape 3 · PFS en C :</b></p>${E(["Résultante : X<sub>02</sub> + X<sub>32</sub> = 0 ; Y<sub>02</sub> + Y<sub>32</sub> = 0",""],["Moment sur z : −L·tan α·Y<sub>32</sub> − L·X<sub>32</sub> = 0 ⇒ X<sub>32</sub> = −tan α·Y<sub>32</sub>",""])}
+   <p>La force en O vaut donc Y<sub>32</sub>·(−tan α ; 1), qui est parallèle à (−sin α ; cos α) : la direction de la barre. Ce sont deux <b>glisseurs</b> opposés de support <b>(CO)</b>.</p>`)}`,
  q9:`<p class="q">Q9. Avec R<sub>C</sub> : exprimer {F<sub>0→2</sub>} dans la base 0 en fonction de R<sub>C</sub> et α.</p>
-  ${St(.2,`<p>On note y<sub>2</sub> la direction de la barre, de C vers O. La barre est inclinée de α par rapport à la verticale, et monte vers la gauche :</p>
-   ${E(["y<sub>2</sub> = −sin α·x + cos α·y",""],["F<sub>0→2</sub> = R<sub>C</sub>·y<sub>2</sub>",""])}`)}
-  ${St(1,`<div class="tzs">${T("F<sub>0→2</sub>","C",[["−R<sub>C</sub>·sin α","0"],["R<sub>C</sub>·cos α","0"],["0","0"]])}</div>
-   <p class="note">Le sin va sur x (côté opposé à α, qui est mesuré depuis la verticale), le cos sur y (côté adjacent).</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · La direction de la barre.</b> On note y<sub>2</sub> le vecteur unitaire de C vers O. La barre est inclinée de α par rapport à la <b>verticale</b> et monte vers la gauche : cos α sur y (l'axe depuis lequel on mesure α), sin α sur x, avec un signe moins car on va vers la gauche.</p>
+   ${E(["y<sub>2</sub> = −sin α·x + cos α·y",""])}`)}
+  ${St(1,`<p><b>Étape 2 · La force :</b> F<sub>0→2</sub> = R<sub>C</sub>·y<sub>2</sub> = (−R<sub>C</sub>·sin α ; R<sub>C</sub>·cos α).</p>
+   <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["−R<sub>C</sub>·sin α","R<sub>C</sub>·cos α","0"]))}${T("T<sub>3→2</sub>","O",t3(["R<sub>C</sub>·sin α","−R<sub>C</sub>·cos α","0"]))}</div>`)}`,
  q10:`<p class="q">Q10. On isole E = {1, 2, 3, 4, 6, 7, 8}. Bilan des actions mécaniques extérieures.</p>
-  ${St(.2,`<ul><li>Pivot d'axe (B, z), 0 → 1 : F<sub>0→1</sub> = R<sub>B</sub>·y ;</li>
-   <li>Pivot d'axe (C, z), 0 → 2 : F<sub>0→2</sub> = −R<sub>C</sub>·sin α·x + R<sub>C</sub>·cos α·y ;</li>
-   <li>Câble 5 sur 7 : F<sub>5→7</sub> = F·x<sub>5</sub> = F·cos α·x − F·sin α·y ;</li>
-   <li>Pesanteur sur 8 : −M·g·y.</li></ul>`)}
-  ${St(1.4,`<p class="note">Tout le reste est intérieur à E : les pivots en O, les poulies, le câble 6. C'est l'intérêt d'isoler un grand ensemble : il ne reste que 2 inconnues, R<sub>B</sub> et R<sub>C</sub>.</p>`)}`,
+  ${St(.2,`<p>Seuls le sol 0, le câble 5 et la Terre sont en dehors de E. Quatre actions extérieures, dans la base 0 :</p>
+   <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","R<sub>B</sub>","0"]))}${T("T<sub>0→2</sub>","C",t3(["−R<sub>C</sub>·sin α","R<sub>C</sub>·cos α","0"]))}</div>
+   <div class="tzs">${T("T<sub>5→7</sub>","A",t3(["F·cos α","−F·sin α","0"]))}${T("T<sub>pes→8</sub>","G",t3(["0","−M·g","0"]))}</div>
+   <p class="note">F<sub>5→7</sub> = F·x<sub>5</sub> avec x<sub>5</sub> = (cos α ; −sin α). Tout le reste est intérieur : pivots en O, poulies, câble 6. Il ne reste que 2 inconnues, R<sub>B</sub> et R<sub>C</sub>.</p>`)}`,
  q11:`<p class="q">Q11. PFS sur E, puis R<sub>B</sub> et R<sub>C</sub>.</p>
-  ${St(.2,`<p><b>PFS sur E au point C :</b></p>
-   ${E(["Résultante sur x : F·cos α − R<sub>C</sub>·sin α = 0","(13)"],["Résultante sur y : −F·sin α + R<sub>C</sub>·cos α − M·g + R<sub>B</sub> = 0","(14)"],["Moment sur z : équation inutile",""])}
-   <p class="note">Deux inconnues, deux équations de résultante : l'équation de moment n'est pas nécessaire (elle demanderait des longueurs que l'énoncé ne donne pas).</p>`)}
-  ${St(1.4,`<p><b>On résout :</b></p>
-   ${E(["(13) ⇒ R<sub>C</sub> = F·cos α / sin α","(15)"],["(14) + (15) + (12) ⇒ R<sub>B</sub> = F·sin α − F·(cos α / sin α)·cos α + F/2","(16)"])}
-   <p class="note">Dans (14), on remplace R<sub>C</sub> par (15) et M·g par F/2, d'après (12).</p>`)}`,
+  ${St(.2,`<p><b>Étape 1 · Les résultantes</b> (la colonne force ne dépend pas du point) : on additionne les 4 torseurs ligne par ligne.</p>
+   ${E(["x : 0 + (−R<sub>C</sub>·sin α) + F·cos α + 0 = 0, soit F·cos α − R<sub>C</sub>·sin α = 0","(13)"],["y : R<sub>B</sub> + R<sub>C</sub>·cos α − F·sin α − M·g = 0","(14)"],["Moment sur z : équation inutile",""])}
+   <p class="note">Deux inconnues, deux équations de résultante : le moment n'est pas nécessaire (il demanderait des longueurs non données).</p>`)}
+  ${St(1.2,`<p><b>Étape 2 · R<sub>C</sub> avec (13) :</b></p>${E(["R<sub>C</sub>·sin α = F·cos α",""],["R<sub>C</sub> = F·cos α / sin α","(15)"])}`)}
+  ${St(2,`<p><b>Étape 3 · R<sub>B</sub> avec (14), (15) et (12) :</b></p>${E(["R<sub>B</sub> = F·sin α + M·g − R<sub>C</sub>·cos α",""],["M·g = F/2 (12) ; R<sub>C</sub>·cos α = F·cos²α / sin α (15)",""],["R<sub>B</sub> = F·sin α − F·cos²α / sin α + F/2","(16)"])}`)}`,
  q12:`<p class="q">Q12. Pour α = 30°, chaque barre est-elle tendue ou comprimée ?</p>
-  ${St(.2,`<p><b>Barre 2 :</b></p>${E(["R<sub>C</sub> = F·cos 30 / sin 30 = √3·F ≈ 1,73·F",""])}<p>R<sub>C</sub> &gt; 0 : le sol <b>pousse</b> la barre vers O. <b>Barre 2 comprimée.</b></p>`)}
-  ${St(1.2,`<p><b>Barre 1 :</b></p>${E(["R<sub>B</sub> = F·sin 30 − F·(cos 30 / sin 30)·cos 30 + F/2",""],["R<sub>B</sub> = F/2 − F·3/2 + F/2 = −F/2",""])}<p>R<sub>B</sub> &lt; 0 : le sol <b>tire</b> la barre vers le bas. <b>Barre 1 tendue.</b></p>`)}
-  ${St(2.2,`<div class="key"><p><b>Lire le signe :</b> R<sub>B</sub> et R<sub>C</sub> sont comptés de l'appui vers O, vers l'intérieur de la barre. Positif : poussée, la barre est comprimée. Négatif : traction, la barre est tendue.</p></div>
+  ${St(.2,`<p><b>Valeurs :</b> sin 30° = 1/2 ; cos 30° = √3/2 ; cos²30° = 3/4.</p>`)}
+  ${St(.8,`<p><b>Barre 2 :</b></p>${E(["R<sub>C</sub> = F·(√3/2) / (1/2) = √3·F ≈ 1,73·F",""],["−R<sub>C</sub>·sin 30° = −√3·F × 1/2 = −(√3/2)·F",""],["R<sub>C</sub>·cos 30° = √3·F × √3/2 = (3/2)·F",""])}
+   <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["−(√3/2)·F","(3/2)·F","0"]))}</div>
+   <p>R<sub>C</sub> &gt; 0 : le sol <b>pousse</b> la barre vers O. <b>Barre 2 comprimée.</b></p>`)}
+  ${St(1.8,`<p><b>Barre 1 :</b></p>${E(["R<sub>B</sub> = F·(1/2) − F·(3/4) / (1/2) + F/2",""],["R<sub>B</sub> = F/2 − 3F/2 + F/2 = −F/2",""])}
+   <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","−F/2","0"]))}</div>
+   <p>R<sub>B</sub> &lt; 0 : le sol <b>tire</b> la barre vers le bas. <b>Barre 1 tendue.</b></p>`)}
+  ${St(2.6,`<div class="key"><p><b>Lire le signe :</b> R<sub>B</sub> et R<sub>C</sub> sont comptés de l'appui vers O, vers l'intérieur de la barre. Positif : poussée, compression. Négatif : traction, tension.</p></div>
    <p class="note">Bouge le curseur α : à partir d'environ 36°, R<sub>B</sub> devient positif et la barre 1 passe en compression.</p>`)}`,
 };
 
@@ -359,6 +443,7 @@ function setScene(s){
 document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setScene(b.dataset.s)));
 $("replay").addEventListener("click",()=>setScene(scene));
 $("alpha").addEventListener("input",ev=>{al=+ev.target.value; t0=Math.min(t0,performance.now()-10000); if(!raf) raf=requestAnimationFrame(render)});
+$("gloss").innerHTML=GLOSS;
 setScene("sys");
 })();
 </script>
