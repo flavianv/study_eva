@@ -33,6 +33,7 @@ fs.copyFileSync(path.join(HERE,"site.css"), path.join(OUT,"site.css"));
 // ---------- pages ----------
 const EX = [
   ["torseurs.html","Torseurs : l'essentiel","The five ideas you need for every statics exercise.","read","Fiche"],
+  ["methode.html","Méthode : résoudre un exercice de statique","The 10-step method as a one-page cheat sheet, with the air-vent damper as a running example, a joint table and the usual traps.","read","Fiche"],
   ["poignee.html","Poignée de porte","Pivot of axis y, moving a moment with BABAR, and a PFS that has no solution.","sol","Corrigé"],
   ["pedale.html","Pédale de commande","A see-saw in 3D: find the foot force F and the action of the pivot.","sol","Corrigé"],
   ["suspension.html","Suspension automobile","Two-force members, a PFS on {4+6} then on arm 2: does the car sag less than 12 cm? Animated on the mechanism.","play","Interactif"],
@@ -56,13 +57,13 @@ const rows = (list,start) => list.map(([f,t,d,k,lab],i)=>`<a class="row" href="$
 const CHIM = await (await import("./chimie_pages.mjs")).default({page, table, V, T, fs, path, ROOT, HERE, OUT, SITE, rows});
 page("index.html",{home:true,
   lede:"Cours, fiches et exercices corrigés : sciences de l'ingénieur (statique, liaisons mécaniques), puis chimie (quantité de matière, dissolution et dilution, dosage par étalonnage). Les exercices interactifs se corrigent tout seuls, et chaque exercice a sa solution pas à pas.",
-  body:`<section><div class="sec-head"><h2>Statique : torseurs</h2><span class="muted">Actions mécaniques, déplacement de moments, PFS</span></div><div class="toc">${rows(EX.slice(0,11),1)}</div></section>
-<section><div class="sec-head"><h2>Modélisation : liaisons mécaniques</h2><span class="muted">Classes d'équivalence, graphe, schéma cinématique</span></div><div class="toc">${rows(EX.slice(11),12)}</div></section>
+  body:`<section><div class="sec-head"><h2>Statique : torseurs</h2><span class="muted">Actions mécaniques, déplacement de moments, PFS</span></div><div class="toc">${rows(EX.slice(0,12),1)}</div></section>
+<section><div class="sec-head"><h2>Modélisation : liaisons mécaniques</h2><span class="muted">Classes d'équivalence, graphe, schéma cinématique</span></div><div class="toc">${rows(EX.slice(12),13)}</div></section>
 ${CHIM.home}
 <section class="key"><p><b>How to use the interactive exercises.</b> Colour the parts into classes, move the slider to watch the mechanism, press <i>Vérifier</i>. The full answers sit at the bottom of each page, folded. Try first, then open them. In the chemistry trainers, every question has a hint and a step-by-step solution.</p></section>`});
 
 page("torseurs.html",{title:"Torseurs : l'essentiel",eyebrow:"Statique · Fiche",
-  lede:"A torseur describes a mechanical action: what it pushes (force) and what it turns (moment), written at one point.",next:["poignee.html","Poignée de porte"],
+  lede:"A torseur describes a mechanical action: what it pushes (force) and what it turns (moment), written at one point.",next:["methode.html","Méthode"],
   body:`<section><h2>1 · A torseur = force column + moment column</h2>
 <div class="tzs">${T("","P",[["X","L"],["Y","M"],["Z","N"]])}</div>
 <ul><li>The <b>force</b> (resultant) makes things slide. It is the same at every point.</li>
@@ -88,9 +89,57 @@ ${table(["Motion along / about x","In the joint's torseur"],[["translation free"
 <p>Isolated system in equilibrium ⇒ sum of external torseurs <b>written at the same point</b> = 0 ⇒ 6 equations (3 forces, 3 moments).</p>
 <ol><li>Isolate the system.</li><li>List the external actions and write their torseurs.</li><li>Move every moment to the same point (BABAR).</li><li>Write the 6 equations and solve.</li></ol></section>`});
 
+
+// ---------- cheat sheet: the method, with the air-vent damper as a running example ----------
+const tz=(name,pt,f,m)=>T(name,pt,f.map((v,i)=>[v,m[i]]),false);
+const Z3=["0","0","0"];
+const MS=(n,title,rule,ex)=>`<section class="mstep"><h2><span class="mn">${n}</span>${title}</h2><div class="mgrid"><div class="rule">${rule}</div><div class="ex"><p class="exh">Exemple · bouche de climatisation</p>${ex}</div></div></section>`;
+page("methode.html",{title:"Méthode : résoudre un exercice de statique",eyebrow:"Statique · Fiche méthode",
+  lede:"Les 10 étapes, toujours dans le même ordre. À droite de chaque étape, le même exemple fil rouge : la bouche de climatisation (TD 22), où l'on cherche la pression p dans le vérin et où l'on vérifie p < 2 bar.",
+  prev:["torseurs.html","Torseurs : l'essentiel"],next:["poignee.html","Poignée de porte"],
+  body:`<section class="key"><p><b>En une phrase :</b> on isole un système, on écrit toutes les actions extérieures sous forme de torseurs <b>dans la même base</b>, on les ramène <b>au même point</b> avec BABAR, on écrit que leur somme est nulle (PFS), et on ne garde que les équations qui contiennent ce qu'on cherche.</p>
+<p class="muted" style="margin-top:8px">Exemple fil rouge : le clapet 1 tient au mur par une rotule en A et une linéaire annulaire d'axe (O, y). L'air le pousse en M ; un vérin {2+3}, entre B (sur le clapet) et D (sur le mur), le retient. <a href="clim.html">Voir l'exercice complet.</a></p></section>
+${MS(1,"Lire l'énoncé",`<ul><li><b>Ce qu'on cherche</b> : une force, une relation entrée-sortie, une exigence du cahier des charges.</li><li><b>Les bases et les angles</b> : depuis quel axe chaque angle est mesuré.</li><li><b>Les coordonnées des points</b> : repérer les <b>0</b>, ils simplifient tout.</li><li><b>Les hypothèses</b> : plan ou 3D, poids négligé ou non, liaisons parfaites.</li></ul>`,
+ `<ul><li>On cherche <b>p</b>, et l'exigence est <b>p &lt; 2 bar</b>.</li><li>M (0 ; a ; −l), B (0 ; 2a+c ; d), D (−e ; 2a+c ; 0) : x<sub>M</sub> = x<sub>B</sub> = 0, et B, D ont le même y.</li><li>Problème en 3D, liaisons parfaites, poids du vérin négligé.</li></ul>`)}
+${MS(2,"Graphe des liaisons",`<p>Un rond par pièce, un trait par liaison, avec son <b>type</b> et son <b>axe</b>. C'est la carte de « qui touche qui ».</p>`,
+ `<p class="mono">0 —rotule A— 1<br>0 —linéaire annulaire (O, y)— 1<br>1 —rotule B— 2 —(intérieur du vérin)— 3 —rotule D— 0</p>`)}
+${MS(3,"Choisir la stratégie",`<ul><li>Chercher les <b>pièces à deux actions</b> (deux liaisons, rien d'autre) : bielles, vérins, ressorts, barres. Leur force est portée par la droite qui joint les deux liaisons : une direction gratuite. On les isole <b>en premier</b>.</li><li>Trouver la pièce qui reçoit <b>l'entrée et la sortie</b> : c'est elle qu'on isole à la fin.</li></ul>`,
+ `<ul><li>{2+3} n'a que deux rotules, en B et en D : la force du vérin est le long de <b>BD</b> (Q3).</li><li>Le clapet 1 reçoit l'air <b>et</b> le vérin : on l'isole pour relier p et F<sub>air</sub> (Q4).</li></ul>`)}
+${MS(4,"Isoler et faire le B.A.M.E.",`<p>Entourer le système sur le graphe. Les actions extérieures sont :</p><ul><li>chaque <b>trait qui traverse la frontière</b> ;</li><li>les <b>charges</b> données (pression, vent, poussée…) ;</li><li>le <b>poids</b>, s'il n'est pas négligé.</li></ul><p>Les liaisons à l'intérieur ne s'écrivent pas.</p>`,
+ `<p>On isole le clapet 1 :</p><ul><li>vérin en B ;</li><li>rotule en A ;</li><li>linéaire annulaire en O ;</li><li>air en M ;</li><li>poids en G.</li></ul>`)}
+${MS(5,"Écrire chaque torseur à son point, dans la base 0",`<ul><li><b>Liaison</b> : mouvement libre ⇒ 0, mouvement bloqué ⇒ inconnue (tableau plus bas). Le moment est écrit au centre de la liaison.</li><li><b>Force connue penchée</b> : cos sur l'axe <b>depuis lequel on mesure l'angle</b>, sin sur l'autre, puis les signes.</li><li><b>Câble</b> : il tire toujours, le long du câble, en s'éloignant du système.</li><li><b>Résultat d'une question précédente</b> : changer le signe si on regarde l'autre pièce (action réciproque).</li></ul>`,
+ `<div class="tzs">${tz("F<sub>0→1</sub>","A",["A<sub>x</sub>","A<sub>y</sub>","A<sub>z</sub>"],Z3)}${tz("F<sub>0→1</sub>","O",["O<sub>x</sub>","0","O<sub>z</sub>"],Z3)}</div>
+ <p>Vérin : tan α = d / e, donc F<sub>2→1</sub> = p·S·x<sub>2</sub> = (p·S·cos α ; 0 ; p·S·sin α).</p>
+ <div class="tzs">${tz("F<sub>2→1</sub>","B",["p·S·cos α","0","p·S·sin α"],Z3)}${tz("F<sub>air→1</sub>","M",["F<sub>air</sub>","0","0"],Z3)}</div>`)}
+${MS(6,"Choisir le point et l'équation",`<ul><li><b>Le point</b> : là où il y a le plus d'inconnues (une liaison), pour que leurs moments disparaissent.</li><li><b>L'équation</b> : celle qui ne contient que ce qu'on cherche. Très souvent : le <b>moment autour de l'axe de rotation</b>, écrit en un point de cet axe.</li></ul>`,
+ `<p>Le clapet tourne autour de (O, y) : on écrit le <b>moment en O, projeté sur y</b>.</p><ul><li>O : aucun moment en son centre.</li><li>A : sur l'axe y, donc rien autour de y.</li><li>Poids : vertical, et G sous l'axe, donc rien autour de y.</li></ul>`)}
+${MS(7,"BABAR",`<p class="formula">M<sub>nouveau</sub> = M<sub>ancien</sub> + (nouveau → ancien) ∧ R</p><ul><li>Le vecteur va <b>du nouveau point vers l'ancien</b> : arrivée − départ.</li><li>Le vecteur et la force doivent être <b>dans la même base</b> : projeter d'abord, BABAR ensuite.</li><li>Une force a un moment nul à son propre point.</li></ul>${V(["a","b","c"],"∧",["d","e","f"],"=",["b·f − c·e","c·d − a·f","a·e − b·d"])}`,
+ `<p>Air : OM = (0 ; a ; −l)</p><p>${V(["0","a","−l"],"∧",["F<sub>air</sub>","0","0"],"=",["0","−l·F<sub>air</sub>","−a·F<sub>air</sub>"])}</p>
+ <p>Vérin : OB = (0 ; 2a+c ; d)</p><p>${V(["0","2a+c","d"],"∧",["p·S·cos α","0","p·S·sin α"],"=",["…","d·p·S·cos α","…"])}</p>`)}
+${MS(8,"PFS : additionner ligne par ligne",`<p>Lignes de forces : somme des forces = 0. Lignes de moments : somme des moments = 0. Écrire <b>tous</b> les termes, zéros compris, puis justifier chaque terme qui disparaît.</p>`,
+ `<p class="formula">−l·F<sub>air</sub> + d·p·S·cos α = 0</p><p class="muted">Les termes de A, O et du poids valent 0 sur y (étape 6).</p>`)}
+${MS(9,"Résoudre",`<ul><li>Compter les inconnues et les équations.</li><li>Commencer par l'équation qui n'a <b>qu'une</b> inconnue, puis la remplacer dans les autres.</li><li>« (1) + (3) » veut dire « en utilisant (1) et (3) ».</li></ul>`,
+ `<p class="formula">p = l·F<sub>air</sub> / (S·d·cos α)</p>`)}
+${MS(10,"Conclure",`<ul><li><b>Unités SI</b> : cm → m ; mm² → m² (× 10⁻⁶) ; Pa → bar (÷ 10⁵).</li><li><b>Signes</b> : négatif = sens opposé à l'axe ; barre avec R &lt; 0 = tendue.</li><li><b>Comparer</b> à l'exigence et écrire une phrase claire.</li></ul>`,
+ `<p>cos α = 30 / √(30² + 20²) ≈ 0,832 ; S = 20 cm² = 20 × 10⁻⁴ m²</p><p>p = 40 × 150 / (20 × 10⁻⁴ × 20 × 0,832) ≈ 180 300 Pa ≈ <b>1,8 bar</b></p><p><b>1,8 bar &lt; 2 bar : exigence satisfaite</b>, avec 0,2 bar de marge.</p>`)}
+<section><h2>Torseurs des liaisons usuelles</h2><p class="muted">Écrits au centre de la liaison. Règle : mouvement libre ⇒ 0, mouvement bloqué ⇒ inconnue. L'axe de la liaison est pris selon x (adapter à l'axe réel).</p>
+<div class="tzs">${tz("pivot (x)","A",["X","Y","Z"],["0","M","N"])}${tz("pivot glissant (x)","A",["0","Y","Z"],["0","M","N"])}${tz("glissière (x)","A",["0","Y","Z"],["L","M","N"])}</div>
+<div class="tzs">${tz("rotule","A",["X","Y","Z"],Z3)}${tz("linéaire annulaire (x)","A",["0","Y","Z"],Z3)}${tz("encastrement","A",["X","Y","Z"],["L","M","N"])}</div>
+<div class="tzs">${tz("appui plan (normale z)","A",["0","0","Z"],["L","M","0"])}${tz("ponctuelle (normale z)","A",["0","0","Z"],Z3)}${tz("pivot (z), problème plan","A",["X","Y","0"],Z3)}</div></section>
+<section><h2>Pièges fréquents</h2>${table(["Piège","Exemple vu en TD"],[
+ ["Une même lettre pour deux choses différentes","<b>L</b> point et longueur (remonte-pente) ; <b>D<sub>x</sub></b> de Q2 et de Q4 (pédale de frein)"],
+ ["Oublier de changer le signe en changeant de pièce","D<sub>y</sub> et G<sub>y</sub> (pédale de frein)"],
+ ["Une liaison qui glisse le long d'un axe n'a pas de force sur cet axe","pas de B<sub>z</sub> (console), pas de O<sub>y</sub> (bouche de clim)"],
+ ["Un brin de câble est tangent : son bras de levier est le rayon","T × r, T′ × 2r (remonte-pente)"],
+ ["Une force qui coupe l'axe de rotation n'a pas de moment autour de lui","le poids et les liaisons (bouche de clim)"],
+ ["Parenthèses à la calculatrice","2250 / (π × 0,01²), pas 2250 / π × 0,01²"],
+ ["Supposer égales deux inconnues avant de l'avoir montré","T et T′ (remonte-pente)"],
+ ["Mélanger les bases dans BABAR","projeter dans la base 0 avant le produit vectoriel"]])}</section>
+<section class="key warn"><p><b>Si le mécanisme bouge (cinématique) :</b> avant la statique, écrire la <b>fermeture géométrique</b> autour de la boucle du graphe (AB + BC + … = 0), la projeter sur les axes, et en tirer les positions (h, λ, angles). Voir le <a href="broyeur.html">broyeur</a>.</p></section>`});
+
 page("poignee.html",{title:"Poignée de porte",eyebrow:"Statique · Corrigé",
   lede:"A user pushes on the handle at A with ‖F‖ = 30 N. The handle turns on the door through a pivot of axis y centred at E (middle of CD). Goal: the mechanical action at E.",
-  prev:["torseurs.html","Torseurs : l'essentiel"],next:["pedale.html","Pédale de commande"],
+  prev:["methode.html","Méthode"],next:["pedale.html","Pédale de commande"],
   body:`${sheets([["clanta.jpeg","Feuille 1 : données et Q1"],["clanta2.jpeg","Feuille 2 : Q2 à Q4"]])}
 <section><h2>Data</h2><p>Axes: z up, y along the shaft (from D toward C), x along the lever arm (toward A).</p>
 <p>Dimensions read from the figure: elbow → A = 111.75 mm along x, elbow → C = 37.75 mm along y, CD = 41.90 mm ⇒ CE = 20.95 mm.</p></section>
@@ -196,6 +245,6 @@ inter("SI_torseurs", "portail.html", ["clim.html","Bouche de climatisation"]);
 inter("SI_torseurs", "clim.html", ["remonte_pente.html","Remonte-pente"]);
 inter("SI_torseurs", "remonte_pente.html", ["broyeur.html","Broyeur"]);
 inter("SI_torseurs", "broyeur.html", ["liaisons.html","Liaisons : la méthode"]);
-const INTER = EX.slice(12);
+const INTER = EX.slice(13);
 INTER.forEach(([f],i)=>inter("SI_liaisons", f, INTER[i+1]));
 console.log(fs.readdirSync(OUT).join("\n"));

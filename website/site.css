@@ -86,3 +86,15 @@ details.sheet summary{cursor:pointer;padding:12px 0;font:600 1rem var(--f-disp);
 .sym figure{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:10px}
 .sym svg{display:block;width:100%;height:auto}
 .sym figcaption{text-align:center;font:600 .95rem var(--f-disp);color:var(--ink)}
+
+/* method cheat sheet: rule on the left, running example on the right */
+.mstep h2{display:flex;align-items:center;gap:10px}
+.mstep .mn{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--sheet);font:700 1rem var(--f-disp);flex:none}
+.mgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.mgrid{grid-template-columns:1fr}}
+.mgrid>*{min-width:0}
+.mgrid .ex{background:var(--sheet);border:1px solid var(--line);border-left:4px solid var(--cC);border-radius:4px;padding:10px 14px;overflow-x:auto}
+.mgrid .ex p,.mgrid .ex ul{margin:0 0 8px}
+.mgrid .exh{font:600 .75rem var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--cC)}
+.mgrid .formula{font-size:1rem}
+@media print{.nb{background:none}.mgrid{grid-template-columns:1fr 1fr}.mstep{break-inside:avoid}}
