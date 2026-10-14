@@ -435,8 +435,14 @@ const PANEL={
    <li><b>Brin 6′</b> : il part de la poulie 4 vers la poulie 7, donc il tire selon <b>+x<sub>5</sub></b> = (cos α ; −sin α). Force : (T′·cos α ; −T′·sin α).</li>
    <li><b>Brin 6″</b> : il part vers le massif, vers le bas. Force : (0 ; −T″).</li></ul>
    <p><b>Points de tangence</b> (le rayon 2r est perpendiculaire au brin) :</p><ul>
-   <li><b>U</b>, où part le brin 6′ : le rayon est penché de α par rapport à la verticale, donc OU = (2r·sin α ; 2r·cos α ; 0) (le cos va sur l'axe depuis lequel on mesure α, ici y).</li>
-   <li><b>V</b>, où part le brin 6″ : le brin est vertical, donc le rayon est horizontal, vers la gauche : OV = (−2r ; 0 ; 0).</li></ul>`)}
+   <li><b>U</b>, où part le brin 6′ : OU = (2r·sin α ; 2r·cos α ; 0). Le calcul est détaillé juste en dessous.</li>
+   <li><b>V</b>, où part le brin 6″ : le brin est vertical, donc le rayon est horizontal, vers la gauche : OV = (−2r ; 0 ; 0).</li></ul>
+   <details class="hint" open><summary>Calcul de OU, pas à pas</summary><div class="body">
+   <p><b>1.</b> Direction du brin 6′ : x<sub>5</sub> = (cos α ; −sin α ; 0).</p>
+   <p><b>2.</b> Le brin est tangent à la poulie, donc le rayon OU est <b>perpendiculaire</b> à x<sub>5</sub>. Les deux vecteurs unitaires perpendiculaires à x<sub>5</sub> sont ±(sin α ; cos α ; 0). Vérification : cos α·sin α + (−sin α)·cos α = 0.</p>
+   <p><b>3.</b> Le brin 6′ part par le <b>haut</b> de la poulie : on prend le signe qui monte (composante y positive), n = (sin α ; cos α ; 0).</p>
+   <p><b>4.</b> Le rayon vaut 2r : OU = 2r·n = <b>(2r·sin α ; 2r·cos α ; 0)</b>. Longueur : √(4r²·sin²α + 4r²·cos²α) = 2r.</p>
+   <p><b>5.</b> Pour α = 30° : OU = (2r × 1/2 ; 2r × √3/2 ; 0) = (r ; √3·r ; 0) ≈ (r ; 1,73·r ; 0).</p></div></details>`)}
   ${St(1.4,`<p><b>Étape 2 · Les torseurs, chacun à son point :</b></p>
    <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["X<sub>34</sub>","Y<sub>34</sub>","0"]))}${T("T<sub>6′→4</sub>","U",t3(["T′·cos α","−T′·sin α","0"]))}${T("T<sub>6″→4</sub>","V",t3(["0","−T″","0"]))}</div>`)}
   ${St(2.2,`<p><b>Étape 3 · BABAR vers O.</b> {T<sub>3→4</sub>} est déjà en O.</p>
@@ -453,6 +459,8 @@ const PANEL={
    ${E(["(7) : 2r·T″ = 2r·T′ ⇒ T″ = T′ ⇒ T″ = F/2","(8)"],["(5) : X<sub>34</sub> = −T′·cos α = −(F/2)·cos α","(9)"],["(6) : Y<sub>34</sub> = T′·sin α + T″ = (F/2)·sin α + F/2 = (F/2)·(1 + sin α)","(10)"])}
    <p><b>Les torseurs en O, avec les valeurs :</b></p>
    <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["−(F/2)·cos α","(F/2)·(1 + sin α)","0"]))}${T("T<sub>6′→4</sub>","O",t3(["(F/2)·cos α","−(F/2)·sin α","0"],["0","0","−r·F"]))}${T("T<sub>6″→4</sub>","O",t3(["0","−F/2","0"],["0","0","+r·F"]))}</div>
+   <p>Pour α = 30° (cos 30° = √3/2, sin 30° = 1/2) :</p>
+   <div class="tzs">${T("T<sub>6′→4</sub>","O",t3(["(√3/4)·F","−F/4","0"],["0","0","−r·F"]))}${T("T<sub>3→4</sub>","O",t3(["−(√3/4)·F","(3/4)·F","0"]))}</div>
    <p class="note">Raccourci du prof : un brin tangent a pour bras de levier le rayon, donc ±2r × tension.</p>`)}`,
  q5:`<p class="q">Q5. Masse M du massif 8 qui donne la tension F.</p>
   ${FIGS.q5}
