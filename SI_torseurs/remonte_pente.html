@@ -113,6 +113,11 @@ details[open] summary{border-bottom:1px solid var(--line)}
 .live b{color:var(--f)}
 .eqn{display:flex;justify-content:space-between;gap:12px}
 .eqn i{font-style:normal;color:var(--muted)}
+.fig{width:100%;max-width:400px;display:block;margin:6px 0 4px;border:1px solid var(--line);border-radius:6px;background:var(--sheet)}
+.fig text{font:600 12px var(--f-mono);fill:var(--ink)}
+.fig .f{fill:var(--f);font-weight:700}
+.fig .m{fill:var(--muted)}
+.fig .why{font:600 11.5px var(--f-body);fill:var(--muted)}
 table.bb td,table.bb th{white-space:nowrap;padding:4px 6px}
 table.bb td{font:600 .85rem var(--f-mono);font-variant-numeric:tabular-nums}
 table.bb td.op{color:var(--muted);text-align:center;padding:4px 2px}
@@ -315,6 +320,71 @@ const GLOSS=`<div class="tablewrap"><table><thead><tr><th>Symbole</th><th>Signif
 <tr><td>E<sub>1</sub>, E<sub>2</sub>, E</td><td>ensembles isolés : E<sub>1</sub> = {câble 6 + poulie 7}, E<sub>2</sub> = {poulie 4 + câble 6}, E = {1, 2, 3, 4, 6, 7, 8}</td></tr>
 <tr><td>(1) … (16)</td><td>numéros des équations, comme dans le corrigé du prof ; « (1) + (3) » veut dire « en utilisant (1) et (3) »</td></tr>
 </tbody></table></div>`;
+
+// ---------- one reasoning figure per question (schematic, α = 30°) ----------
+const fl=(x1,y1,x2,y2,c="var(--ink)",w=2,d="")=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${d?`stroke-dasharray="${d}"`:""}/>`;
+const fa=(x1,y1,x2,y2,lab,lx,ly,c="var(--f)")=>{const dx=x2-x1,dy=y2-y1,n=Math.hypot(dx,dy),u=[dx/n,dy/n],w=[-u[1],u[0]],b=[x2-u[0]*10,y2-u[1]*10];
+  return fl(x1,y1,b[0],b[1],c,3)+`<polygon points="${x2},${y2} ${b[0]+w[0]*5},${b[1]+w[1]*5} ${b[0]-w[0]*5},${b[1]-w[1]*5}" fill="${c}"/>`+(lab?`<text class="f" x="${lx}" y="${ly}" style="fill:${c}">${lab}</text>`:"")};
+const fc=(x,y,r,c,w=3,f="none")=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${c}" stroke-width="${w}"/>`;
+const ft=(x,y,t,cls="",a="start")=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${a}">${t}</text>`;
+const fpt=(x,y,t,dx=6,dy=-6)=>`<circle cx="${x}" cy="${y}" r="3" fill="var(--ink)"/>`+ft(x+dx,y+dy,t);
+const fhatch=(x,y)=>fl(x-14,y+8,x+14,y+8)+[0,1,2,3].map(i=>fl(x-12+i*8,y+9,x-17+i*8,y+15,"var(--ink)",1.2)).join("")+fl(x,y,x,y+8);
+const FIG=(h,inner)=>`<svg class="fig" viewBox="0 0 400 ${h}" role="img">${inner}</svg>`;
+const sx=.866, sy=.5;   // x5 on screen: (cos30, sin30) downward-right
+const pul7=(lab1,lab2,labF)=>FIG(220,
+  fl(131,153,27,93,"var(--muted)",2)+fl(169,87,65,27,"var(--muted)",2)+fc(150,120,38,"var(--cA)")+
+  fl(150,120,131,153,"var(--muted)",1.5,"3 3")+fl(150,120,169,87,"var(--muted)",1.5,"3 3")+ft(128,135,"r","m")+ft(165,112,"r","m")+
+  fpt(150,120,"A",-18,-6)+fpt(131,153,"P",-14,14)+fpt(169,87,"Q",6,-6)+
+  fa(131,153,79,123,lab1,56,142)+fa(169,87,117,57,lab2,98,48)+fa(150,120,220,160,labF,224,172)+
+  ft(290,48,"base 5","why")+fa(250,52,284,72,"","","","var(--muted)")+ft(287,80,"x₅","m")+fa(250,52,268,21,"","","","var(--muted)")+ft(272,22,"y₅","m")+
+  ft(232,110,"T : bras r, sens horaire → −r·T","why")+ft(232,128,"T′ : bras r, sens trigo → +r·T′","why")+ft(232,146,"F passe par A → 0","why"));
+const FIGS={
+ q2:pul7("T","T′","F"),
+ q3:pul7("F/2","F/2","F"),
+ q4:FIG(225,
+  fc(150,115,52,"var(--cB)")+fl(176,70,262,120,"var(--muted)",2)+fl(98,115,98,215,"var(--muted)",2)+
+  fl(150,115,176,70,"var(--muted)",1.5,"3 3")+fl(150,115,98,115,"var(--muted)",1.5,"3 3")+ft(166,98,"2r","m")+ft(116,110,"2r","m")+
+  fpt(150,115,"O",8,16)+fpt(176,70,"U",4,-8)+fpt(98,115,"V",-18,-6)+
+  fa(176,70,236,105,"T′",240,100)+fa(98,115,98,185,"T″",72,180)+fa(150,115,118,115,"X₃₄",104,138)+fa(150,115,150,52,"Y₃₄",156,48)+
+  ft(250,150,"6′ : bras 2r, sens horaire → −2r·T′","why")+ft(250,168,"6″ : bras 2r, sens trigo → +2r·T″","why")+ft(250,186,"axe 3 : en O → 0","why")),
+ q5:FIG(215,
+  `<rect x="115" y="80" width="70" height="70" fill="none" stroke="var(--ink)" stroke-width="2.5"/>`+fl(150,80,150,20,"var(--muted)",2)+fpt(150,115,"G",8,4)+
+  fa(150,80,150,30,"T″",158,40)+fa(150,115,150,200,"M·g",158,198)+
+  ft(220,90,"Le brin 6″ part vers la poulie :","why")+ft(220,106,"il tire le massif vers le haut.","why")+ft(220,130,"y : T″ − M·g = 0","why")),
+ q6:FIG(220,
+  fl(120,40,120,180,"var(--cC)",7)+fhatch(120,180)+fc(120,40,6,"var(--ink)",2.5,"var(--sheet)")+fc(120,180,6,"var(--ink)",2.5,"var(--sheet)")+
+  ft(132,44,"O")+ft(132,184,"B")+fl(96,40,96,180,"var(--muted)",1.5,"4 3")+ft(84,114,"L","m","end")+
+  fa(120,180,120,130,"Y₀₁",128,140)+fa(120,40,120,90,"Y₃₁",128,84)+
+  fa(120,180,160,180,"X₀₁ ?",150,172,"var(--muted)")+fa(120,40,160,40,"X₃₁ ?",150,32,"var(--muted)")+
+  ft(200,100,"Moment en B : −L·X₃₁ = 0","why")+ft(200,118,"⇒ X₃₁ = 0 et X₀₁ = 0","why")+ft(200,142,"Deux forces sur la droite (B, y) :","why")+ft(200,158,"deux glisseurs opposés.","why")),
+ q7:FIG(220,
+  fl(120,40,120,180,"var(--cC)",7)+fhatch(120,180)+fc(120,40,6,"var(--ink)",2.5,"var(--sheet)")+fc(120,180,6,"var(--ink)",2.5,"var(--sheet)")+
+  ft(132,44,"O")+ft(132,184,"B")+fa(120,180,120,130,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan>",128,140)+fa(120,40,120,90,"−R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan>",128,84)+
+  ft(200,90,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan> compté de B vers O (vers le haut).","why")+ft(200,112,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan> > 0 : le sol pousse → comprimée","why")+ft(200,130,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan> < 0 : le sol tire → tendue","why")),
+ q8:FIG(225,
+  fl(110,35,202,195,"var(--cD)",7)+fhatch(202,195)+fc(110,35,6,"var(--ink)",2.5,"var(--sheet)")+fc(202,195,6,"var(--ink)",2.5,"var(--sheet)")+
+  ft(96,32,"O","","end")+ft(214,199,"C")+fl(202,195,202,110,"var(--muted)",1.2,"4 3")+`<path d="M202 155 A40 40 0 0 0 182 160" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`+ft(184,150,"α","m")+
+  fa(202,195,166,133,"F₀→₂",130,150)+fa(110,35,146,97,"F₃→₂",152,80)+
+  ft(250,70,"CO = (−L·tan α ; L)","why")+ft(250,90,"Moment en C ⇒","why")+ft(250,106,"X₃₂ = −tan α·Y₃₂","why")+ft(250,130,"⇒ forces le long de (CO) :","why")+ft(250,146,"deux glisseurs opposés.","why")),
+ q9:FIG(225,
+  fl(110,35,202,195,"var(--cD)",7)+fhatch(202,195)+fc(202,195,6,"var(--ink)",2.5,"var(--sheet)")+ft(214,199,"C")+ft(96,32,"O","","end")+
+  fl(202,195,202,110,"var(--muted)",1.2,"4 3")+`<path d="M202 155 A40 40 0 0 0 182 160" fill="none" stroke="var(--muted)" stroke-width="1.5"/>`+ft(184,150,"α","m")+
+  fa(202,195,155,113,"R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'></tspan>·y₂",112,112)+fa(202,195,155,195,"",0,0,"var(--accent)")+ft(130,215,"−R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'></tspan>·sin α","m")+fa(202,195,202,113,"",0,0,"var(--accent)")+ft(208,135,"R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'></tspan>·cos α","m")+
+  ft(236,60,"y₂ = (−sin α ; cos α)","why")+ft(236,80,"α depuis la verticale :","why")+ft(236,96,"cos sur y, sin sur x,","why")+ft(236,112,"moins : vers la gauche.","why")),
+ q10:FIG(230,
+  `<rect x="40" y="18" width="250" height="168" rx="14" fill="none" stroke="var(--ok)" stroke-width="2" stroke-dasharray="7 5"/>`+ft(48,34,"E","f","start").replace('class="f"','class="f" style="fill:var(--ok)"')+
+  fl(120,50,120,175,"var(--cC)",5)+fl(120,50,190,175,"var(--cD)",5)+fc(120,50,18,"var(--cB)",3)+fc(255,90,9,"var(--cA)",3)+
+  fl(120,50,255,90,"var(--muted)",1.5)+fl(102,50,102,105,"var(--muted)",1.5)+`<rect x="84" y="105" width="36" height="34" fill="none" stroke="var(--ink)" stroke-width="2"/>`+
+  fhatch(120,175)+fhatch(190,175)+fl(255,90,330,133,"var(--ink)",2.5)+
+  fa(120,222,120,182,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan>",126,214)+fa(214,218,193,181,"R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'></tspan>",218,214)+fa(255,90,325,130,"F",330,128)+fa(102,122,102,170,"M·g",60,170)+
+  ft(300,40,"4 actions","why")+ft(300,56,"extérieures ;","why")+ft(300,72,"tout le reste","why")+ft(300,88,"est intérieur.","why")),
+ q12:FIG(230,
+  fl(110,40,110,190,"var(--cC)",7)+fl(110,40,197,190,"var(--cD)",7)+fhatch(110,190)+fhatch(197,190)+
+  fa(110,190,110,222,"",0,0)+fa(110,40,110,8,"",0,0)+ft(20,120,"barre 1","f")+ft(20,136,"tendue","f")+ft(20,152,"R<tspan font-size='9' dy='3'>B</tspan><tspan dy='-3'></tspan> = −F/2","why")+
+  fa(214,222,200,196,"",0,0,"var(--bad)")+fa(92,10,107,36,"",0,0,"var(--bad)")+ft(230,120,"barre 2","f").replace('class="f"','class="f" style="fill:var(--bad)"')+ft(230,136,"comprimée","f").replace('class="f"','class="f" style="fill:var(--bad)"')+ft(230,152,"R<tspan font-size='9' dy='3'>C</tspan><tspan dy='-3'></tspan> = √3·F","why")+
+  ft(230,186,"Tendue : flèches vers l'extérieur.","why")+ft(230,202,"Comprimée : vers l'intérieur.","why")),
+};
+FIGS.q11=FIGS.q10;
 const graph=`<svg viewBox="0 0 420 170" style="width:100%;max-width:420px;display:block" role="img" aria-label="Graphe de structure : 0, 1, 2, 3, 4">
   ${[[60,90,"0"],[180,35,"1"],[180,145,"2"],[290,90,"3"],[385,90,"4"]].map(([x,y,t])=>`<circle cx="${x}" cy="${y}" r="20" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/><text x="${x}" y="${y+6}" text-anchor="middle" style="font:700 17px var(--f-disp);fill:var(--ink)">${t}</text>`).join("")}
   ${[[60,90,180,35,"Pivot (B, z)",95,48],[60,90,180,145,"Pivot (C, z)",95,140],[180,35,290,90,"Pivot (O, z)",250,48],[180,145,290,90,"Pivot (O, z)",250,140],[290,90,385,90,"Pivot (O, z)",337,75]].map(([x1,y1,x2,y2,l,tx,ty])=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="2"/><text x="${tx}" y="${ty}" text-anchor="middle" style="font:600 12px var(--f-body);fill:var(--muted)">${l}</text>`).join("")}
@@ -332,6 +402,7 @@ const PANEL={
   ${St(.8,`<ul><li>0–1 : pivot d'axe (B, z) ; 0–2 : pivot d'axe (C, z) ;</li><li>1–3 et 2–3 : pivots d'axe (O, z) ; 3–4 : pivot d'axe (O, z).</li></ul>
    <p class="note">La boucle 0–1–3–2–0 forme le portique. La poulie 4 est une branche ouverte accrochée à l'axe 3.</p>`)}`,
  q2:`<p class="q">Q2. Trois équations du PFS appliqué en A à E<sub>1</sub> = {portion de câble 6 + 7}.</p>
+  ${FIGS.q2}
   ${St(.2,`<p><b>Étape 1 · B.A.M.E. sur E<sub>1</sub>.</b> On travaille dans la <b>base 5</b> (x<sub>5</sub> le long des brins, y<sub>5</sub> perpendiculaire, z hors de la feuille) : toutes les forces sont selon x<sub>5</sub>.</p><ul>
    <li><b>Câble 5 sur 7</b>, en A : il tire selon +x<sub>5</sub> avec F.</li>
    <li><b>Brin 6</b> (tension T) : il part de la poulie vers O, donc il tire selon <b>−x<sub>5</sub></b>. Il quitte la poulie au point de tangence <b>P</b>, sous A : AP = (0 ; −r ; 0).</li>
@@ -350,6 +421,7 @@ const PANEL={
    ${E(["Résultante sur x<sub>5</sub> : F + (−T) + (−T′) = 0, soit −T − T′ + F = 0","(1)"],["Résultante sur y<sub>5</sub> : 0 + 0 + 0 = 0",""],["Moment en A sur z : 0 + (−r·T) + r·T′ = 0, soit −r·T + r·T′ = 0","(2)"])}
    <details class="hint"><summary>Et si on travaillait dans la base 0 ?</summary><div class="body"><p>Les brins tirent selon −x<sub>5</sub> = (−cos α ; sin α), et AP = (−r·sin α ; −r·cos α). On trouve x : cos α·(F − T − T′) = 0, y : −sin α·(F − T − T′) = 0, z : −r·T·(sin²α + cos²α) + r·T′·(sin²α + cos²α) = 0. Les cos et sin se mettent en facteur : on retrouve (1) et (2). La base 5 évite seulement ces calculs.</p></div></details>`)}`,
  q3:`<p class="q">Q3. En déduire les tensions T et T′ en fonction de F.</p>
+  ${FIGS.q3}
   ${St(.2,`<p><b>Étape 1 · Avec (2) :</b></p>${E(["−r·T + r·T′ = 0",""],["r·T′ = r·T",""],["on divise par r (r ≠ 0) : T′ = T","(3)"])}`)}
   ${St(1,`<p><b>Étape 2 · Avec (1) et (3)</b> : dans (1), on remplace T′ par T.</p>${E(["−T − T′ + F = 0",""],["−T − T + F = 0",""],["F = 2·T ⇒ T = F/2, et T′ = T = F/2","(4)"])}
    <p class="note">« (1) + (3) » veut dire « en utilisant (1) et (3) », pas « additionner ».</p>`)}
@@ -357,6 +429,7 @@ const PANEL={
    <div class="tzs">${T("T<sub>6→E1</sub>","A",t3(["−F/2","0","0"],["0","0","−r·F/2"]))}${T("T<sub>6′→E1</sub>","A",t3(["−F/2","0","0"],["0","0","+r·F/2"]))}</div>
    <div class="key good"><p>C'est un <b>moufle</b> : le câble 6 fait un aller-retour autour de la poulie 7, chaque brin ne porte que la moitié de F.</p></div>`)}`,
  q4:`<p class="q">Q4. On isole E<sub>2</sub> = {4 + portion de câble 6}. PFS en O : T″ et le torseur {F<sub>3→4</sub>} en fonction de F.</p>
+  ${FIGS.q4}
   ${St(.2,`<p><b>Étape 1 · B.A.M.E. sur E<sub>2</sub></b> (base 0, imposée à partir de Q4) :</p><ul>
    <li><b>Axe 3 sur 4</b>, pivot d'axe (O, z) : X<sub>34</sub>, Y<sub>34</sub>, pas de moment en O.</li>
    <li><b>Brin 6′</b> : il part de la poulie 4 vers la poulie 7, donc il tire selon <b>+x<sub>5</sub></b> = (cos α ; −sin α). Force : (T′·cos α ; −T′·sin α).</li>
@@ -382,12 +455,14 @@ const PANEL={
    <div class="tzs">${T("T<sub>3→4</sub>","O",t3(["−(F/2)·cos α","(F/2)·(1 + sin α)","0"]))}${T("T<sub>6′→4</sub>","O",t3(["(F/2)·cos α","−(F/2)·sin α","0"],["0","0","−r·F"]))}${T("T<sub>6″→4</sub>","O",t3(["0","−F/2","0"],["0","0","+r·F"]))}</div>
    <p class="note">Raccourci du prof : un brin tangent a pour bras de levier le rayon, donc ±2r × tension.</p>`)}`,
  q5:`<p class="q">Q5. Masse M du massif 8 qui donne la tension F.</p>
+  ${FIGS.q5}
   ${St(.2,`<p><b>Étape 1 · On isole 8.</b> Deux actions : le brin 6″ part vers la poulie, <b>vers le haut</b> (+T″) ; le poids tire vers le bas. Les deux sont sur la verticale de G : on écrit tout en G, sans BABAR.</p>
    <div class="tzs">${T("T<sub>6″→8</sub>","G",t3(["0","T″","0"]))}${T("T<sub>pes→8</sub>","G",t3(["0","−M·g","0"]))}</div>`)}
   ${St(1,`<p><b>Étape 2 · PFS en G :</b></p>${E(["Résultante sur x : 0 + 0 = 0",""],["Résultante sur y : T″ − M·g = 0","(11)"],["Moment sur z : 0 + 0 = 0",""])}
    <p><b>Étape 3 · On résout</b> avec T″ = F/2 (8) :</p>${E(["M·g = T″ = F/2",""],["M = F / (2g)","(12)"])}
    <p class="note">Le massif ne pèse que la moitié de F : c'est le moufle de la poulie 7.</p>`)}`,
  q6:`<p class="q">Q6. Isoler la barre 1. Montrer que {F<sub>0→1</sub>} et {F<sub>3→1</sub>} sont des glisseurs, et donner leur support.</p>
+  ${FIGS.q6}
   ${St(.2,`<p><b>Étape 1 · B.A.M.E.</b> : pivot en B (sol 0) et pivot en O (axe 3). Masse négligée.</p>
    <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["X<sub>01</sub>","Y<sub>01</sub>","0"]))}${T("T<sub>3→1</sub>","O",t3(["X<sub>31</sub>","Y<sub>31</sub>","0"]))}</div>`)}
   ${St(1,`<p><b>Étape 2 · BABAR, de O vers B.</b> O est à L au-dessus de B : BO = (0 ; L ; 0).</p>
@@ -397,9 +472,11 @@ const PANEL={
    <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","Y<sub>01</sub>","0"]))}${T("T<sub>3→1</sub>","O",t3(["0","−Y<sub>01</sub>","0"]))}</div>
    <p class="note">C'est la règle « solide soumis à 2 forces » que le prof cite directement.</p>`)}`,
  q7:`<p class="q">Q7. Avec R<sub>B</sub>, la valeur algébrique de l'action de 0 sur 1 : exprimer {F<sub>0→1</sub>}.</p>
+  ${FIGS.q7}
   ${St(.2,`<p>On pose Y<sub>01</sub> = R<sub>B</sub> :</p><div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","R<sub>B</sub>","0"]))}</div>
    <p class="note">R<sub>B</sub> &gt; 0 : le sol pousse la barre vers le haut (compression). R<sub>B</sub> &lt; 0 : il la tire vers le bas (traction).</p>`)}`,
  q8:`<p class="q">Q8. Isoler la barre 2. Montrer que {F<sub>0→2</sub>} et {F<sub>3→2</sub>} sont des glisseurs, et donner leur support.</p>
+  ${FIGS.q8}
   ${St(.2,`<p><b>Étape 1 · B.A.M.E.</b> : pivot en C et pivot en O, masse négligée.</p>
    <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["X<sub>02</sub>","Y<sub>02</sub>","0"]))}${T("T<sub>3→2</sub>","O",t3(["X<sub>32</sub>","Y<sub>32</sub>","0"]))}</div>`)}
   ${St(1,`<p><b>Étape 2 · BABAR, de O vers C.</b> C est à L sous O et à L·tan α à droite : CO = (−L·tan α ; L ; 0).</p>
@@ -407,22 +484,26 @@ const PANEL={
   ${St(1.8,`<p><b>Étape 3 · PFS en C :</b></p>${E(["Résultante : X<sub>02</sub> + X<sub>32</sub> = 0 ; Y<sub>02</sub> + Y<sub>32</sub> = 0",""],["Moment sur z : −L·tan α·Y<sub>32</sub> − L·X<sub>32</sub> = 0 ⇒ X<sub>32</sub> = −tan α·Y<sub>32</sub>",""])}
    <p>La force en O vaut donc Y<sub>32</sub>·(−tan α ; 1), qui est parallèle à (−sin α ; cos α) : la direction de la barre. Ce sont deux <b>glisseurs</b> opposés de support <b>(CO)</b>.</p>`)}`,
  q9:`<p class="q">Q9. Avec R<sub>C</sub> : exprimer {F<sub>0→2</sub>} dans la base 0 en fonction de R<sub>C</sub> et α.</p>
+  ${FIGS.q9}
   ${St(.2,`<p><b>Étape 1 · La direction de la barre.</b> On note y<sub>2</sub> le vecteur unitaire de C vers O. La barre est inclinée de α par rapport à la <b>verticale</b> et monte vers la gauche : cos α sur y (l'axe depuis lequel on mesure α), sin α sur x, avec un signe moins car on va vers la gauche.</p>
    ${E(["y<sub>2</sub> = −sin α·x + cos α·y",""])}`)}
   ${St(1,`<p><b>Étape 2 · La force :</b> F<sub>0→2</sub> = R<sub>C</sub>·y<sub>2</sub> = (−R<sub>C</sub>·sin α ; R<sub>C</sub>·cos α).</p>
    <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["−R<sub>C</sub>·sin α","R<sub>C</sub>·cos α","0"]))}${T("T<sub>3→2</sub>","O",t3(["R<sub>C</sub>·sin α","−R<sub>C</sub>·cos α","0"]))}</div>`)}`,
  q10:`<p class="q">Q10. On isole E = {1, 2, 3, 4, 6, 7, 8}. Bilan des actions mécaniques extérieures.</p>
+  ${FIGS.q10}
   ${St(.2,`<p>Seuls le sol 0, le câble 5 et la Terre sont en dehors de E. Quatre actions extérieures, dans la base 0 :</p>
    <div class="tzs">${T("T<sub>0→1</sub>","B",t3(["0","R<sub>B</sub>","0"]))}${T("T<sub>0→2</sub>","C",t3(["−R<sub>C</sub>·sin α","R<sub>C</sub>·cos α","0"]))}</div>
    <div class="tzs">${T("T<sub>5→7</sub>","A",t3(["F·cos α","−F·sin α","0"]))}${T("T<sub>pes→8</sub>","G",t3(["0","−M·g","0"]))}</div>
    <p class="note">F<sub>5→7</sub> = F·x<sub>5</sub> avec x<sub>5</sub> = (cos α ; −sin α). Tout le reste est intérieur : pivots en O, poulies, câble 6. Il ne reste que 2 inconnues, R<sub>B</sub> et R<sub>C</sub>.</p>`)}`,
  q11:`<p class="q">Q11. PFS sur E, puis R<sub>B</sub> et R<sub>C</sub>.</p>
+  ${FIGS.q11}
   ${St(.2,`<p><b>Étape 1 · Les résultantes</b> (la colonne force ne dépend pas du point) : on additionne les 4 torseurs ligne par ligne.</p>
    ${E(["x : 0 + (−R<sub>C</sub>·sin α) + F·cos α + 0 = 0, soit F·cos α − R<sub>C</sub>·sin α = 0","(13)"],["y : R<sub>B</sub> + R<sub>C</sub>·cos α − F·sin α − M·g = 0","(14)"],["Moment sur z : équation inutile",""])}
    <p class="note">Deux inconnues, deux équations de résultante : le moment n'est pas nécessaire (il demanderait des longueurs non données).</p>`)}
   ${St(1.2,`<p><b>Étape 2 · R<sub>C</sub> avec (13) :</b></p>${E(["R<sub>C</sub>·sin α = F·cos α",""],["R<sub>C</sub> = F·cos α / sin α","(15)"])}`)}
   ${St(2,`<p><b>Étape 3 · R<sub>B</sub> avec (14), (15) et (12) :</b></p>${E(["R<sub>B</sub> = F·sin α + M·g − R<sub>C</sub>·cos α",""],["M·g = F/2 (12) ; R<sub>C</sub>·cos α = F·cos²α / sin α (15)",""],["R<sub>B</sub> = F·sin α − F·cos²α / sin α + F/2","(16)"])}`)}`,
  q12:`<p class="q">Q12. Pour α = 30°, chaque barre est-elle tendue ou comprimée ?</p>
+  ${FIGS.q12}
   ${St(.2,`<p><b>Valeurs :</b> sin 30° = 1/2 ; cos 30° = √3/2 ; cos²30° = 3/4.</p>`)}
   ${St(.8,`<p><b>Barre 2 :</b></p>${E(["R<sub>C</sub> = F·(√3/2) / (1/2) = √3·F ≈ 1,73·F",""],["−R<sub>C</sub>·sin 30° = −√3·F × 1/2 = −(√3/2)·F",""],["R<sub>C</sub>·cos 30° = √3·F × √3/2 = (3/2)·F",""])}
    <div class="tzs">${T("T<sub>0→2</sub>","C",t3(["−(√3/2)·F","(3/2)·F","0"]))}</div>
