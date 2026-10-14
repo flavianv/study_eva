@@ -12,6 +12,7 @@ Worked solutions and notes for the statics (torseur) exercises in `docs/`.
 | Console portante de bateau (boat crane) | `docs/console.jpeg` | [console_bateau.html](console_bateau.html) (interactive, animated) |
 | Portail battant motorisé (gate, practice exercise) | — | [portail.html](portail.html) (statement, hints, hidden corrections) |
 | Bouche de climatisation (air-vent damper, TD 22) | `docs/clim.jpeg` | [clim.html](clim.html) (interactive, animated) |
+| Remonte-pente (ski-lift gantry, TD 22) | `docs/remonte_pente.jpeg` | [remonte_pente.html](remonte_pente.html) (interactive, teacher's method) |
 
 ## Key ideas
 
